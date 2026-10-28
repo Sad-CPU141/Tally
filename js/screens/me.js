@@ -19,7 +19,7 @@ function Row({ title, sub, children }) {
 
 export function Me({ state }) {
   const s = state.settings;
-  const counts = `${state.workouts.length} workouts · ${state.bodyweight.length} weigh-ins · ${state.routines.length} routines`;
+  const counts = `${state.workouts.length} workouts · ${new Set(state.foodLog.map(e => e.date)).size} food days · ${state.bodyweight.length} weigh-ins`;
   return html`
     <${TopBar} title="Me" />
     <div class="page">
@@ -39,7 +39,10 @@ export function Me({ state }) {
         </div>
       </div>
 
-      <button class="btn block" onClick=${() => logBodyweight()}><${Icon} name="scale" size=${18} /> Log bodyweight</button>
+      <div class="grid2">
+        <button class="btn" onClick=${() => logBodyweight()}><${Icon} name="scale" size=${18} /> Log weight</button>
+        <button class="btn" onClick=${() => nav.go('targets')}><${Icon} name="food" size=${18} /> Food targets</button>
+      </div>
 
       <div class="section-head"><span class="h-md">Units</span></div>
       <div class="list">
@@ -87,7 +90,7 @@ export function Me({ state }) {
         <${Row} title="Erase everything" sub="Deletes all workouts, routines and settings on this phone"><button class="btn sm danger" onClick=${eraseAll}>Erase</button><//>
       </div>
       ${store.isMemoryOnly() ? html`<div class="banner"><span class="grow">This browser isn't allowing storage, so nothing will be kept after you close it. Open Tally from your home screen or a normal browser window.</span></div>` : null}
-      <p class="tiny muted" style="text-align:center;margin:8px 0 0">Tally · Gym Macro Tracker · phase 1</p>
+      <p class="tiny muted" style="text-align:center;margin:8px 0 0">Tally · Gym Macro Tracker · food data from Open Food Facts</p>
     </div>`;
 }
 
@@ -117,7 +120,7 @@ function loadSample() {
 
 function clearSample() {
   confirmSheet({ title: 'Clear sample data?', body: 'Removes the example workouts and weigh-ins. Your settings and routines stay.', confirm: 'Clear', onConfirm: () => {
-    store.update(st => { st.workouts = []; st.bodyweight = []; st.active = null; st.settings.sample = false; });
+    store.update(st => { st.workouts = []; st.bodyweight = []; st.foodLog = []; st.water = {}; st.foods = []; st.meals = []; st.active = null; st.settings.sample = false; });
     toast('Sample data cleared');
   } });
 }

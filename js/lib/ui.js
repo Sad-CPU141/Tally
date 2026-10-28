@@ -35,6 +35,12 @@ const P = {
   note: 'M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5',
   swap: 'M7 7h12l-3-3 M17 17H5l3 3',
   food: 'M7 3v8 M5 3v5a2 2 0 0 0 4 0V3 M7 11v10 M17 3c-2 0-3 3-3 6s1 4 3 4v8',
+  barcode: 'M4 6v12 M7 6v12 M10.5 6v12 M14 6v12 M16.5 6v12 M20 6v12 M2 4h4 M2 20h4 M18 4h4 M18 20h4',
+  drop: 'M12 3c3.5 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 2.5-6.5 6-11z',
+  copy: 'M9 9h11v11H9z M5 15H4V4h11v1',
+  left: 'M15 5l-7 7 7 7',
+  right: 'M9 5l7 7-7 7',
+  bookmark: 'M6 3h12v18l-6-4-6 4z',
 };
 
 export function Icon({ name, size = 22, sw = 1.9 }) {
@@ -48,7 +54,7 @@ export function Icon({ name, size = 22, sw = 1.9 }) {
 // A stack of { name, params }. Top-level tabs reset the stack.
 const listeners = new Set();
 let stack = [{ name: 'today', params: {} }];
-export const TABS = ['today', 'train', 'stats', 'me'];
+export const TABS = ['today', 'train', 'food', 'stats', 'me'];
 
 function emit() { listeners.forEach(l => l(stack[stack.length - 1], stack.length)); }
 

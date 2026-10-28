@@ -3,6 +3,9 @@ const id = () => Math.random().toString(36).slice(2, 9);
 export function defaultDashboard() {
   return [
     { id: id(), type: 'week', opts: {} },
+    { id: id(), type: 'score', opts: {} },
+    { id: id(), type: 'calories', opts: {} },
+    { id: id(), type: 'protein', opts: {} },
     { id: id(), type: 'bodyweight', opts: {} },
     { id: id(), type: 'streak', opts: {} },
     { id: id(), type: 'strength', opts: {} },

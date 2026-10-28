@@ -114,7 +114,7 @@ img { max-width: 100%; }
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
 }
-.tabbar-in { max-width: 720px; margin: 0 auto; height: var(--tabbar-h); display: grid; grid-template-columns: repeat(4, 1fr); }
+.tabbar-in { max-width: 720px; margin: 0 auto; height: var(--tabbar-h); display: grid; grid-template-columns: repeat(5, 1fr); }
 .tab { background: none; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
 .tab svg { width: 24px; height: 24px; }
 .tab[aria-current="page"] { color: var(--accent); }
@@ -212,7 +212,7 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 .banner { display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 14px; background: color-mix(in srgb, var(--warn) 12%, transparent); color: var(--text); font-size: 13px; border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); }
 .banner .grow { flex: 1; min-width: 0; }
 
-.dash { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: row dense; gap: 12px; }
+.dash { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .dash > .w2 { grid-column: span 2; }
 @media (max-width: 359px) { .dash { grid-template-columns: 1fr; } .dash > .w2 { grid-column: auto; } }
 
@@ -353,3 +353,35 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Food ---------- */
+.daynav { display: flex; align-items: center; gap: 2px; }
+.daynav .lbl { font-weight: 650; font-size: 14px; min-width: 84px; text-align: center; background: none; border: 0; padding: 6px 4px; border-radius: 10px; }
+.fuel { display: flex; flex-direction: column; gap: 14px; }
+.fuel-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.meter { position: relative; height: 10px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--accent); transition: width .3s; }
+.meter i.over { background: var(--warn); }
+.meter i.good { background: var(--good); }
+.meter.thin { height: 6px; }
+.macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.macro { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.macro .v { font: 600 15px var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.macro .v small { color: var(--muted); font-weight: 500; font-size: 12px; }
+.meal-head { display: flex; align-items: center; gap: 8px; padding: 12px 8px 4px 16px; }
+.meal-head .h-md { flex: 1; min-width: 0; }
+.food-row .macs { font: 12px var(--font-num); color: var(--muted); white-space: nowrap; }
+.food-row .kc { font: 600 14px var(--font-num); text-align: right; white-space: nowrap; }
+.water { display: flex; align-items: center; gap: 12px; }
+.water .glasses { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.water .glasses i { width: 12px; height: 18px; border-radius: 3px 3px 5px 5px; background: var(--surface-3); }
+.water .glasses i.on { background: var(--accent); }
+.scan-box { position: relative; border-radius: 18px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; max-width: 100%; }
+.scan-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.scan-box .aim { position: absolute; left: 12%; right: 12%; top: 38%; bottom: 38%; border: 2px solid rgba(255,255,255,.85); border-radius: 12px; box-shadow: 0 0 0 999px rgba(0,0,0,.35); }
+.wk { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.wk button { height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-2); font-weight: 650; font-size: 13px; }
+.wk button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.tgt { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+.tgt .field label { font-size: 11px; }
+.tgt .input { padding: 0 8px; text-align: center; font-family: var(--font-num); }

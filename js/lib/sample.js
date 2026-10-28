@@ -4,6 +4,7 @@
 import { freshState, uid } from './store.js';
 import { TEMPLATES } from './exercises.js';
 import { addDays, startOfDay, dayKey, fromUnit, toUnit, stepFor } from './util.js';
+import { entryFrom, calculate } from './food.js';
 
 function rng(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
 
@@ -84,5 +85,57 @@ export function makeSample(settings) {
   }
 
   st.workouts.sort((a, b) => a.start - b.start);
+
+  // Food: targets from the calculator, then 8 weeks of mostly-complete logs.
+  st.food.profile = { sex: 'male', age: 21, heightCm: 180, activity: 'active', goal: 'cut' };
+  const calc = calculate({ ...st.food.profile, kg: 86.5, trainDays: st.food.trainDays });
+  st.food.train = calc.train; st.food.rest = calc.rest; st.food.setup = true;
+  const P = (id, name, brand, per100, serving) => ({ id, name, brand, per100, serving, source: 'custom' });
+  const foods = {
+    oats: P('s-oats', 'Rolled oats', 'Quaker', { kcal: 379, p: 13, c: 68, f: 6.5, fiber: 10, sugar: 1, sodium: 6 }, { label: '1/2 cup (40 g)', g: 40 }),
+    whey: P('s-whey', 'Whey protein, chocolate', 'Optimum Nutrition', { kcal: 387, p: 77, c: 13, f: 4, fiber: 3, sugar: 5, sodium: 450 }, { label: '1 scoop (31 g)', g: 31 }),
+    banana: P('s-banana', 'Banana', '', { kcal: 89, p: 1.1, c: 23, f: 0.3, fiber: 2.6, sugar: 12, sodium: 1 }, { label: '1 medium (118 g)', g: 118 }),
+    eggs: P('s-eggs', 'Large eggs', '', { kcal: 143, p: 12.6, c: 0.7, f: 9.5, fiber: 0, sugar: 0.4, sodium: 142 }, { label: '1 egg (50 g)', g: 50 }),
+    chicken: P('s-chicken', 'Chicken breast, cooked', '', { kcal: 165, p: 31, c: 0, f: 3.6, fiber: 0, sugar: 0, sodium: 74 }, null),
+    rice: P('s-rice', 'White rice, cooked', '', { kcal: 130, p: 2.7, c: 28, f: 0.3, fiber: 0.4, sugar: 0, sodium: 1 }, { label: '1 cup (158 g)', g: 158 }),
+    salmon: P('s-salmon', 'Atlantic salmon, cooked', '', { kcal: 206, p: 22, c: 0, f: 12, fiber: 0, sugar: 0, sodium: 61 }, null),
+    potato: P('s-potato', 'Baked potato', '', { kcal: 93, p: 2.5, c: 21, f: 0.1, fiber: 2.2, sugar: 1.2, sodium: 10 }, { label: '1 medium (173 g)', g: 173 }),
+    yogurt: P('s-yogurt', 'Greek yogurt 0%', 'Oikos', { kcal: 59, p: 10, c: 3.6, f: 0.4, fiber: 0, sugar: 3.2, sodium: 36 }, { label: '3/4 cup (175 g)', g: 175 }),
+    bar: P('s-bar', 'Protein bar', 'Quest', { kcal: 333, p: 35, c: 38, f: 13, fiber: 23, sugar: 2, sodium: 450 }, { label: '1 bar (60 g)', g: 60 }),
+    wrap: P('s-wrap', 'Chicken shawarma wrap', 'Local spot', { kcal: 215, p: 13, c: 21, f: 9, fiber: 1.5, sugar: 2, sodium: 520 }, { label: '1 wrap (350 g)', g: 350 }),
+  };
+  st.foods = Object.values(foods).map(f => ({ ...f, used: Date.now() - 86400000, uses: 20 }));
+  const plan = [
+    ['Breakfast', [['oats', 2, 'serving'], ['whey', 1, 'serving'], ['banana', 1, 'serving']]],
+    ['Lunch', [['chicken', 200, 'g'], ['rice', 1.25, 'serving']]],
+    ['Dinner', [['salmon', 170, 'g'], ['potato', 1.5, 'serving']]],
+    ['Snacks', [['yogurt', 1, 'serving'], ['bar', 1, 'serving']]],
+  ];
+  for (let d = 0; d <= 56; d++) {
+    const day = addDays(start, d), key = dayKey(day);
+    if (d < 54 && r() < 0.12) continue;
+    const isTrain = st.workouts.some(w => dayKey(w.start) === key);
+    const tgt = isTrain ? st.food.train : st.food.rest;
+    let ents = [];
+    for (const [meal, items] of plan) {
+      if (d === 56 && meal !== 'Breakfast' && meal !== 'Lunch') continue; // today is still in progress
+      let use = items;
+      if (meal === 'Lunch' && r() < 0.25) use = [['wrap', 1, 'serving']];
+      if (meal === 'Dinner' && r() < 0.4) use = [['chicken', 220, 'g'], ['rice', 1.5, 'serving']];
+      if (meal === 'Snacks' && r() < 0.3) use = [['yogurt', 1, 'serving'], ['eggs', 2, 'serving']];
+      for (const [fid, q, u] of use) ents.push({ food: foods[fid], q, u, meal });
+    }
+    // Scale portions so the day lands near the target, with realistic noise.
+    const raw = ents.reduce((a, e) => a + entryFrom(e.food, e.q, e.u, e.meal, key).kcal, 0);
+    const aim = tgt.kcal * (d === 56 ? 0.45 : 0.9 + r() * 0.18);
+    const k = raw ? aim / raw : 1;
+    for (const e of ents) {
+      const scale = e.food.id === 's-whey' || e.food.id === 's-bar' ? 1 : k;
+      const q = e.u === 'g' ? Math.round(e.q * scale / 5) * 5 : Math.round(e.q * scale * 4) / 4;
+      st.foodLog.push({ ...entryFrom(e.food, q, e.u, e.meal, key), id: uid() });
+    }
+    st.water[key] = d === 56 ? 1250 : 2000 + Math.round(r() * 6) * 250;
+  }
+  st.meals = [{ id: uid(), name: 'Usual breakfast', items: plan[0][1].map(([fid, q, u]) => { const { id, date, meal, ...rest } = entryFrom(foods[fid], q, u, 'Breakfast', ''); return rest; }) }];
   return st;
 }

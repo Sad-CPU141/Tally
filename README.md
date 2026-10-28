@@ -18,20 +18,25 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 
 ## Phases
 
-1. **Core gym** — done in this commit, local only
+1. **Core gym** ✓
    - Routines, templates (PPL, Upper/Lower, Full Body, Conditioning), custom exercises
-   - Workout logging: previous numbers per set, tap previous to copy, tick an empty set to accept the suggested numbers
+   - Workout logging: previous numbers per set (matched by set type), tick an empty set to accept the suggested numbers, warm-ups carried over
    - Set types (warm-up, working, drop, failure), per-exercise notes and rest times
    - Rest timer that starts on its own, with ±15s and a sound/vibration at the end
    - Weight × reps, bodyweight, timed holds, distance + time cardio, sprints
    - PR detection (heaviest, est. 1RM, best set, reps, fastest sprint, longest run)
    - Bodyweight log with smoothed trend and weekly rate
-   - 12 analytics cards, customizable Today dashboard
-   - Units, theme, accent, weekly goal, export/import backup, sample data
-2. **Accounts + friends** — Firebase Google sign-in, automatic backup, friend codes, leaderboards
-3. **Food** — barcode scanning (Open Food Facts), saved meals, macro targets, training vs rest day targets
-4. **Combined insights** — strength vs deficit, adaptive TDEE, protein vs progress, weekly score
-5. **Polish** — progress photos, challenges, more customization
+2. **Food** ✓
+   - Daily log with calories left, macros, fiber/sugar/sodium, water
+   - Customizable meals (rename, reorder, add up to 8)
+   - Add food from recent, my foods, saved meals, Open Food Facts search, barcode scan (camera, or type the number), quick add, or create your own
+   - Copy yesterday, save a meal, log a meal again
+   - Targets: calculator (Mifflin–St Jeor + goal) and manual, with separate training and rest day targets
+3. **Combined insights** ✓
+   - Adaptive burn (TDEE from intake + trend weight), strength vs deficit, protein vs progress, weekly score
+   - 20 analytics cards in total, customizable Today dashboard
+4. **Polish** — progress photos, challenges, more customization
+5. **Accounts + friends (last)** — Firebase Google sign-in, automatic backup, friend codes, leaderboards
 
 ## How it's built
 
@@ -43,14 +48,15 @@ manifest.webmanifest    home-screen install
 sw.js                   offline cache (bump VERSION on every deploy)
 css/app.css             design tokens + all styles
 fonts/                  Archivo (display), Geist (body), Geist Mono (numbers), self-hosted for offline
-js/vendor/              Preact + htm (single file)
+js/vendor/              Preact + htm, ZXing (barcode fallback, loaded only when scanning)
 js/app.js               routing between screens, tab bar
 js/lib/store.js         local-first state, IndexedDB persistence
-js/lib/analytics.js     all calculations (e1RM, PRs, weekly buckets, weight trend, streaks)
+js/lib/analytics.js     training calculations (e1RM, PRs, weekly buckets, weight trend, streaks)
+js/lib/food.js          nutrition math, targets, calculator, Open Food Facts, food analytics
 js/lib/cards.js         analytics card library (compact + detail views)
 js/lib/charts.js        SVG line, bar and sparkline charts
 js/lib/exercises.js     built-in exercises and templates
-js/screens/*.js         Today, Train, Workout, Stats, Me
+js/screens/*.js         Today, Train, Workout, Food, Stats, Me
 ```
 
 ### Analytics notes
@@ -59,6 +65,8 @@ js/screens/*.js         Today, Train, Workout, Stats, Me
 - **Sets per muscle**: working sets only; secondary muscles count half
 - **Week comparisons**: this week vs the same point last week, so a Wednesday isn't compared to a full week
 - **Streak**: consecutive weeks meeting the weekly session goal
+- **Adaptive burn**: average intake over logged days minus trend-weight change × 7,700 kcal/kg, over 28 days (needs 10+ logged days)
+- **Weekly score**: training 40, protein days 25, calorie days within 10% 20, weigh-ins 15
 
 ## Run locally
 

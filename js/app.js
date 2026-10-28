@@ -6,13 +6,15 @@ import { Train, RoutineEdit, WorkoutView, ExerciseScreen, Library } from './scre
 import { Workout, RestBar, Summary } from './screens/workout.js';
 import { Stats, CardDetail, EditDash } from './screens/stats.js';
 import { Me, Onboarding } from './screens/me.js';
+import { Food, AddFood, Targets } from './screens/food.js';
 
 const SCREENS = {
-  today: Today, train: Train, stats: Stats, me: Me,
+  today: Today, train: Train, food: Food, stats: Stats, me: Me,
+  addFood: AddFood, targets: Targets,
   routine: RoutineEdit, workoutView: WorkoutView, exercise: ExerciseScreen, library: Library,
   workout: Workout, summary: Summary, card: CardDetail, editDash: EditDash,
 };
-const TAB_META = [['today', 'Today', 'today'], ['train', 'Train', 'train'], ['stats', 'Stats', 'stats'], ['me', 'Me', 'me']];
+const TAB_META = [['today', 'Today', 'today'], ['train', 'Train', 'train'], ['food', 'Food', 'food'], ['stats', 'Stats', 'stats'], ['me', 'Me', 'me']];
 const NO_TABS = new Set(['workout', 'summary']);
 
 function App() {

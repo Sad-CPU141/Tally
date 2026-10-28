@@ -23,6 +23,19 @@ export function Card({ inst, state, onOpen, wide }) {
   </div>`;
 }
 
+// Half-width cards pair up in order; one left alone in its row stretches to full width.
+export function pack(list) {
+  const out = list.map(inst => ({ inst, wide: false }));
+  let open = -1;
+  out.forEach((x, i) => {
+    const w = CARDS[x.inst.type] && CARDS[x.inst.type].wide;
+    if (w) { if (open !== -1) out[open].wide = true; open = -1; }
+    else if (open === -1) open = i; else open = -1;
+  });
+  if (open !== -1) out[open].wide = true;
+  return out;
+}
+
 export function Today({ state }) {
   const s = state.settings;
   const next = A.nextRoutine(state);
@@ -66,7 +79,7 @@ export function Today({ state }) {
 
       <div class="section-head"><span class="h-md">Your stats</span><button class="link-btn" onClick=${() => nav.go('editDash')}>Customize</button></div>
       ${state.dashboard.length ? html`<div class="dash">
-        ${state.dashboard.map(inst => html`<${Card} key=${inst.id} inst=${inst} state=${state} onOpen=${() => nav.go('card', { id: inst.id, type: inst.type })} />`)}
+        ${pack(state.dashboard).map(({ inst, wide }) => html`<${Card} key=${inst.id} inst=${inst} wide=${wide} state=${state} onOpen=${() => nav.go('card', { id: inst.id, type: inst.type })} />`)}
       </div>` : html`<div class="card empty"><span class="h-md">No cards on your dashboard</span><button class="btn" onClick=${() => nav.go('editDash')}>Add cards</button></div>`}
     </div>`;
 }

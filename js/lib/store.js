@@ -7,9 +7,24 @@ import { defaultDashboard } from './dash-defaults.js';
 const DB_NAME = 'tally';
 const STORE = 'kv';
 const KEY = 'state';
-export const SCHEMA = 1;
+export const SCHEMA = 2;
 
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+export function defaultFoodSettings() {
+  return {
+    mealNames: ['Breakfast', 'Lunch', 'Dinner', 'Snacks'],
+    // Targets per day type. Training days use `train`, the rest use `rest`.
+    train: { kcal: 2500, p: 180, c: 280, f: 70 },
+    rest: { kcal: 2200, p: 180, c: 200, f: 70 },
+    split: true,             // separate training and rest day targets
+    trainDays: [1, 2, 3, 4, 5, 6], // planned training weekdays (0 = Sunday)
+    fiber: 30,               // grams, 0 to hide
+    water: 3000,             // ml, 0 to hide
+    profile: { sex: '', age: null, heightCm: null, activity: 'active', goal: 'cut' },
+    setup: false,            // has the user set targets yet
+  };
+}
 
 export function freshState() {
   return {
@@ -28,6 +43,11 @@ export function freshState() {
       onboarded: false,
       sample: false,
     },
+    food: defaultFoodSettings(),
+    foods: [],               // saved/custom foods (nutrition per 100 g and/or per serving)
+    meals: [],               // saved meals: { id, name, items: [log-style items] }
+    foodLog: [],             // { id, date, meal, foodId, name, brand, qty, unit, kcal, p, c, f, fiber, sugar, sodium }
+    water: {},               // { 'YYYY-MM-DD': ml }
     dashboard: defaultDashboard(),
     exercises: EXERCISES.map(e => ({ ...e })),
     routines: [],
@@ -89,9 +109,14 @@ export async function load() {
 function migrate(s) {
   const base = freshState();
   const out = { ...base, ...s, settings: { ...base.settings, ...(s.settings || {}) } };
+  out.food = { ...base.food, ...(s.food || {}), profile: { ...base.food.profile, ...((s.food || {}).profile || {}) } };
   // Add any built-in exercises introduced in newer versions.
   const have = new Set(out.exercises.map(e => e.id));
   for (const e of EXERCISES) if (!have.has(e.id)) out.exercises.push({ ...e });
+  // v2: food arrived, so put the food and combined cards on existing dashboards.
+  if ((s.schema || 1) < 2) {
+    for (const type of ['score', 'calories', 'protein']) if (!out.dashboard.some(d => d.type === type)) out.dashboard.push({ id: uid(), type, opts: {} });
+  }
   out.schema = SCHEMA;
   return out;
 }
