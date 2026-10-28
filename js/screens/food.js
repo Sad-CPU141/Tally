@@ -212,6 +212,7 @@ export function AddFood({ state, params }) {
   const [q, setQ] = useState('');
   const [tab, setTab] = useState('recent');
   const [online, setOnline] = useState({ status: 'idle', items: [], q: '' });
+  const [retry, setRetry] = useState(0);
   const timer = useRef(null);
   const ql = q.trim().toLowerCase();
 
@@ -224,7 +225,7 @@ export function AddFood({ state, params }) {
       catch (e) { setOnline({ status: 'error', items: [], q: ql }); }
     }, 900);
     return () => clearTimeout(timer.current);
-  }, [ql]);
+  }, [ql, retry]);
 
   const foods = state.foods;
   const recent = foods.filter(f => f.used).sort((a, b) => b.used - a.used).slice(0, 30);
@@ -266,7 +267,7 @@ export function AddFood({ state, params }) {
         ${ql.length < 3 ? html`<div class="small muted">Type at least 3 letters to search online.</div>`
           : online.status === 'loading' || (online.q !== ql) ? html`<div class="card empty small">Searching…</div>`
           : online.status === 'error' ? html`<div class="card empty small">The food database didn't answer. It allows about 10 searches a minute, so wait a few seconds, or check your connection.
-              <button class="btn sm" onClick=${() => { const v = q; setQ(v + ' '); setTimeout(() => setQ(v), 0); }}>Try again</button></div>`
+              <button class="btn sm" onClick=${() => setRetry(r => r + 1)}>Try again</button></div>`
           : online.items.length ? html`<div class="list">${online.items.map(f => html`<${FoodRow} f=${f} />`)}</div>`
           : html`<div class="card empty small">No matches. Try a shorter search, scan the barcode, or create the food.</div>`}
       ` : html`
