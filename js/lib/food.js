@@ -135,7 +135,10 @@ export async function lookupBarcode(code) {
 }
 
 // Canadian products first (what's on the shelves here), then worldwide to fill gaps.
+const searchCache = new Map();
 export async function searchFoods(q) {
+  const key = q.trim().toLowerCase();
+  if (searchCache.has(key)) return searchCache.get(key);
   const base = `${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(q).replace(/%20/g, '+')}&json=1&page_size=24&fields=${FIELDS}`;
   const ca = await getJSON(base + '&tagtype_0=countries&tag_contains_0=contains&tag_0=canada', 12000);
   let list = (ca.products || []).map(fromOFF).filter(Boolean);
@@ -146,7 +149,9 @@ export async function searchFoods(q) {
       list = list.concat((world.products || []).map(fromOFF).filter(f => f && !seen.has(f.id)));
     } catch (e) {}
   }
-  return list.slice(0, 30);
+  list = list.slice(0, 30);
+  searchCache.set(key, list);
+  return list;
 }
 
 // ---------- food analytics ----------

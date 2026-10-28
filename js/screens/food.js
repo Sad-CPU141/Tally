@@ -222,7 +222,7 @@ export function AddFood({ state, params }) {
       setOnline({ status: 'loading', items: [], q: ql });
       try { const items = await F.searchFoods(ql); setOnline({ status: 'done', items, q: ql }); }
       catch (e) { setOnline({ status: 'error', items: [], q: ql }); }
-    }, 700);
+    }, 900);
     return () => clearTimeout(timer.current);
   }, [ql]);
 
@@ -265,7 +265,8 @@ export function AddFood({ state, params }) {
         <div class="section-head"><span class="h-md">Online</span><span class="tiny muted">Open Food Facts</span></div>
         ${ql.length < 3 ? html`<div class="small muted">Type at least 3 letters to search online.</div>`
           : online.status === 'loading' || (online.q !== ql) ? html`<div class="card empty small">Searching…</div>`
-          : online.status === 'error' ? html`<div class="card empty small">Couldn't reach the food database. Check your connection, or use Quick add.</div>`
+          : online.status === 'error' ? html`<div class="card empty small">The food database didn't answer. It allows about 10 searches a minute, so wait a few seconds, or check your connection.
+              <button class="btn sm" onClick=${() => { const v = q; setQ(v + ' '); setTimeout(() => setQ(v), 0); }}>Try again</button></div>`
           : online.items.length ? html`<div class="list">${online.items.map(f => html`<${FoodRow} f=${f} />`)}</div>`
           : html`<div class="card empty small">No matches. Try a shorter search, scan the barcode, or create the food.</div>`}
       ` : html`
