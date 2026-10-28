@@ -1,6 +1,6 @@
 // Offline support: cache the app shell, serve it cache-first, refresh in the background.
 // Bump VERSION whenever you deploy so phones pick up the new files.
-const VERSION = 'tally-v2';
+const VERSION = 'tally-v3';
 const ASSETS = [
   './',
   './css/app.css',

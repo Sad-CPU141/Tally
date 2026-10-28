@@ -134,10 +134,19 @@ export async function lookupBarcode(code) {
   return j && j.status === 1 ? fromOFF({ ...j.product, code: j.code || code }) : null;
 }
 
+// Canadian products first (what's on the shelves here), then worldwide to fill gaps.
 export async function searchFoods(q) {
-  const url = `${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=24&fields=${FIELDS}`;
-  const j = await getJSON(url, 12000);
-  return (j.products || []).map(fromOFF).filter(Boolean);
+  const base = `${OFF}/cgi/search.pl?search_terms=${encodeURIComponent(q).replace(/%20/g, '+')}&json=1&page_size=24&fields=${FIELDS}`;
+  const ca = await getJSON(base + '&tagtype_0=countries&tag_contains_0=contains&tag_0=canada', 12000);
+  let list = (ca.products || []).map(fromOFF).filter(Boolean);
+  if (list.length < 8) {
+    try {
+      const world = await getJSON(base, 12000);
+      const seen = new Set(list.map(f => f.id));
+      list = list.concat((world.products || []).map(fromOFF).filter(f => f && !seen.has(f.id)));
+    } catch (e) {}
+  }
+  return list.slice(0, 30);
 }
 
 // ---------- food analytics ----------
