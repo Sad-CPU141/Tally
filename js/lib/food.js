@@ -98,6 +98,8 @@ export function calculate({ sex, age, heightCm, kg, activity, goal, trainDays })
 const OFF = 'https://world.openfoodfacts.org';
 const FIELDS = 'code,product_name,product_name_en,brands,nutriments,serving_size,serving_quantity,quantity';
 
+const decode = t => String(t || '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+
 function fromOFF(p) {
   if (!p) return null;
   const n = p.nutriments || {};
@@ -111,8 +113,8 @@ function fromOFF(p) {
   return {
     id: 'off-' + p.code,
     barcode: p.code,
-    name: (p.product_name_en || p.product_name || 'Unnamed product').trim(),
-    brand: (p.brands || '').split(',')[0].trim(),
+    name: decode(p.product_name_en || p.product_name || 'Unnamed product').trim(),
+    brand: decode(p.brands).split(',')[0].trim(),
     per100,
     serving: sq > 0 ? { label: p.serving_size || `${sq} g`, g: sq } : null,
     source: 'off',
