@@ -1,6 +1,9 @@
-// Offline support: cache the app shell, serve it cache-first, refresh in the background.
-// Bump VERSION whenever you deploy so phones pick up the new files.
-const VERSION = 'tally-v9';
+// Offline support.
+// - App code (HTML, JS, CSS) is network-first, so a new deploy shows up on the next open,
+//   with the cached copy used when there's no signal.
+// - Fonts and icons are cache-first since they rarely change.
+// Bump VERSION whenever you deploy.
+const VERSION = 'tally-v10';
 const ASSETS = [
   './',
   './css/app.css',
@@ -41,23 +44,31 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache so we never precache stale files.
+  e.waitUntil(caches.open(VERSION)
+    .then(c => Promise.all(ASSETS.map(u => fetch(new Request(u, { cache: 'reload' })).then(r => r.ok ? c.put(u, r) : null).catch(() => null))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
+const STATIC = /\.(woff2|png|jpg|webmanifest)$/;
+
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  e.respondWith(
-    caches.match(req, { ignoreSearch: true }).then(hit => {
-      const net = fetch(req).then(res => {
-        if (res && res.ok) caches.open(VERSION).then(c => c.put(req, res.clone()));
-        return res;
-      }).catch(() => hit || caches.match('./index.html'));
-      return hit || net;
-    })
-  );
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+  if (STATIC.test(url.pathname)) {
+    e.respondWith(caches.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req).then(res => {
+      if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
+      return res;
+    })));
+    return;
+  }
+  e.respondWith(fetch(new Request(req, { cache: 'no-cache' })).then(res => {
+    if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
+    return res;
+  }).catch(() => caches.match(req, { ignoreSearch: true }).then(hit => hit || caches.match('./index.html'))));
 });
