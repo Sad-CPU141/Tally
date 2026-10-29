@@ -44,8 +44,14 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
    - Plate calculator (per-side plates, your bar and your gym's plates), from any barbell exercise or Me
    - Supersets in routines and workouts; the rest timer waits until the last exercise of the superset
    - Weekly schedule: pick a routine (or rest) per weekday; Today follows it and Food mode's training days match it
-5. **Polish** — progress photos, auto-progression hints, challenges
-6. **Accounts + friends (last)** — Firebase Google sign-in, automatic backup, friend codes, leaderboards
+5. **Coach, photos, recipes** ✓
+   - Weight suggestions while logging (double progression on your rep targets, bigger jumps when sets felt easy, a lighter day after a 3-session stall); placeholders follow the suggestion, so ticking a set accepts it
+   - Warm-up calculator from your top set, with plates per side for barbell lifts
+   - Optional "reps left" (RIR) after each working set, shown in history and used by the suggestions
+   - Progress photos (front/side/back) stored only on the phone, with a before/after slider showing weight and waist on each day
+   - Recipes: ingredients + portions (+ optional cooked weight) give nutrition per portion or per gram
+6. **Polish** — challenges, more customization
+7. **Accounts + friends (last)** — Firebase Google sign-in, automatic backup, friend codes, leaderboards
 
 ## Credits
 

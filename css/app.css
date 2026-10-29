@@ -445,3 +445,40 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 .ss-tag { flex: none; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 750; font-family: var(--font-num); }
 .row.ss-row { box-shadow: inset 3px 0 0 var(--accent); }
 .row.ss-row .ss-label { padding: 0; }
+
+/* progression coach */
+.sugg { display: flex; align-items: flex-start; gap: 8px; margin: 10px 12px 0 12px; padding: 8px 10px; border-radius: 12px; background: var(--accent-soft); color: var(--text); }
+.sugg.deload { background: color-mix(in srgb, var(--warn, #e0b43a) 14%, transparent); }
+.sugg-main { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: flex-start; background: none; border: 0; padding: 0; color: inherit; text-align: left; font-size: 14px; }
+.sugg-main svg { flex: none; margin-top: 2px; color: var(--accent); }
+.sugg.deload .sugg-main svg { color: var(--warn, #e0b43a); }
+.sugg-main b { font-weight: 650; }
+.sugg-why { display: block; margin-top: 4px; font-size: 13px; color: var(--text-2); line-height: 1.4; }
+.sugg .link-btn { flex: none; font-size: 12px; color: var(--muted); padding: 2px 0; }
+.sugg-note { margin: 6px 16px 0; color: var(--warn, #e0b43a); }
+.rir-row { display: flex; align-items: center; gap: 6px; padding: 4px 12px 8px 16px; white-space: nowrap; background: color-mix(in srgb, var(--good) 9%, transparent); }
+.rir-row .chip.sm, .chip.sm { height: 30px; min-width: 36px; padding: 0 10px; font-family: var(--font-num); }
+.rir-row .icon-btn { width: 30px; height: 30px; margin-left: auto; }
+.rir-done { padding: 0 12px 4px 52px; margin-top: -3px; background: color-mix(in srgb, var(--good) 9%, transparent); }
+
+/* progress photos */
+.ph-strip { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter); }
+.ph-strip::-webkit-scrollbar { display: none; }
+.ph-add, .ph-day { flex: none; width: 84px; display: flex; flex-direction: column; gap: 4px; align-items: center; background: none; border: 0; padding: 0; color: var(--text-2); }
+.ph-add { height: 112px; border-radius: 14px; border: 1.5px dashed var(--line); justify-content: center; color: var(--accent); }
+.ph-img { width: 84px; height: 112px; object-fit: cover; border-radius: 14px; background: var(--surface-2); display: block; }
+.ph-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ph-cell { position: relative; padding: 0; border: 0; background: none; border-radius: 14px; overflow: hidden; }
+.ph-cell .ph-img { width: 100%; height: auto; aspect-ratio: 3 / 4; border-radius: 14px; }
+.ph-pose { position: absolute; left: 6px; bottom: 6px; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; }
+.ph-loading, .ph-missing { display: grid; place-items: center; background: var(--surface-2); color: var(--muted); font-size: 11px; text-align: center; aspect-ratio: 3 / 4; }
+.ph-full img, .ph-full .ph-missing, .ph-full .ph-loading { width: 100%; max-height: 62vh; object-fit: contain; border-radius: 14px; background: #000; display: block; }
+.ph-cmp { position: relative; border-radius: 16px; overflow: hidden; background: #000; aspect-ratio: 3 / 4; touch-action: pan-y; }
+.ph-cmp img, .ph-cmp .ph-missing { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph-over { position: absolute; inset: 0; }
+.ph-line { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 6px rgba(0,0,0,.5); pointer-events: none; }
+.ph-tag { position: absolute; top: 10px; padding: 3px 10px; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 600; pointer-events: none; }
+.ph-tag.l { left: 10px; } .ph-tag.r { right: 10px; }
+.ph-range { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: ew-resize; }
+.ph-cmp-one { border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 3 / 4; }
+.ph-cmp-one img { width: 100%; height: 100%; object-fit: cover; display: block; }

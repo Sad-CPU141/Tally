@@ -7,6 +7,7 @@ import { fmtDur, download, todayKey } from '../lib/util.js';
 import { logBodyweight } from '../lib/actions.js';
 import { makeSample } from '../lib/sample.js';
 import { plateCalc } from '../lib/plates.js';
+import { clearPhotos } from '../lib/photos.js';
 
 const ACCENTS = [['ice', 'Ice', '#6cb8ff'], ['iris', 'Iris', '#a597ff'], ['ember', 'Ember', '#ffad5c'], ['mint', 'Mint', '#5fd4a8'], ['rose', 'Rose', '#ff86ad']];
 
@@ -72,6 +73,8 @@ export function Me({ state }) {
             <button class="icon-btn" aria-label="More rest" onClick=${() => setS('restDefault', Math.min(600, s.restDefault + 15))}><${Icon} name="plus" size=${18} /></button>
           </div><//>
         <${Row} title="Start rest timer after each set"><${Switch} id="set-autorest" label="Auto rest timer" checked=${s.autoRest} onChange=${v => setS('autoRest', v)} /><//>
+        <${Row} title="Weight suggestions" sub="Tells you when to add weight, based on last time"><${Switch} id="set-suggest" label="Weight suggestions" checked=${s.suggest !== false} onChange=${v => setS('suggest', v)} /><//>
+        <${Row} title="Ask reps left after each set" sub="Tap 0–4 after a set. Makes suggestions smarter"><${Switch} id="set-rir" label="Ask reps left" checked=${!!s.rir} onChange=${v => setS('rir', v)} /><//>
         <${Row} title="Keep screen on during workouts"><${Switch} id="set-awake" label="Keep screen on" checked=${s.keepAwake} onChange=${v => setS('keepAwake', v)} /><//>
         <${Row} title="Plate calculator" sub="Your bar and the plates at your gym"><button class="btn sm" onClick=${() => plateCalc(null)}>Open</button><//>
         <${Row} title="Week starts on"><div style="width:150px"><${Seg} label="Week start" value=${s.weekStart} onChange=${v => setS('weekStart', v)} options=${[[1, 'Mon'], [0, 'Sun']]} /></div><//>
@@ -126,7 +129,7 @@ function clearSample() {
 }
 
 function eraseAll() {
-  confirmSheet({ title: 'Erase everything?', body: 'All workouts, weigh-ins, routines and settings on this phone will be deleted. This cannot be undone.', confirm: 'Erase', onConfirm: () => { store.replaceAll(store.freshState()); nav.tab('today'); } });
+  confirmSheet({ title: 'Erase everything?', body: 'All workouts, weigh-ins, routines, photos and settings on this phone will be deleted. This cannot be undone.', confirm: 'Erase', onConfirm: () => { store.replaceAll(store.freshState()); clearPhotos(); nav.tab('today'); } });
 }
 
 // ---------- onboarding ----------

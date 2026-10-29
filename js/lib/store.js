@@ -45,9 +45,12 @@ export function freshState() {
       mode: 'gym',           // 'gym' | 'food' — tap Tally in the top bar to switch
       barKg: null,           // plate calculator bar weight (null = 45 lb / 20 kg)
       plates: null,          // available plates in the user's unit (null = standard set)
+      suggest: true,         // weight suggestions while logging
+      rir: false,            // ask "reps left" after each working set
     },
     schedule: {},            // weekday (0 = Sunday) -> routine id
     measurements: [],        // { date, key, value } — lengths in cm, body fat in %
+    photos: [],              // progress photos: { id, date, pose } — images stay in their own on-device database
     food: defaultFoodSettings(),
     foods: [],               // saved/custom foods (nutrition per 100 g and/or per serving)
     meals: [],               // saved meals: { id, name, items: [log-style items] }

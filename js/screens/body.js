@@ -6,6 +6,7 @@ import * as A from '../lib/analytics.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, toast, confirmSheet, Seg } from '../lib/ui.js';
 import { Sparkline, LineChart } from '../lib/charts.js';
 import { logBodyweight } from '../lib/actions.js';
+import { PhotoStrip } from './photos.js';
 import { w, fmtNum, signed, toUnit, todayKey, fmtRel, fmtDate, fromKey, DAY, round } from '../lib/util.js';
 
 // key, label, kind ('len' in cm, 'pct'), a hint shown when logging
@@ -111,6 +112,8 @@ export function Body({ state }) {
         <button class="btn primary" onClick=${() => logBodyweight()}><${Icon} name="scale" size=${18} /> Log weight</button>
         <button class="btn" onClick=${() => logMeasurements()}><${Icon} name="plus" size=${18} /> Measurements</button>
       </div>
+
+      <${PhotoStrip} state=${state} />
 
       <div class="section-head"><span class="h-md">Measurements</span>${lastLog ? html`<span class="small muted">last ${fmtRel(fromKey(lastLog)).toLowerCase()}</span>` : null}</div>
       <div class="list">

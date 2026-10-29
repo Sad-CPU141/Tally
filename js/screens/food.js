@@ -6,6 +6,10 @@ import * as F from '../lib/food.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast, Seg, Switch } from '../lib/ui.js';
 import { todayKey, dayKey, fromKey, addDays, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
+import { isRecipe, addIngredient, addEntryAsIngredient, newRecipe } from '../lib/recipes.js';
+
+// When Add Food is opened from a recipe, picked foods become ingredients instead of log entries.
+let intoRecipe = null;
 
 const kc = n => Math.round(n || 0).toLocaleString();
 const g = n => fmtNum(n || 0, 0);
@@ -155,6 +159,14 @@ export function foodSheet(food, date, meal, onDone) {
     const add = () => {
       const q = parseFloat(qty);
       if (!q || q <= 0) { toast('Enter an amount'); return; }
+      if (intoRecipe) {
+        if (food.id === intoRecipe) { toast('A recipe can\'t contain itself'); return; }
+        const rid = intoRecipe;
+        store.update(st => { let saved = st.foods.find(f => f.id === food.id); if (!saved) { saved = { ...food, id: food.id || 'f-' + store.uid() }; st.foods.push(saved); } saved.lastQty = q; saved.lastUnit = unit; food = saved; });
+        addIngredient(rid, food, q, unit);
+        closeSheet(); toast('Added to recipe'); onDone && onDone();
+        return;
+      }
       store.update(st => {
         let saved = st.foods.find(f => f.id === food.id);
         if (!saved) { saved = { ...food, id: food.id || 'f-' + store.uid() }; st.foods.push(saved); }
@@ -169,7 +181,7 @@ export function foodSheet(food, date, meal, onDone) {
       <${SheetHead} title=${food.name} />
       ${food.brand ? html`<div class="small muted" style="margin-top:-8px">${food.brand}</div>` : null}
       <${Portion} food=${food} qty=${qty} unit=${unit} setQty=${setQty} setUnit=${setUnit} />
-      <button class="btn primary block" onClick=${add}>Add to ${meal}</button>`;
+      <button class="btn primary block" onClick=${add}>${intoRecipe ? 'Add to recipe' : `Add to ${meal}`}</button>`;
   }
   openSheet(() => html`<${Body} />`);
 }
@@ -209,6 +221,8 @@ function editEntry(e) {
 // ---------- add food ----------
 export function AddFood({ state, params }) {
   const { date, meal } = params;
+  intoRecipe = params.recipe || null;
+  const forRecipe = !!intoRecipe;
   const [q, setQ] = useState('');
   const [tab, setTab] = useState('recent');
   const [online, setOnline] = useState({ status: 'idle', items: [], q: '' });
@@ -239,13 +253,14 @@ export function AddFood({ state, params }) {
   </button>`;
 
   const logMeal = m => {
+    if (forRecipe) { for (const it of m.items) addEntryAsIngredient(params.recipe, it); toast(`Added ${m.name}`); nav.back(); return; }
     store.update(st => { for (const it of m.items) st.foodLog.push({ ...it, id: store.uid(), date, meal }); });
     toast(`Added ${m.name}`);
     nav.back();
   };
 
   return html`
-    <${TopBar} title=${'Add to ' + meal} back=${true} />
+    <${TopBar} title=${forRecipe ? 'Add ingredient' : 'Add to ' + meal} back=${true} />
     <div class="page">
       <div class="hstack" style="position:relative">
         <span style="position:absolute;left:12px;color:var(--muted)"><${Icon} name="search" size=${18} /></span>
@@ -253,7 +268,7 @@ export function AddFood({ state, params }) {
       </div>
       <div class="grid3">
         <button class="btn" onClick=${() => scanBarcode(date, meal)}><${Icon} name="barcode" size=${18} /> Scan</button>
-        <button class="btn" onClick=${() => quickAdd(date, meal)}><${Icon} name="bolt" size=${18} /> Quick</button>
+        ${forRecipe ? html`<span></span>` : html`<button class="btn" onClick=${() => quickAdd(date, meal)}><${Icon} name="bolt" size=${18} /> Quick</button>`}
         <button class="btn" onClick=${() => createFood(date, meal, q)}><${Icon} name="plus" size=${18} /> Create</button>
       </div>
 
@@ -271,8 +286,14 @@ export function AddFood({ state, params }) {
           : online.items.length ? html`<div class="list">${online.items.map(f => html`<${FoodRow} f=${f} />`)}</div>`
           : html`<div class="card empty small">No matches. Try a shorter search, scan the barcode, or create the food.</div>`}
       ` : html`
-        <${Seg} label="Food lists" value=${tab} onChange=${setTab} options=${[['recent', 'Recent'], ['mine', 'My foods'], ['meals', 'Meals']]} />
-        ${tab === 'meals' ? (meals.length ? html`<div class="list">${meals.map(m => html`<div class="row">
+        <${Seg} label="Food lists" value=${tab} onChange=${setTab} options=${[['recent', 'Recent'], ['mine', 'My foods'], ['meals', 'Meals'], ...(forRecipe ? [] : [['recipes', 'Recipes']])]} />
+        ${tab === 'recipes' ? html`
+          ${foods.some(isRecipe) ? html`<div class="list">${foods.filter(isRecipe).map(r => html`<div class="row">
+            <button class="grow" style="background:none;border:0;text-align:left;padding:0;min-width:0" onClick=${() => foodSheet(r, date, meal)}><div class="title">${r.name}</div><div class="sub">${r.recipe.items.length} ingredients · ${r.recipe.portions} portions · ${kc(r.perServing.kcal)} kcal each</div></button>
+            <button class="icon-btn" aria-label=${'Edit ' + r.name} onClick=${() => nav.go('recipe', { id: r.id })}><${Icon} name="edit" size=${18} /></button>
+          </div>`)}</div>` : html`<div class="card empty small"><span class="h-md">No recipes yet</span>Put in a home-cooked dish once, say how many portions it makes, and log a portion any time.</div>`}
+          <button class="btn block" onClick=${() => nav.go('recipe', { id: newRecipe(), isNew: true })}><${Icon} name="plus" size=${18} /> New recipe</button>`
+        : tab === 'meals' ? (meals.length ? html`<div class="list">${meals.map(m => html`<div class="row">
               <button class="grow" style="background:none;border:0;text-align:left;padding:0;min-width:0" onClick=${() => logMeal(m)}><div class="title">${m.name}</div><div class="sub">${m.items.map(i => i.name).join(', ')}</div></button>
               <span class="num small muted">${kc(F.sum(m.items).kcal)}</span>
               <button class="icon-btn" aria-label=${'Delete ' + m.name} onClick=${() => confirmSheet({ title: `Delete ${m.name}?`, body: 'Foods you already logged stay in your log.', onConfirm: () => store.update(st => { st.meals = st.meals.filter(x => x.id !== m.id); }) })}><${Icon} name="trash" size=${18} /></button>

@@ -8,7 +8,8 @@ import { w, toUnit, fromUnit, fmtNum, fmtDur, parseDur, toDist, fromDist, fmtBig
 import { ExThumb } from '../lib/photo.js';
 import { pickExercise } from './picker.js';
 import { prValue } from '../lib/cards.js';
-import { plateCalc } from '../lib/plates.js';
+import { plateCalc, platesFor, BARS, DEFAULT_PLATES } from '../lib/plates.js';
+import { suggestion, warmups, isBarbell } from '../lib/progress.js';
 
 const uid = store.uid;
 const newSet = (target) => ({ t: 'n', kg: null, reps: null, sec: null, km: null, done: false, target: target || null });
@@ -82,6 +83,7 @@ function clean(x) {
   if (x.reps != null) o.reps = x.reps;
   if (x.sec != null) o.sec = x.sec;
   if (x.km != null) o.km = x.km;
+  if (typeof x.rir === 'number') o.rir = x.rir;
   return o;
 }
 
@@ -230,6 +232,11 @@ function Entry({ en, idx, state }) {
     cardio: [du, 'Time'], sprint: ['Metres', 'Sec'],
   }[ex.type] || [unit, 'Reps'];
 
+  // Coach: what to aim for today. Working-set placeholders follow it, so ticking an empty set accepts it.
+  const target = (en.sets.find(x => x.t === 'n') || {}).target || null;
+  const sug = settings.suggest !== false && !en.hideSug ? suggestion(state, ex, target, state.active.start) : null;
+  const [why, setWhy] = useState(false);
+
   let workingN = 0;
   const editSet = (i, fn) => editActive(a => { const e = a.entries.find(x => x.id === en.id); if (e) fn(e.sets[i], e); });
 
@@ -245,6 +252,10 @@ function Entry({ en, idx, state }) {
     const same = prev.filter(x => (x.t === 'w' ? 'w' : 'n') === t);
     const p = prevFor(i) || same[same.length - 1];
     const s = en.sets[i];
+    if (sug && s.t === 'n' && (ex.type === 'weight' || ex.type === 'bw')) {
+      const a = sug.kg != null ? fmtNum(toUnit(sug.kg, unit), 1) : ex.type === 'bw' ? '0' : '';
+      return [a, String(sug.reps)];
+    }
     switch (ex.type) {
       case 'weight': return [p && p.kg != null ? fmtNum(toUnit(p.kg, unit), 1) : '', s.target ? String(s.target) : p ? String(p.reps) : ''];
       case 'bw': return [p && p.kg ? fmtNum(toUnit(p.kg, unit), 1) : '0', s.target ? String(s.target) : p ? String(p.reps) : ''];
@@ -272,7 +283,7 @@ function Entry({ en, idx, state }) {
 
   const toggle = (i) => {
     const s = en.sets[i];
-    if (s.done) { editSet(i, x => { x.done = false; }); return; }
+    if (s.done) { editSet(i, (x, e) => { x.done = false; delete x.rir; if (e.askRir === i) e.askRir = null; }); return; }
     const [pa, pb] = ph(i);
     if ((s.av == null || s.av === '') && pa !== '') setA(i, pa);
     if (ex.type !== 'time' && (s.bv == null || s.bv === '') && pb !== '') setB(i, pb);
@@ -283,7 +294,7 @@ function Entry({ en, idx, state }) {
       : ex.type === 'cardio' ? (cur.km != null || cur.sec != null)
       : cur.sec != null;
     if (!ok) { toast(ex.type === 'weight' ? 'Enter weight and reps' : 'Fill in the set first'); return; }
-    editSet(i, x => { x.done = true; if (ex.type === 'bw' && x.kg == null) x.kg = 0; });
+    editSet(i, (x, e) => { x.done = true; if (ex.type === 'bw' && x.kg == null) x.kg = 0; e.askRir = settings.rir && x.t !== 'w' && (ex.type === 'weight' || ex.type === 'bw') ? i : null; });
     const gp = groupPos(store.get().active.entries, idx);
     if (gp && !gp.last) {
       // Mid-superset: no rest, go straight to the next exercise.
@@ -295,6 +306,14 @@ function Entry({ en, idx, state }) {
 
   const gp = groupPos(state.active.entries, idx);
   const isBar = ex.type === 'weight' && /barbell|smith|trap/i.test(ex.equip || '');
+  // Heaviest planned working weight: typed in, else the suggestion, else last time's top set.
+  const topKg = () => {
+    const typed = en.sets.filter(x => x.t !== 'w' && x.kg != null).map(x => x.kg);
+    if (typed.length) return Math.max(...typed);
+    if (sug && sug.kg) return sug.kg;
+    const p = prev.filter(x => x.t !== 'w' && x.kg != null);
+    return p.length ? Math.max(...p.map(x => x.kg)) : null;
+  };
   const plateKg = () => { const s = en.sets.find(x => !x.done && x.t !== 'w' && x.kg != null) || en.sets.find(x => x.kg != null); if (s) return s.kg; const p = prev.filter(x => x.t !== 'w'); return p.length ? p[p.length - 1].kg : null; };
   return html`<div class=${'card ex-card' + (gp ? ' ss' + (gp.first ? ' ss-first' : '') + (gp.last ? ' ss-last' : '') : '')}>
     ${gp && gp.first ? html`<div class="ss-label"><${Icon} name="swap" size=${14} /> Superset · ${gp.n} exercises · rest after the last</div>` : null}
@@ -305,6 +324,14 @@ function Entry({ en, idx, state }) {
       <button class="icon-btn" aria-label="Exercise options" onClick=${() => entryMenu(en, idx, ex, restSec)}><${Icon} name="more" /></button>
     </div>
     ${en.note ? html`<div class="ex-note small text-2">${en.note}</div>` : null}
+    ${sug && en.sets.some(x => !x.done && x.t === 'n') ? html`<div class=${'sugg ' + sug.kind}>
+      <button class="sugg-main" aria-expanded=${why} onClick=${() => setWhy(!why)}>
+        <${Icon} name=${sug.kind === 'deload' ? 'down' : sug.kind === 'up' ? 'up' : 'bolt'} size=${16} />
+        <span class="grow"><b>${sug.text}</b>${why ? html`<span class="sugg-why">${sug.why}${sug.note ? ' ' + sug.note : ''}</span>` : null}</span>
+      </button>
+      <button class="link-btn tiny" onClick=${() => editActive(a => { const e = a.entries.find(x => x.id === en.id); e.hideSug = true; })}>Hide</button>
+    </div>` : null}
+    ${!why && sug && sug.note && en.sets.some(x => !x.done && x.t === 'n') ? html`<div class="sugg-note tiny">${sug.note}</div>` : null}
     <div class="sets">
       <div class=${'set-row head' + (isCardio ? ' cardio' : '')}><span>Set</span><span>Previous</span><span>${cols[0]}</span><span>${cols[1]}</span><span></span></div>
       ${en.sets.map((s, i) => {
@@ -320,15 +347,57 @@ function Entry({ en, idx, state }) {
           <input class="cell" id=${`c-${en.id}-${i}-a`} aria-label=${cols[0]} inputmode=${ex.type === 'time' ? 'text' : 'decimal'} placeholder=${pa} value=${aVal} onInput=${e => setA(i, e.target.value)} />
           ${ex.type === 'time' ? html`<span></span>` : html`<input class="cell" id=${`c-${en.id}-${i}-b`} aria-label=${cols[1]} inputmode=${ex.type === 'cardio' ? 'text' : ex.type === 'sprint' ? 'decimal' : 'numeric'} placeholder=${pb} value=${bVal} onInput=${e => setB(i, e.target.value)} />`}
           <button class="check" aria-label=${s.done ? 'Mark not done' : 'Complete set'} aria-pressed=${s.done} onClick=${() => toggle(i)}><${Icon} name="check" sw=${2.6} /></button>
-        </div>`;
+        </div>${s.done && en.askRir === i ? html`<div class="rir-row" role="group" aria-label="Reps left in the tank">
+          <span class="tiny muted">Reps left?</span>
+          ${[0, 1, 2, 3, 4].map(n => html`<button class="chip sm" onClick=${() => editSet(i, (x, e) => { x.rir = n; e.askRir = null; })}>${n === 4 ? '4+' : n}</button>`)}
+          <button class="icon-btn sm" aria-label="Skip" onClick=${() => editSet(i, (x, e) => { e.askRir = null; })}><${Icon} name="close" size=${16} /></button>
+        </div>` : s.done && typeof s.rir === 'number' ? html`<div class="rir-done tiny muted">${s.rir === 0 ? 'to failure' : s.rir >= 4 ? '4+ reps left' : s.rir + ' left'}</div>` : null}`;
       })}
     </div>
     <div class="ex-actions">
-      <button class="btn sm ghost" onClick=${() => editActive(a => { const e = a.entries.find(x => x.id === en.id); const last = e.sets[e.sets.length - 1]; e.sets.push(newSet(last ? last.target : null)); })}><${Icon} name="plus" size=${16} /> Add set</button>
-      ${en.sets.length > 1 ? html`<button class="btn sm ghost" onClick=${() => editActive(a => { const e = a.entries.find(x => x.id === en.id); e.sets.pop(); })}><${Icon} name="minus" size=${16} /> Remove set</button>` : null}
+      <button class="btn sm ghost" aria-label="Add set" onClick=${() => editActive(a => { const e = a.entries.find(x => x.id === en.id); const last = e.sets[e.sets.length - 1]; e.sets.push(newSet(last ? last.target : null)); })}><${Icon} name="plus" size=${16} /> Set</button>
+      ${en.sets.length > 1 ? html`<button class="btn sm ghost" aria-label="Remove set" onClick=${() => editActive(a => { const e = a.entries.find(x => x.id === en.id); e.sets.pop(); })}><${Icon} name="minus" size=${16} /> Set</button>` : null}
+      ${ex.type === 'weight' ? html`<button class="btn sm ghost" onClick=${() => warmupSheet(en, ex, topKg())}>Warm-up</button>` : null}
       ${isBar ? html`<button class="btn sm ghost" onClick=${() => plateCalc(plateKg())}><${Icon} name="train" size=${16} /> Plates</button>` : null}
     </div>
   </div>`;
+}
+
+// Warm-up sets worked out from your top set, ready to drop into the workout.
+function warmupSheet(en, ex, topKg0) {
+  function Body() {
+    const st = store.get();
+    const unit = st.settings.unit;
+    const [val, setVal] = useState(topKg0 ? fmtNum(toUnit(topKg0, unit), 1) : '');
+    const top = parseFloat(val);
+    const list = top ? warmups(st, ex, fromUnit(top, unit)) : [];
+    const bar = isBarbell(ex) ? (st.settings.barKg != null ? round(toUnit(st.settings.barKg, unit), 2) : BARS[unit][0]) : null;
+    const plates = st.settings.plates && st.settings.plates.length ? st.settings.plates : DEFAULT_PLATES[unit];
+    const perSide = v => { if (bar == null) return ''; const r = platesFor(v, bar, plates); return r.under ? '' : r.side.length ? r.side.join(' + ') + ' a side' : 'empty bar'; };
+    const add = () => {
+      editActive(a => {
+        const e = a.entries.find(x => x.id === en.id);
+        if (!e) return;
+        const kept = e.sets.filter(x => x.t !== 'w' || x.done);
+        const done = kept.filter(x => x.t === 'w');
+        const fresh = list.slice(done.length).map(w => ({ ...newSet(null), t: 'w', kg: w.kg, reps: w.reps, av: fmtNum(w.shown, 1), bv: String(w.reps) }));
+        e.sets = [...done, ...fresh, ...kept.filter(x => x.t !== 'w')];
+      });
+      closeSheet(); toast(`${list.length} warm-up ${list.length === 1 ? 'set' : 'sets'} added`);
+    };
+    return html`
+      <${SheetHead} title="Warm-up" />
+      <div class="field"><label for="wu-top">Top working weight (${unit})</label>
+        <input id="wu-top" class="input num" style="height:56px;font-size:24px;text-align:center" inputmode="decimal" value=${val} onInput=${e => setVal(e.target.value)} /></div>
+      ${top ? list.length ? html`<div class="list">${list.map((w, i) => html`<div class="row">
+          <span class="set-type w" style="width:30px">W${i + 1}</span>
+          <div class="grow"><div class="title num">${fmtNum(w.shown, 1)} ${unit} × ${w.reps}</div>${bar != null ? html`<div class="sub">${perSide(w.shown)}</div>` : null}</div>
+        </div>`)}</div>
+        <p class="tiny muted" style="margin:0">Rest about a minute between warm-ups. They don't count toward your volume or records.</p>
+        <button class="btn primary block" onClick=${add}>Add to workout</button>`
+        : html`<div class="card small text-2">That's light enough to start with your working sets.</div>` : null}`;
+  }
+  openSheet(() => html`<${Body} />`);
 }
 
 function entryMenu(en, idx, ex, restSec) {
@@ -448,7 +517,7 @@ export function WorkoutSets({ wo, state }) {
       <${ExThumb} ex=${ex} size=${36} />
       <div class="grow">
         <div class="title">${ex.name}${exPr.length ? html`<span class="pill accent pr-flag">PR</span>` : null}</div>
-        <div class="sub" style="white-space:normal">${en.sets.map(s => (s.t !== 'n' ? s.t.toUpperCase() + ' ' : '') + prevText(s, ex, state.settings)).join('  ·  ')}</div>
+        <div class="sub" style="white-space:normal">${en.sets.map(s => (s.t !== 'n' ? s.t.toUpperCase() + ' ' : '') + prevText(s, ex, state.settings) + (typeof s.rir === 'number' ? ` @${s.rir >= 4 ? '4+' : s.rir}` : '')).join('  ·  ')}</div>
         ${en.note ? html`<div class="tiny muted" style="margin-top:4px">${en.note}</div>` : null}
       </div>
     </button>`;
