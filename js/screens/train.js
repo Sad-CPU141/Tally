@@ -217,7 +217,7 @@ function ExHowTo({ state, ex }) {
     ${steps ? html`<div class="card stack"><span class="eyebrow">Steps</span><ol class="steps">${steps.map(t => html`<li>${t}</li>`)}</ol></div>` : null}
     ${tips.length ? html`<div class="card stack"><span class="eyebrow">Quick tips</span>${tips.map(t => html`<div class="hstack small" style="align-items:flex-start;gap:10px"><span style="color:var(--accent);margin-top:1px"><${Icon} name="bolt" size=${16} /></span><span class="text-2">${t}</span></div>`)}</div>` : null}
     ${!steps ? html`<div class="card empty small"><span class="h-md">No guide for this exercise yet</span>Add your own steps with Edit, one step per line.<button class="btn sm" onClick=${() => editExercise(ex)}>Write a guide</button></div>` : null}
-    ${m ? html`<p class="tiny muted" style="margin:0">${PHOTO_CREDIT} General guidance. If something hurts, stop and get it checked.</p>` : null}`;
+    <p class="tiny muted credit" style="margin:0">Images: <a href="https://repdb.co" target="_blank" rel="noopener">Exercise data by RepDB (repdb.co)</a>. Steps from Free Exercise DB. General guidance; if something hurts, stop and get it checked.</p>`;
 }
 
 function ExHistory({ state, ex }) {

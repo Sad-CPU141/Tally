@@ -21,7 +21,7 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 1. **Core gym** ✓
    - Your own routines (no templates), 58 built-in exercises plus custom ones
    - Starting a workout while one is open asks to save it, discard it, or go back
-   - Animated 3D demonstrations for 55 of the 58 exercises (ExerciseDB); tap the name for its page: overview (this workout, records, rep maxes, e1RM chart), how-to steps, and full history
+   - Start/end images for 55 of the 58 exercises from RepDB, flipping to show the movement, offline; tap the name for its page: overview (this workout, records, rep maxes, e1RM chart), how-to steps, and full history
    - Workout logging: previous numbers per set (matched by set type), tick an empty set to accept the suggested numbers, warm-ups carried over
    - Set types (warm-up, working, drop, failure), per-exercise notes and rest times
    - Rest timer that starts on its own, with ±15s and a sound/vibration at the end
@@ -42,7 +42,7 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 
 ## Credits
 
-- Exercise animations: ExerciseDB free API (`static.exercisedb.dev`), linked by ID in `js/lib/photo.js`. Their terms don't allow storing copies, so they load live and don't work offline.
+- Exercise images: [Exercise data by RepDB (repdb.co)](https://repdb.co), free tier, resized in `media/rd/` (map in `js/lib/rdmedia.js`). In-app use only; not to be redistributed as a dataset.
 - Exercise steps and details: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain), in `js/lib/exmedia.js`.
 - Food data: [Open Food Facts](https://world.openfoodfacts.org).
 
