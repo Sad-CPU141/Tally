@@ -7,7 +7,7 @@ import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toas
 import { bwUnit, todayKey, dayKey, fromKey, addDays, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
 import { isRecipe, addIngredient, addEntryAsIngredient, newRecipe } from '../lib/recipes.js';
-import { loadFoodDB, searchFoodDB, foodDBReady } from '../lib/fooddb.js';
+import { loadAll, allReady, searchAll, genericSummary, brands as allBrands } from '../lib/fooddb.js';
 
 // When Add Food is opened from a recipe, picked foods become ingredients instead of log entries.
 let intoRecipe = null;
@@ -136,7 +136,8 @@ function Portion({ food, qty, unit, setQty, setUnit }) {
       <div class="field"><label for="pq">Amount</label><input id="pq" class="input num" style="font-size:20px;text-align:center" inputmode="decimal" value=${qty} onInput=${e => setQty(e.target.value)} /></div>
       <div class="field"><label>Unit</label>${canG && canS
         ? html`<${Seg} label="Unit" value=${unit} onChange=${u => { setUnit(u); if (u === 'g' && food.serving && food.serving.g) setQty(String(round(food.serving.g * (parseFloat(qty) || 1), 1))); if (u === 'serving' && food.serving && food.serving.g) setQty(String(round((parseFloat(qty) || 0) / food.serving.g, 2) || 1)); }} options=${[['serving', 'Servings'], ['g', 'Grams']]} />`
-        : html`<div class="input" style="display:flex;align-items:center;color:var(--text-2)">${unit === 'g' ? 'Grams' : 'Servings'}</div>`}</div>
+        : canG ? html`<${Seg} label="Unit" value=${unit} onChange=${u => { if (u !== unit) setQty(String(u === 'oz' ? round((parseFloat(qty) || 0) / F.OZ, 1) : Math.round((parseFloat(qty) || 0) * F.OZ))); setUnit(u); }} options=${[['g', 'Grams'], ['oz', 'oz']]} />`
+        : html`<div class="input" style="display:flex;align-items:center;color:var(--text-2)">Servings</div>`}</div>
     </div>
     ${unit === 'serving' && food.serving ? html`<div class="tiny muted" style="margin-top:-6px">1 serving = ${food.serving.label}${food.serving.g && food.serving.label.indexOf('g') === -1 ? ` (${food.serving.g} g)` : ''}</div>` : null}
     <div class="summary-grid" style="grid-template-columns:repeat(4,1fr)">
@@ -241,10 +242,10 @@ export function AddFood({ state, params }) {
   const [tab, setTab] = useState('recent');
   const [online, setOnline] = useState({ status: 'idle', items: [], q: '' });
   const [retry, setRetry] = useState(0);
-  const [dbOk, setDbOk] = useState(foodDBReady());
+  const [dbOk, setDbOk] = useState(allReady());
   const [more, setMore] = useState(false);
   const timer = useRef(null);
-  useEffect(() => { if (!dbOk) loadFoodDB().then(() => setDbOk(true)).catch(() => {}); }, []);
+  useEffect(() => { if (!dbOk) loadAll().then(() => setDbOk(true)).catch(() => {}); }, []);
   const ql = q.trim().toLowerCase();
   useEffect(() => { setMore(false); }, [ql]);
 
@@ -265,7 +266,10 @@ export function AddFood({ state, params }) {
   const local = ql ? foods.filter(f => (f.name + ' ' + (f.brand || '')).toLowerCase().includes(ql)) : null;
   const meals = ql ? state.meals.filter(m => m.name.toLowerCase().includes(ql)) : state.meals;
 
-  const FoodRow = ({ f }) => html`<button class="row" onClick=${() => foodSheet(f, date, meal)}>
+  const openFood = f => f.id && f.id.startsWith('usda-') ? nav.go('foodItem', { date, meal, recipe: params.recipe, usda: +f.id.slice(5) })
+    : f.source === 'restaurant' && f.brandId ? nav.go('foodItem', { date, meal, recipe: params.recipe, brand: f.brandId, item: f.item, size: f.size || 0 })
+    : foodSheet(f, date, meal);
+  const FoodRow = ({ f }) => html`<button class="row" onClick=${() => openFood(f)}>
     <div class="grow" style="min-width:0"><div class=${'title' + (f.source === 'usda' ? ' wrap2' : '')}>${f.name}</div><div class="sub">${[f.brand, f.serving ? f.serving.label : f.per100 ? 'per 100 g' : '', f.source === 'usda' ? `${g(f.per100.p)} g protein` : ''].filter(Boolean).join(' · ')}</div></div>
     <span class="num small muted">${f.serving && f.per100 && f.serving.g ? kc(f.per100.kcal * f.serving.g / 100) : f.perServing ? kc(f.perServing.kcal) : f.per100 ? kc(f.per100.kcal) : ''} kcal</span>
   </button>`;
@@ -297,13 +301,31 @@ export function AddFood({ state, params }) {
             ${local.slice(0, 12).map(f => html`<${FoodRow} f=${f} />`)}
           </div>` : null}
         ${(() => {
+          if (!dbOk) return html`<div class="card empty small">Loading foods…</div>`;
+          const r = ql.length >= 2 ? searchAll(ql) : { foods: [], brands: [], items: [], usda: [] };
           const mineIds = new Set(foods.map(f => f.id));
-          const common = dbOk && ql.length >= 2 ? searchFoodDB(ql, more ? 60 : 14).filter(f => !mineIds.has(f.id)).slice(0, more ? 60 : 12) : [];
-          return html`<div class="section-head"><span class="h-md">Common foods</span><span class="tiny muted">USDA · 8,000+ foods</span></div>
-            ${!dbOk ? html`<div class="card empty small">Loading foods…</div>`
-              : common.length ? html`<div class="list">${common.map(f => html`<${FoodRow} f=${f} />`)}</div>
-                ${!more && common.length >= 12 ? html`<button class="btn ghost block" onClick=${() => setMore(true)}>Show more</button>` : null}`
-              : html`<div class="small muted">No everyday food matches. Try fewer words, like "chicken breast" or "rice".</div>`}`;
+          const usda = r.usda.filter(f => !mineIds.has(f.id));
+          const go = p => nav.go('foodItem', { date, meal, recipe: params.recipe, ...p });
+          return html`
+            ${r.foods.length ? html`<div class="section-head"><span class="h-md">Foods</span></div>
+              <div class="list">${r.foods.map(g => html`<button class="row" onClick=${() => go({ g: g.n })}>
+                <div class="grow" style="min-width:0"><div class="title">${g.n}</div><div class="sub">${genericSummary(g)}</div></div>
+                <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`)}</div>` : null}
+            ${r.brands.length || r.items.length ? html`<div class="section-head"><span class="h-md">Restaurants</span></div>
+              <div class="list">
+                ${r.brands.map(b => html`<button class="row brand-row" onClick=${() => nav.go('brand', { brand: b.id, date, meal, recipe: params.recipe })}>
+                  <span class="badge">${b.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2)}</span>
+                  <div class="grow"><div class="title">${b.name}</div><div class="sub">Full menu · ${b.items.length} items</div></div>
+                  <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`)}
+                ${r.items.map(({ b, it }) => html`<button class="row" onClick=${() => go({ brand: b.id, item: it.i, size: 0 })}>
+                  <div class="grow" style="min-width:0"><div class="title">${it.n}</div><div class="sub">${b.name}${it.s.length > 1 ? ' · ' + it.s.length + ' sizes' : ''}</div></div>
+                  <span class="num small muted">${it.s[0][1]} kcal</span></button>`)}
+              </div>` : null}
+            ${usda.length ? (more || !r.foods.length ? html`<div class="section-head"><span class="h-md">${r.foods.length ? 'More from USDA' : 'Foods'}</span><span class="tiny muted">USDA FoodData Central</span></div>
+              <div class="list">${usda.slice(0, more ? 40 : 10).map(f => html`<${FoodRow} f=${f} />`)}</div>
+              ${!more && usda.length > 10 ? html`<button class="btn ghost block" onClick=${() => setMore(true)}>Show more</button>` : null}`
+              : html`<button class="btn ghost block" onClick=${() => setMore(true)}>More from USDA (${usda.length >= 40 ? '40+' : usda.length})</button>`) : null}
+            ${ql.length >= 2 && !r.foods.length && !usda.length && !r.items.length && !r.brands.length ? html`<div class="small muted">No everyday food or restaurant matches. Try fewer words, like "chicken breast" or "rice".</div>` : null}`;
         })()}
         <div class="section-head"><span class="h-md">Packaged and branded</span><span class="tiny muted">Open Food Facts</span></div>
         ${ql.length < 3 ? html`<div class="small muted">Type at least 3 letters to search online.</div>`
@@ -313,6 +335,10 @@ export function AddFood({ state, params }) {
           : online.items.length ? html`<div class="list">${online.items.map(f => html`<${FoodRow} f=${f} />`)}</div>`
           : html`<div class="card empty small">No matches. Try a shorter search, scan the barcode, or create the food.</div>`}
       ` : html`
+        ${dbOk ? html`<div class="chips" role="group" aria-label="Restaurants">
+          <span class="small muted" style="align-self:center;flex:none">Restaurants</span>
+          ${allBrands().map(b => html`<button class="chip" onClick=${() => nav.go('brand', { brand: b.id, date, meal, recipe: params.recipe })}>${b.name}</button>`)}
+        </div>` : null}
         <${Seg} label="Food lists" value=${tab} onChange=${setTab} options=${[['recent', 'Recent'], ['mine', 'My foods'], ['meals', 'Meals'], ...(forRecipe ? [] : [['recipes', 'Recipes']])]} />
         ${tab === 'recipes' ? html`
           ${foods.some(isRecipe) ? html`<div class="list">${foods.filter(isRecipe).map(r => html`<div class="row">

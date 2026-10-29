@@ -1,0 +1,1832 @@
+[
+[
+"Chicken breast",
+"Poultry",
+[
+[
+"Grilled",
+"chicken breast skinless boneless meat only cooked grilled"
+],
+[
+"Roasted",
+"chicken breast meat only cooked roasted"
+],
+[
+"Raw",
+"chicken breast boneless skinless raw"
+],
+[
+"Fried",
+"chicken breast meat only cooked fried"
+],
+[
+"Rotisserie",
+"chicken rotisserie original seasoning breast meat only"
+]
+]
+],
+[
+"Chicken thigh",
+"Poultry",
+[
+[
+"Roasted",
+"chicken thigh meat only cooked roasted"
+],
+[
+"Raw",
+"chicken thigh boneless skinless raw"
+],
+[
+"With skin, roasted",
+"chicken thigh meat and skin cooked roasted"
+]
+]
+],
+[
+"Chicken drumstick",
+"Poultry",
+[
+[
+"Roasted",
+"chicken drumstick meat only cooked roasted"
+],
+[
+"With skin, roasted",
+"chicken drumstick meat and skin cooked roasted"
+],
+[
+"Raw",
+"chicken drumstick meat and skin raw"
+]
+]
+],
+[
+"Chicken wings",
+"Poultry",
+[
+[
+"Roasted",
+"chicken wing meat and skin cooked roasted"
+],
+[
+"Fried",
+"chicken wing meat and skin cooked fried flour"
+],
+[
+"Raw",
+"chicken wing meat and skin raw"
+]
+]
+],
+[
+"Ground chicken",
+"Poultry",
+[
+[
+"Cooked",
+"chicken ground crumbles cooked pan-browned"
+],
+[
+"Raw",
+"chicken ground raw"
+]
+]
+],
+[
+"Turkey breast",
+"Poultry",
+[
+[
+"Roasted",
+"turkey breast meat only roasted"
+],
+[
+"Deli slices",
+"turkey breast sliced prepackaged"
+]
+]
+],
+[
+"Ground turkey",
+"Poultry",
+[
+[
+"Cooked",
+"turkey ground 93 lean cooked"
+],
+[
+"Raw",
+"turkey ground 93 lean raw"
+]
+]
+],
+[
+"Ground beef",
+"Meat",
+[
+[
+"90% lean, cooked",
+"beef ground 90 lean 10 fat patty cooked broiled"
+],
+[
+"85% lean, cooked",
+"beef ground 85 lean 15 fat patty cooked broiled"
+],
+[
+"80% lean, cooked",
+"beef ground 80 lean 20 fat patty cooked broiled"
+],
+[
+"90% lean, raw",
+"beef ground 90 lean 10 fat raw"
+],
+[
+"85% lean, raw",
+"beef ground 85 lean 15 fat raw"
+],
+[
+"80% lean, raw",
+"beef ground 80 lean 20 fat raw"
+]
+]
+],
+[
+"Steak (sirloin)",
+"Meat",
+[
+[
+"Grilled",
+"beef top sirloin steak lean only cooked broiled"
+],
+[
+"Raw",
+"beef top sirloin steak lean only raw"
+]
+]
+],
+[
+"Steak (ribeye)",
+"Meat",
+[
+[
+"Grilled",
+"beef rib eye steak lean and fat cooked grilled"
+],
+[
+"Raw",
+"beef ribeye steak lean and fat raw"
+]
+]
+],
+[
+"Beef (stewing / chuck)",
+"Meat",
+[
+[
+"Cooked",
+"beef chuck stew meat cooked braised"
+],
+[
+"Raw",
+"beef chuck stew meat raw"
+]
+]
+],
+[
+"Lamb",
+"Meat",
+[
+[
+"Cooked",
+"lamb domestic composite trimmed retail cuts lean only cooked"
+],
+[
+"Ground, cooked",
+"lamb ground cooked broiled"
+]
+]
+],
+[
+"Pork chop",
+"Meat",
+[
+[
+"Cooked",
+"pork loin chop boneless lean only cooked broiled"
+],
+[
+"Raw",
+"pork loin chop boneless lean raw"
+]
+]
+],
+[
+"Pork tenderloin",
+"Meat",
+[
+[
+"Roasted",
+"pork tenderloin lean only cooked roasted"
+],
+[
+"Raw",
+"pork tenderloin lean only raw"
+]
+]
+],
+[
+"Bacon",
+"Meat",
+[
+[
+"Pork, cooked",
+"pork cured bacon cooked pan-fried"
+],
+[
+"Turkey bacon, cooked",
+"turkey bacon cooked"
+]
+]
+],
+[
+"Ham",
+"Meat",
+[
+[
+"Sliced",
+"ham sliced regular 11 fat"
+],
+[
+"Lean, sliced",
+"ham sliced extra lean"
+]
+]
+],
+[
+"Sausage",
+"Meat",
+[
+[
+"Pork, cooked",
+"pork sausage fresh cooked"
+],
+[
+"Beef, cooked",
+"beef sausage cooked"
+],
+[
+"Turkey, cooked",
+"turkey sausage cooked"
+]
+]
+],
+[
+"Hot dog",
+"Meat",
+[
+[
+"Beef",
+"frankfurter beef unheated"
+]
+]
+],
+[
+"Salmon",
+"Fish & seafood",
+[
+[
+"Atlantic, cooked",
+"fish salmon atlantic farmed cooked dry heat"
+],
+[
+"Atlantic, raw",
+"fish salmon atlantic farm raised raw"
+],
+[
+"Sockeye, cooked",
+"fish salmon sockeye cooked dry heat"
+],
+[
+"Canned",
+"fish salmon pink canned drained solids"
+]
+]
+],
+[
+"Tuna",
+"Fish & seafood",
+[
+[
+"Canned in water",
+"fish tuna light canned in water drained solids"
+],
+[
+"Canned in oil",
+"fish tuna light canned in oil drained solids"
+],
+[
+"Fresh, cooked",
+"fish tuna fresh yellowfin cooked dry heat"
+],
+[
+"Fresh, raw",
+"fish tuna fresh yellowfin raw"
+]
+]
+],
+[
+"Shrimp",
+"Fish & seafood",
+[
+[
+"Cooked",
+"crustaceans shrimp cooked"
+],
+[
+"Raw",
+"crustaceans shrimp raw"
+]
+]
+],
+[
+"Tilapia",
+"Fish & seafood",
+[
+[
+"Cooked",
+"fish tilapia cooked dry heat"
+],
+[
+"Raw",
+"fish tilapia raw"
+]
+]
+],
+[
+"Cod",
+"Fish & seafood",
+[
+[
+"Cooked",
+"fish cod atlantic cooked dry heat"
+],
+[
+"Raw",
+"fish cod atlantic raw"
+]
+]
+],
+[
+"Sardines",
+"Fish & seafood",
+[
+[
+"Canned in oil",
+"fish sardine atlantic canned in oil drained solids with bone"
+]
+]
+],
+[
+"Eggs",
+"Eggs & dairy",
+[
+[
+"Whole, boiled",
+"egg whole cooked hard-boiled"
+],
+[
+"Whole, fried",
+"egg whole cooked fried"
+],
+[
+"Whole, scrambled",
+"egg whole cooked scrambled"
+],
+[
+"Whole, raw",
+"egg whole raw fresh"
+],
+[
+"Egg whites",
+"egg white raw fresh"
+]
+]
+],
+[
+"Milk",
+"Eggs & dairy",
+[
+[
+"2%",
+"milk reduced fat fluid 2 milkfat with added vitamin a and vitamin d"
+],
+[
+"Whole (3.25%)",
+"milk whole 3.25 milkfat with added vitamin d"
+],
+[
+"1%",
+"milk lowfat fluid 1 milkfat with added vitamin a and vitamin d"
+],
+[
+"Skim",
+"milk nonfat fluid with added vitamin a and vitamin d"
+],
+[
+"Chocolate",
+"milk chocolate fluid commercial reduced fat"
+]
+]
+],
+[
+"Greek yogurt",
+"Eggs & dairy",
+[
+[
+"Plain, nonfat",
+"yogurt greek plain nonfat"
+],
+[
+"Plain, low-fat",
+"yogurt greek plain lowfat"
+],
+[
+"Plain, whole milk",
+"yogurt greek plain whole milk"
+],
+[
+"Vanilla, nonfat",
+"yogurt greek vanilla nonfat"
+]
+]
+],
+[
+"Yogurt",
+"Eggs & dairy",
+[
+[
+"Plain, low-fat",
+"yogurt plain low fat"
+],
+[
+"Plain, whole milk",
+"yogurt plain whole milk"
+],
+[
+"Fruit, low-fat",
+"yogurt fruit low fat"
+]
+]
+],
+[
+"Cottage cheese",
+"Eggs & dairy",
+[
+[
+"2%",
+"cheese cottage lowfat 2 milkfat"
+],
+[
+"1%",
+"cheese cottage lowfat 1 milkfat"
+],
+[
+"Regular",
+"cheese cottage creamed large or small curd"
+]
+]
+],
+[
+"Cheese",
+"Eggs & dairy",
+[
+[
+"Cheddar",
+"cheese cheddar"
+],
+[
+"Mozzarella",
+"cheese mozzarella whole milk"
+],
+[
+"Mozzarella, part-skim",
+"cheese mozzarella part skim milk"
+],
+[
+"Parmesan",
+"cheese parmesan grated"
+],
+[
+"Swiss",
+"cheese swiss"
+],
+[
+"Feta",
+"cheese feta"
+],
+[
+"Processed slice",
+"cheese pasteurized process american"
+]
+]
+],
+[
+"Cream cheese",
+"Eggs & dairy",
+[
+[
+"Regular",
+"cheese cream"
+],
+[
+"Low-fat",
+"cheese cream low fat"
+]
+]
+],
+[
+"Butter",
+"Fats & oils",
+[
+[
+"Salted",
+"butter salted"
+],
+[
+"Unsalted",
+"butter without salt"
+]
+]
+],
+[
+"Whey protein",
+"Protein",
+[
+[
+"Powder",
+"beverages protein powder whey based"
+]
+]
+],
+[
+"Tofu",
+"Protein",
+[
+[
+"Firm",
+"tofu raw firm prepared with calcium sulfate"
+],
+[
+"Extra firm",
+"tofu extra firm prepared with nigari"
+]
+]
+],
+[
+"White rice",
+"Grains",
+[
+[
+"Cooked",
+"rice white long-grain regular enriched cooked"
+],
+[
+"Dry",
+"rice white long-grain regular raw enriched"
+]
+]
+],
+[
+"Brown rice",
+"Grains",
+[
+[
+"Cooked",
+"rice brown long-grain cooked"
+],
+[
+"Dry",
+"rice brown long-grain raw"
+]
+]
+],
+[
+"Pasta",
+"Grains",
+[
+[
+"Cooked",
+"pasta cooked enriched without added salt"
+],
+[
+"Dry",
+"pasta dry enriched"
+],
+[
+"Whole wheat, cooked",
+"pasta whole-wheat cooked"
+]
+]
+],
+[
+"Oats",
+"Grains",
+[
+[
+"Dry (rolled)",
+"oats whole grain rolled old fashioned"
+],
+[
+"Cooked with water",
+"cereals oats regular and quick not fortified dry"
+]
+]
+],
+[
+"Quinoa",
+"Grains",
+[
+[
+"Cooked",
+"quinoa cooked"
+],
+[
+"Dry",
+"quinoa uncooked"
+]
+]
+],
+[
+"Couscous",
+"Grains",
+[
+[
+"Cooked",
+"couscous cooked"
+]
+]
+],
+[
+"Bread",
+"Grains",
+[
+[
+"White",
+"bread white commercially prepared"
+],
+[
+"Whole wheat",
+"bread whole-wheat commercially prepared"
+],
+[
+"Multigrain",
+"bread multi-grain"
+],
+[
+"Sourdough / French",
+"bread french or vienna includes sourdough"
+],
+[
+"Rye",
+"bread rye"
+]
+]
+],
+[
+"Bagel",
+"Grains",
+[
+[
+"Plain",
+"bagels plain enriched"
+]
+]
+],
+[
+"Tortilla / wrap",
+"Grains",
+[
+[
+"Flour",
+"tortillas ready-to-bake or -fry flour"
+],
+[
+"Corn",
+"tortillas ready-to-bake or -fry corn"
+]
+]
+],
+[
+"Pita",
+"Grains",
+[
+[
+"White",
+"bread pita white enriched"
+],
+[
+"Whole wheat",
+"bread pita whole-wheat"
+]
+]
+],
+[
+"English muffin",
+"Grains",
+[
+[
+"Plain",
+"english muffins plain enriched"
+]
+]
+],
+[
+"Cereal",
+"Grains",
+[
+[
+"Corn flakes",
+"cereals ready-to-eat corn flakes"
+],
+[
+"Cheerios",
+"cereals ready-to-eat general mills cheerios"
+]
+]
+],
+[
+"Granola",
+"Grains",
+[
+[
+"Plain",
+"cereals granola"
+]
+]
+],
+[
+"Pancakes",
+"Grains",
+[
+[
+"Plain",
+"pancakes plain prepared from recipe"
+]
+]
+],
+[
+"Potato",
+"Vegetables",
+[
+[
+"Baked, with skin",
+"potatoes baked flesh and skin without salt"
+],
+[
+"Boiled",
+"potatoes boiled cooked without skin flesh without salt"
+],
+[
+"Mashed",
+"potatoes mashed home-prepared whole milk and butter added"
+],
+[
+"Raw",
+"potatoes flesh and skin raw"
+]
+]
+],
+[
+"Sweet potato",
+"Vegetables",
+[
+[
+"Baked",
+"sweet potato cooked baked in skin flesh without salt"
+],
+[
+"Raw",
+"sweet potato raw unprepared"
+]
+]
+],
+[
+"French fries",
+"Vegetables",
+[
+[
+"Oven-baked",
+"potatoes french fried frozen home-prepared heated in oven without salt"
+],
+[
+"Fast food",
+"fast foods potato french fried in vegetable oil"
+]
+]
+],
+[
+"Broccoli",
+"Vegetables",
+[
+[
+"Raw",
+"broccoli raw"
+],
+[
+"Boiled",
+"broccoli cooked boiled drained without salt"
+]
+]
+],
+[
+"Spinach",
+"Vegetables",
+[
+[
+"Raw",
+"spinach raw"
+],
+[
+"Cooked",
+"spinach cooked boiled drained without salt"
+]
+]
+],
+[
+"Lettuce",
+"Vegetables",
+[
+[
+"Romaine",
+"lettuce cos or romaine raw"
+],
+[
+"Iceberg",
+"lettuce iceberg raw"
+]
+]
+],
+[
+"Mixed salad greens",
+"Vegetables",
+[
+[
+"Raw",
+"lettuce green leaf raw"
+]
+]
+],
+[
+"Carrots",
+"Vegetables",
+[
+[
+"Raw",
+"carrots raw"
+],
+[
+"Cooked",
+"carrots cooked boiled drained without salt"
+]
+]
+],
+[
+"Tomato",
+"Vegetables",
+[
+[
+"Raw",
+"tomatoes red ripe raw year round average"
+],
+[
+"Cherry",
+"tomatoes grape raw"
+]
+]
+],
+[
+"Cucumber",
+"Vegetables",
+[
+[
+"With peel",
+"cucumber with peel raw"
+]
+]
+],
+[
+"Bell pepper",
+"Vegetables",
+[
+[
+"Red",
+"peppers sweet red raw"
+],
+[
+"Green",
+"peppers sweet green raw"
+]
+]
+],
+[
+"Onion",
+"Vegetables",
+[
+[
+"Raw",
+"onions raw"
+],
+[
+"Cooked",
+"onions cooked boiled drained without salt"
+]
+]
+],
+[
+"Mushrooms",
+"Vegetables",
+[
+[
+"Raw",
+"mushrooms white raw"
+],
+[
+"Cooked",
+"mushrooms white cooked boiled drained without salt"
+]
+]
+],
+[
+"Green beans",
+"Vegetables",
+[
+[
+"Cooked",
+"beans snap green cooked boiled drained without salt"
+],
+[
+"Raw",
+"beans snap green raw"
+]
+]
+],
+[
+"Corn",
+"Vegetables",
+[
+[
+"Cooked",
+"corn sweet yellow cooked boiled drained without salt"
+],
+[
+"Canned",
+"corn sweet yellow canned whole kernel drained solids"
+]
+]
+],
+[
+"Peas",
+"Vegetables",
+[
+[
+"Cooked",
+"peas green frozen cooked boiled drained without salt"
+]
+]
+],
+[
+"Cauliflower",
+"Vegetables",
+[
+[
+"Raw",
+"cauliflower raw"
+],
+[
+"Cooked",
+"cauliflower cooked boiled drained without salt"
+]
+]
+],
+[
+"Zucchini",
+"Vegetables",
+[
+[
+"Raw",
+"squash summer zucchini includes skin raw"
+],
+[
+"Cooked",
+"squash summer zucchini includes skin cooked boiled drained without salt"
+]
+]
+],
+[
+"Asparagus",
+"Vegetables",
+[
+[
+"Cooked",
+"asparagus cooked boiled drained"
+],
+[
+"Raw",
+"asparagus raw"
+]
+]
+],
+[
+"Kale",
+"Vegetables",
+[
+[
+"Raw",
+"kale raw"
+]
+]
+],
+[
+"Cabbage",
+"Vegetables",
+[
+[
+"Raw",
+"cabbage raw"
+]
+]
+],
+[
+"Garlic",
+"Vegetables",
+[
+[
+"Raw",
+"garlic raw"
+]
+]
+],
+[
+"Avocado",
+"Fruit",
+[
+[
+"Raw",
+"avocados raw all commercial varieties"
+]
+]
+],
+[
+"Banana",
+"Fruit",
+[
+[
+"Raw",
+"bananas raw"
+]
+]
+],
+[
+"Apple",
+"Fruit",
+[
+[
+"With skin",
+"apples raw with skin"
+]
+]
+],
+[
+"Orange",
+"Fruit",
+[
+[
+"Raw",
+"oranges raw all commercial varieties"
+]
+]
+],
+[
+"Strawberries",
+"Fruit",
+[
+[
+"Raw",
+"strawberries raw"
+]
+]
+],
+[
+"Blueberries",
+"Fruit",
+[
+[
+"Raw",
+"blueberries raw"
+],
+[
+"Frozen",
+"blueberries frozen unsweetened"
+]
+]
+],
+[
+"Raspberries",
+"Fruit",
+[
+[
+"Raw",
+"raspberries raw"
+]
+]
+],
+[
+"Grapes",
+"Fruit",
+[
+[
+"Raw",
+"grapes red or green european type seedless raw"
+]
+]
+],
+[
+"Watermelon",
+"Fruit",
+[
+[
+"Raw",
+"watermelon raw"
+]
+]
+],
+[
+"Mango",
+"Fruit",
+[
+[
+"Raw",
+"mangos raw"
+]
+]
+],
+[
+"Pineapple",
+"Fruit",
+[
+[
+"Raw",
+"pineapple raw all varieties"
+]
+]
+],
+[
+"Pear",
+"Fruit",
+[
+[
+"Raw",
+"pears raw"
+]
+]
+],
+[
+"Peach",
+"Fruit",
+[
+[
+"Raw",
+"peaches yellow raw"
+]
+]
+],
+[
+"Kiwi",
+"Fruit",
+[
+[
+"Raw",
+"kiwifruit green raw"
+]
+]
+],
+[
+"Cherries",
+"Fruit",
+[
+[
+"Sweet, raw",
+"cherries sweet raw"
+]
+]
+],
+[
+"Dates",
+"Fruit",
+[
+[
+"Medjool",
+"dates medjool"
+]
+]
+],
+[
+"Raisins",
+"Fruit",
+[
+[
+"Seedless",
+"raisins seedless"
+]
+]
+],
+[
+"Lemon",
+"Fruit",
+[
+[
+"Raw",
+"lemons raw without peel"
+]
+]
+],
+[
+"Orange juice",
+"Drinks",
+[
+[
+"Fresh / not from concentrate",
+"orange juice raw"
+]
+]
+],
+[
+"Apple juice",
+"Drinks",
+[
+[
+"Bottled",
+"apple juice canned or bottled unsweetened without added ascorbic acid"
+]
+]
+],
+[
+"Coffee",
+"Drinks",
+[
+[
+"Black",
+"beverages coffee brewed prepared with tap water"
+]
+]
+],
+[
+"Tea",
+"Drinks",
+[
+[
+"Black, plain",
+"beverages tea black brewed prepared with tap water"
+]
+]
+],
+[
+"Cola",
+"Drinks",
+[
+[
+"Regular",
+"beverages carbonated cola regular"
+],
+[
+"Diet / zero",
+"beverages carbonated cola without caffeine with sodium saccharin"
+]
+]
+],
+[
+"Beer",
+"Drinks",
+[
+[
+"Regular",
+"alcoholic beverage beer regular all"
+],
+[
+"Light",
+"alcoholic beverage beer light"
+]
+]
+],
+[
+"Wine",
+"Drinks",
+[
+[
+"Red",
+"alcoholic beverage wine table red"
+],
+[
+"White",
+"alcoholic beverage wine table white"
+]
+]
+],
+[
+"Almond milk",
+"Drinks",
+[
+[
+"Unsweetened",
+"almond milk unsweetened plain refrigerated"
+]
+]
+],
+[
+"Oat milk",
+"Drinks",
+[
+[
+"Unsweetened",
+"oat milk unsweetened plain refrigerated"
+]
+]
+],
+[
+"Soy milk",
+"Drinks",
+[
+[
+"Original",
+"soymilk original and vanilla unfortified"
+]
+]
+],
+[
+"Lentils",
+"Beans & legumes",
+[
+[
+"Cooked",
+"lentils mature seeds cooked boiled without salt"
+]
+]
+],
+[
+"Chickpeas",
+"Beans & legumes",
+[
+[
+"Canned",
+"chickpeas garbanzo beans bengal gram mature seeds canned drained"
+],
+[
+"Cooked",
+"chickpeas mature seeds cooked boiled without salt"
+]
+]
+],
+[
+"Black beans",
+"Beans & legumes",
+[
+[
+"Cooked",
+"beans black mature seeds cooked boiled without salt"
+],
+[
+"Canned",
+"beans black canned"
+]
+]
+],
+[
+"Kidney beans",
+"Beans & legumes",
+[
+[
+"Cooked",
+"beans kidney red mature seeds cooked boiled without salt"
+]
+]
+],
+[
+"Hummus",
+"Beans & legumes",
+[
+[
+"Plain",
+"hummus commercial"
+]
+]
+],
+[
+"Edamame",
+"Beans & legumes",
+[
+[
+"Cooked",
+"edamame frozen prepared"
+]
+]
+],
+[
+"Peanut butter",
+"Nuts & seeds",
+[
+[
+"Smooth",
+"peanut butter smooth style with salt"
+],
+[
+"Natural",
+"peanut butter creamy"
+]
+]
+],
+[
+"Almonds",
+"Nuts & seeds",
+[
+[
+"Raw",
+"nuts almonds"
+],
+[
+"Roasted",
+"nuts almonds dry roasted with salt added"
+]
+]
+],
+[
+"Peanuts",
+"Nuts & seeds",
+[
+[
+"Roasted",
+"peanuts all types dry-roasted with salt"
+]
+]
+],
+[
+"Cashews",
+"Nuts & seeds",
+[
+[
+"Roasted",
+"nuts cashew nuts dry roasted with salt added"
+]
+]
+],
+[
+"Walnuts",
+"Nuts & seeds",
+[
+[
+"Raw",
+"nuts walnuts english"
+]
+]
+],
+[
+"Pistachios",
+"Nuts & seeds",
+[
+[
+"Roasted",
+"nuts pistachio nuts dry roasted with salt added"
+]
+]
+],
+[
+"Chia seeds",
+"Nuts & seeds",
+[
+[
+"Dried",
+"seeds chia seeds dried"
+]
+]
+],
+[
+"Sunflower seeds",
+"Nuts & seeds",
+[
+[
+"Roasted",
+"seeds sunflower seed kernels dry roasted with salt added"
+]
+]
+],
+[
+"Olive oil",
+"Fats & oils",
+[
+[
+"Extra virgin",
+"oil olive extra virgin"
+]
+]
+],
+[
+"Vegetable oil",
+"Fats & oils",
+[
+[
+"Canola",
+"oil canola"
+]
+]
+],
+[
+"Coconut oil",
+"Fats & oils",
+[
+[
+"",
+"oil coconut"
+]
+]
+],
+[
+"Mayonnaise",
+"Sauces",
+[
+[
+"Regular",
+"salad dressing mayonnaise regular"
+],
+[
+"Light",
+"salad dressing mayonnaise light"
+]
+]
+],
+[
+"Ketchup",
+"Sauces",
+[
+[
+"",
+"catsup"
+]
+]
+],
+[
+"Mustard",
+"Sauces",
+[
+[
+"Yellow",
+"mustard prepared yellow"
+]
+]
+],
+[
+"BBQ sauce",
+"Sauces",
+[
+[
+"",
+"sauce barbecue"
+]
+]
+],
+[
+"Hot sauce",
+"Sauces",
+[
+[
+"",
+"sauce hot chile sriracha"
+]
+]
+],
+[
+"Soy sauce",
+"Sauces",
+[
+[
+"",
+"soy sauce made from soy and wheat shoyu"
+]
+]
+],
+[
+"Ranch dressing",
+"Sauces",
+[
+[
+"",
+"salad dressing ranch dressing regular"
+]
+]
+],
+[
+"Caesar dressing",
+"Sauces",
+[
+[
+"",
+"salad dressing caesar dressing regular"
+]
+]
+],
+[
+"Salsa",
+"Sauces",
+[
+[
+"",
+"sauce salsa ready-to-serve"
+]
+]
+],
+[
+"Tomato pasta sauce",
+"Sauces",
+[
+[
+"",
+"sauce pasta spaghetti marinara ready-to-serve"
+]
+]
+],
+[
+"Honey",
+"Sweets",
+[
+[
+"",
+"honey"
+]
+]
+],
+[
+"Maple syrup",
+"Sweets",
+[
+[
+"",
+"syrups maple"
+]
+]
+],
+[
+"Sugar",
+"Sweets",
+[
+[
+"White",
+"sugars granulated"
+],
+[
+"Brown",
+"sugars brown"
+]
+]
+],
+[
+"Jam",
+"Sweets",
+[
+[
+"",
+"jams and preserves"
+]
+]
+],
+[
+"Dark chocolate",
+"Sweets",
+[
+[
+"70-85%",
+"chocolate dark 70-85 cacao solids"
+]
+]
+],
+[
+"Milk chocolate",
+"Sweets",
+[
+[
+"",
+"candies milk chocolate"
+]
+]
+],
+[
+"Ice cream",
+"Sweets",
+[
+[
+"Vanilla",
+"ice creams vanilla"
+],
+[
+"Chocolate",
+"ice creams chocolate"
+]
+]
+],
+[
+"Pizza",
+"Meals",
+[
+[
+"Cheese",
+"fast foods pizza chain 14 pizza cheese topping regular crust"
+],
+[
+"Pepperoni",
+"fast foods pizza chain 14 pizza pepperoni topping regular crust"
+]
+]
+],
+[
+"Hamburger",
+"Meals",
+[
+[
+"Single patty, plain",
+"fast foods hamburger single regular patty plain"
+]
+]
+],
+[
+"Cheeseburger",
+"Meals",
+[
+[
+"Single patty",
+"fast foods cheeseburger single regular patty plain"
+]
+]
+],
+[
+"Popcorn",
+"Snacks",
+[
+[
+"Air-popped",
+"snacks popcorn air-popped"
+],
+[
+"Microwave, butter",
+"snacks popcorn microwave regular butter flavor"
+]
+]
+],
+[
+"Potato chips",
+"Snacks",
+[
+[
+"Plain, salted",
+"snacks potato chips plain salted"
+]
+]
+],
+[
+"Tortilla chips",
+"Snacks",
+[
+[
+"Plain",
+"snacks tortilla chips plain white corn salted"
+]
+]
+],
+[
+"Pretzels",
+"Snacks",
+[
+[
+"Hard, salted",
+"snacks pretzels hard plain salted"
+]
+]
+],
+[
+"Rice cakes",
+"Snacks",
+[
+[
+"Plain",
+"snacks rice cakes brown rice plain"
+]
+]
+],
+[
+"Crackers",
+"Snacks",
+[
+[
+"Saltine",
+"crackers saltines"
+]
+]
+]
+]

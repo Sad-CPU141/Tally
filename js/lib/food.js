@@ -4,6 +4,7 @@
 import { dayKey, fromKey, addDays, DAY, round } from './util.js';
 import { weightTrend, finished } from './analytics.js';
 
+export const OZ = 28.3495;
 export const NUTRIENTS = ['kcal', 'p', 'c', 'f', 'fiber', 'sugar', 'sodium'];
 export const MACRO = { p: 'Protein', c: 'Carbs', f: 'Fat' };
 export const KCAL_PER = { p: 4, c: 4, f: 9 };
@@ -15,6 +16,7 @@ export function nutritionFor(food, qty, unit) {
   if (!food || !qty) return out;
   let base = null, mult = 0;
   if (unit === 'g' && food.per100) { base = food.per100; mult = qty / 100; }
+  else if (unit === 'oz' && food.per100) { base = food.per100; mult = qty * OZ / 100; }
   else if (unit === 'serving' && food.perServing) { base = food.perServing; mult = qty; }
   else if (unit === 'serving' && food.per100 && food.serving && food.serving.g) { base = food.per100; mult = (food.serving.g * qty) / 100; }
   else if (food.per100) { base = food.per100; mult = qty / 100; }
@@ -42,6 +44,7 @@ export const dayTotals = (state, key) => sum(dayEntries(state, key));
 
 export function qtyLabel(e, food) {
   if (e.unit === 'g') return `${round(e.qty, 1)} g`;
+  if (e.unit === 'oz') return `${round(e.qty, 2)} oz`;
   const label = e.sl || (food && food.serving && food.serving.label ? food.serving.label : 'serving');
   return e.qty === 1 ? label : `${round(e.qty, 2)} × ${label}`;
 }

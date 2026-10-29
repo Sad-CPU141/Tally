@@ -82,3 +82,115 @@ export function searchFoodDB(q, limit = 40) {
   }
   return res;
 }
+
+// ---------- everyday foods (clean names with variants) and restaurant menus ----------
+let generic = null, rest = null, micros = null, byId = null;
+const url = p => new URL('../../data/' + p, import.meta.url);
+const getJSON = p => fetch(url(p)).then(r => { if (!r.ok) throw new Error(p); return r.json(); });
+
+// Everything search needs: the USDA list, the clean everyday list and restaurant menus.
+export async function loadAll() {
+  await loadFoodDB();
+  if (!generic) generic = await getJSON('generic.json');
+  if (!rest) {
+    const j = await getJSON('restaurants.json');
+    j.brands.forEach(b => {
+      b.key = norm(b.name);
+      b.keys = [b.key, ...b.aliases.map(norm)];
+      b.items.forEach((it, i) => { it.i = i; it.ws = words(it.n).map(stem); });
+    });
+    rest = j;
+  }
+  if (!byId) { byId = new Map(); db.foods.forEach(f => byId.set(f[0], f)); }
+  return true;
+}
+export const allReady = () => !!(db && generic && rest);
+export function loadMicros() { return micros ? Promise.resolve(micros) : getJSON('food-micros.json').then(j => (micros = j)); }
+export const microsFor = id => micros && micros.m[String(id)] ? Object.fromEntries(micros.keys.map((k, i) => [k, micros.m[String(id)][i]]).filter(([, v]) => v != null)) : null;
+export const MICRO_INFO = { // name, unit, daily value (FDA, adults)
+  a: ['Vitamin A', 'µg', 900], c: ['Vitamin C', 'mg', 90], d: ['Vitamin D', 'µg', 20], e: ['Vitamin E', 'mg', 15], k: ['Vitamin K', 'µg', 120],
+  b1: ['Thiamin (B1)', 'mg', 1.2], b2: ['Riboflavin (B2)', 'mg', 1.3], b3: ['Niacin (B3)', 'mg', 16], b6: ['Vitamin B6', 'mg', 1.7], b9: ['Folate', 'µg', 400], b12: ['Vitamin B12', 'µg', 2.4],
+  ca: ['Calcium', 'mg', 1300], fe: ['Iron', 'mg', 18], mg: ['Magnesium', 'mg', 420], 'k+': ['Potassium', 'mg', 4700], zn: ['Zinc', 'mg', 11],
+};
+
+const norm = s => String(s || '').toLowerCase().replace(/['’`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const genericWords = g => g._ws || (g._ws = [...words(g.n), ...g.a.flatMap(a => words(a))].map(stem));
+
+export const usdaRow = id => byId && byId.get(+id);
+export const genericByName = n => generic && generic.find(g => g.n === n);
+export const genericFor = id => generic && generic.find(g => g.v.some(v => v[1] === +id));
+export const brandById = id => rest && rest.brands.find(b => b.id === id);
+export const brands = () => (rest ? rest.brands : []);
+
+// A USDA row as a loggable food, named the friendly way when it's one of the everyday foods.
+export function usdaFood(id, label) {
+  const f = usdaRow(id);
+  if (!f) return null;
+  const base = toFood(f);
+  const g = genericFor(id);
+  if (g) {
+    const v = g.v.find(x => x[1] === +id);
+    base.name = v && v[0] ? `${g.n}, ${v[0].charAt(0).toLowerCase() + v[0].slice(1)}` : g.n;
+    base.usdaName = f[1];
+  }
+  if (label) base.name = label;
+  return base;
+}
+
+// A restaurant item (one size) as a loggable food. Nutrition is per serving.
+export function restFood(brandId, itemIndex, sizeIndex = 0) {
+  const b = brandById(brandId); if (!b) return null;
+  const it = b.items[itemIndex]; if (!it) return null;
+  const s = it.s[sizeIndex] || it.s[0];
+  const [label, kcal, fat, sat, sodium, carbs, fiber, sugar, p] = s;
+  const sized = it.s.length > 1 ? `${it.n} (${label})` : it.n;
+  return {
+    id: `r-${b.id}-${norm(sized).replace(/ /g, '-')}`, name: sized, brand: b.name, source: 'restaurant', brandId: b.id, item: itemIndex, size: sizeIndex,
+    serving: { label: it.s.length > 1 ? label : (label === '1 item' ? '1 serving' : label), g: null },
+    perServing: { kcal, p, c: carbs, f: fat, fiber, sugar, sodium, satfat: sat }, per100: null,
+  };
+}
+
+// One search across everything. Returns { foods, brands, items, usda }.
+export function searchAll(q) {
+  const out = { foods: [], brands: [], items: [], usda: [] };
+  if (!allReady()) return out;
+  const nq = norm(q);
+  const qs = words(q).filter(w => !SKIP.has(w)).map(w => stem(SYN[w] || w));
+  if (!qs.length) return out;
+  // Everyday foods: every word must start a word of the name or an alias.
+  out.foods = generic.map(g => {
+    const ws = genericWords(g);
+    if (!qs.every(t => ws.some(w => w.startsWith(t)))) return null;
+    const nm = words(g.n).map(stem);
+    let s = 0;
+    if (nm[0] && nm[0].startsWith(qs[0])) s += 10;
+    if (qs.every(t => nm.includes(t))) s += 6;
+    if (norm(g.n) === nq) s += 20;
+    s -= nm.length;
+    return [s, g];
+  }).filter(Boolean).sort((a, b) => b[0] - a[0]).map(x => x[1]).slice(0, 8);
+  // Restaurants: a brand matches its name or nickname; the rest of the query searches its menu.
+  for (const b of rest.brands) {
+    const hit = b.keys.find(k => k.startsWith(nq) || nq.startsWith(k) || (nq.length >= 3 && k.split(' ').some(w => w.startsWith(nq))));
+    if (hit) out.brands.push(b);
+    const rem = hit && nq.startsWith(hit) ? words(nq.slice(hit.length)).map(stem) : qs;
+    if (!rem.length) continue;
+    for (const it of b.items) {
+      if (rem.every(t => it.ws.some(w => w.startsWith(t)))) out.items.push({ b, it, s: (it.ws[0].startsWith(rem[0]) ? 5 : 0) - it.ws.length * 0.3 + (hit ? 5 : 0) });
+    }
+  }
+  out.items.sort((a, b) => b.s - a.s);
+  out.items = out.items.slice(0, 12);
+  out.usda = searchFoodDB(q, 40);
+  return out;
+}
+
+// Short summary for a list row: "Grilled, Roasted, Raw +2 · 106–187 kcal / 100 g".
+export function genericSummary(g) {
+  const k = g.v.map(v => (usdaRow(v[1]) || [])[3]).filter(x => x != null);
+  const lo = Math.round(Math.min(...k)), hi = Math.round(Math.max(...k));
+  const names = g.v.map(v => v[0]).filter(Boolean);
+  const ways = names.length > 1 ? `${names.slice(0, 3).join(', ')}${names.length > 3 ? ` +${names.length - 3}` : ''} · ` : '';
+  return `${ways}${lo === hi ? lo : `${lo}–${hi}`} kcal / 100 g`;
+}

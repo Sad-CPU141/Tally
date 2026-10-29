@@ -9,12 +9,13 @@ import { Stats, Insights, CardDetail, EditDash } from './screens/stats.js';
 import { Body, MeasureDetail } from './screens/body.js';
 import { Photos } from './screens/photos.js';
 import { Recipe } from './screens/recipe.js';
+import { FoodPage, BrandPage } from './screens/foodpage.js';
 import { Me, Onboarding } from './screens/me.js';
 import { Food, AddFood, Targets } from './screens/food.js';
 
 const SCREENS = {
   today: Today, train: Train, food: Food, stats: Stats, me: Me,
-  addFood: AddFood, targets: Targets, insights: Insights, body: Body, measure: MeasureDetail, photos: Photos, recipe: Recipe,
+  addFood: AddFood, targets: Targets, insights: Insights, body: Body, measure: MeasureDetail, photos: Photos, recipe: Recipe, foodItem: FoodPage, brand: BrandPage,
   routine: RoutineEdit, workoutView: WorkoutView, exercise: ExerciseScreen, library: Library,
   workout: Workout, summary: Summary, card: CardDetail, editDash: EditDash,
 };

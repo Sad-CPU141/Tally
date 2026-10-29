@@ -1,0 +1,257 @@
+# Source: Tim Hortons Canada "Nutrition Information" PDF (reflects products as of July 2026), timhortons.ca/nutrition-and-allergens, read 2026-10-29
+# Columns per size: kcal,fat,satfat,sodium,carbs,fibre,sugars,protein (blank = 0). Sizes S/M/L/X/R = Small/Medium/Large/Extra Large/Regular.
+# Corrected one obvious typo: Snow Ball Timbit saturated fat printed as 15 g (fat 3.5 g) -> 1.5 g.
+#Brewed Coffee
+Original Blend Coffee|S:3,,,,,,,;M:4,,,,,,,;L:5,,,,,,,;X:5,,,,,,,
+Dark Roast Coffee|S:3,,,,,,,;M:4,,,,,,,;L:5,,,,,,,;X:5,,,,,,,
+Decaf Coffee|S:3,,,,,,,;M:4,,,,,,,;L:5,,,,,,,;X:5,,,,,,,
+Regular Coffee|S:70,4,2.5,25,8,,8,1;M:100,6,4,40,11,,11,1;L:120,8,5,50,14,,13,1;X:150,9,6,55,18,,17,1
+Double Double Coffee|S:130,8,4.5,45,16,,16,1;M:200,13,8,80,22,,21,2;L:250,15,10,95,28,,27,2;X:300,18,11,115,35,,34,3
+#Espresso Beverages
+Cappuccino|S:80,3,2,70,9,,8,6;M:120,4.5,3,95,12,,11,8;L:170,6,4,135,16,,15,11
+Latte|S:90,3.5,2,80,10,,9,6;M:140,5,3.5,115,14,,13,10;L:190,7,4.5,160,19,,18,13
+Protein Latte|S:110,4,2,50,6,,6,13;M:170,6,4,80,10,,9,20;L:230,8,5,105,13,1,12,27
+Protein Latte with Sugar Free Vanilla Syrup|S:120,4,2,65,9,,6,13;M:190,6,4,100,14,,9,20;L:250,8,5,140,19,1,12,27
+#Specialty Beverages
+Coffee Mocha|S:90,1,1,75,20,1,14,1;M:110,2,1.5,95,25,1,17,1;L:150,2,2,125,33,1,23,1;X:200,3,2.5,160,44,1,31,1
+French Vanilla Cappuccino|S:260,10,10,180,39,1,30,3;M:330,12,12,230,50,1,39,3;L:430,17,16,310,66,1,51,5;X:570,22,22,410,88,1,68,6
+Hot Chocolate|S:220,3,3,180,48,1,34,1;M:280,4,3.5,230,62,2,43,1;L:380,5,4.5,310,82,2,58,2;X:500,7,6,410,108,3,76,3
+White Hot Chocolate|S:250,9,8,250,43,,36,1;M:330,11,10,310,55,,45,1;L:430,15,14,420,73,,60,2;X:570,20,18,550,96,,80,2
+#Tea   Tea Lattes
+Bagged Tea|,,,,,,,
+Steeped Tea|,,,,,,,
+Chai Latte|S:150,3,2,90,22,,21,6;M:230,5,3,140,33,,33,10;L:310,7,5,190,45,,44,14
+London Fog|S:110,2,1.5,50,19,,19,4;M:160,3,2,110,28,,28,6;L:240,4.5,3,160,38,,38,8
+#Iced Coffee   Cold Brew
+Original Iced Coffee|S:120,6,4,35,15,,15,1;M:150,8,5,40,22,,22,1;L:240,13,8,65,30,,29,1
+Light Iced Coffee|S:80,1,0.5,25,16,,16,2;M:110,1,1,30,23,,23,2;L:150,1.5,1,40,31,,31,3
+Original Cold Brew|S:120,6,4,35,15,,15,1;M:150,8,5,40,22,,22,1;L:240,13,8,65,30,,29,1
+Vanilla Cream Cold Brew|S:120,6,3.5,30,15,,15,1;M:160,7,4,35,22,,22,1;L:240,12,7,55,30,,30,2
+Roasted Hazelnut Cold Brew|S:180,12,9,60,18,,16,1;M:220,14,10,70,25,,22,2;L:300,19,14,105,32,,29,2
+#Iced Lattes
+Original Iced Latte|S:150,4,2,80,22,,22,6;M:200,5,3,100,31,,31,8;L:250,5,3,120,40,,40,10
+Unsweetened Iced Latte|S:90,4,2,80,9,,9,6;M:120,5,3,100,11,,11,8;L:140,5,3,120,14,,13,10
+Original Protein Iced Latte|S:160,4,2,50,19,,19,12;M:230,5,3,70,28,,28,17;L:310,7,4,90,38,1,37,23
+Protein Iced Latte with Sugar Free Vanilla|S:120,4,2,65,9,,5,12;M:160,5,3,90,12,,8,17;L:220,7,4,125,17,1,10,23
+Iced Chai Latte|S:150,4,2,90,22,,22,7;M:200,5,3,120,31,,31,8;L:250,5,3,150,40,,39,10
+#Iced Capps
+Original Iced Capp|S:260,11,7,75,38,,36,2;M:330,16,10,105,45,,42,3;L:430,22,14,140,59,1,56,4
+Light Iced Capp|S:170,1.5,1,35,39,,37,3;M:210,2,1,45,45,,43,4;L:270,2.5,1.5,60,60,1,57,5
+Mocha Iced Capp|S:430,19,14,200,67,1,61,3;M:530,24,17,260,79,2,72,4;L:650,29,21,330,98,2,90,6
+Vanilla Iced Capp|S:440,18,14,150,69,,64,3;M:540,23,17,200,81,,76,3;L:660,28,20,250,101,1,95,4
+Caramel Toffee Iced Capp|S:440,18,14,220,68,,63,3;M:530,23,17,290,80,1,74,3;L:660,29,20,360,99,1,93,4
+#Lemonades
+Frozen Lemonade|S:200,,,35,51,,46,;M:250,,,45,62,,56,;L:330,,,55,82,,73,
+Strawberry Frozen Lemonade|S:250,,,35,62,,56,0.1;M:310,,,40,79,,71,0.1;L:410,,,55,102,,92,0.2
+Classic Lemonade|S:90,,,10,23,,21,;M:110,,,10,30,,28,;L:140,,,15,39,,36,
+#Sparkling Quenchers
+Blackberry Yuzu Sparkling Quencher|S:80,,,,19,,19,;M:110,,,1,28,,28,;L:150,,,1,37,,36,
+Orange Tangerine Sparkling Quencher|S:80,,,5,19,,17,;M:120,,,10,28,,26,;L:160,,,10,37,,34,
+Peach Sparkling Quencher|S:50,,,5,12,,11,;M:70,,,10,18,,16,;L:100,,,10,24,,21,
+Strawberry Watermelon Sparkling Quencher|S:40,,,10,10,,8,;M:60,,,15,15,,12,;L:80,,,20,19,,16,
+#Lemonade Quenchers
+Blackberry Yuzu Lemonade Quencher|S:120,,,2,31,,30,;M:170,,,3,43,,42,;L:220,,,4,56,,54,
+Orange Tangerine Lemonade Quencher|S:130,,,5,31,,29,;M:180,,,10,43,,40,;L:230,,,15,56,,52,
+Peach Lemonade Quencher|S:90,,,5,24,,22,;M:130,,,10,33,,30,;L:170,,,15,43,,38,
+Strawberry Watermelon Lemonade Quencher|S:90,,,10,22,,19,;M:120,,,15,30,,26,;L:150,,,25,39,,33,
+#Frozen Quenchers
+Blackberry Yuzu Frozen Quencher|S:330,7,7,55,68,,62,;M:390,7,7,60,82,,76,;L:480,7,7,70,104,,96,
+Orange Tangerine Frozen Quencher|S:340,7,7,60,68,,61,;M:400,7,7,65,82,,74,;L:490,7,7,80,104,,94,
+Peach Frozen Quencher|S:310,7,7,60,61,,54,;M:350,7,7,65,73,,64,;L:430,7,7,80,91,,80,
+Strawberry Watermelon Frozen Quencher|S:300,7,7,65,59,,21,;M:340,7,7,75,69,,60,;L:410,7,7,90,87,,75,
+#Add-ins
+Cream for Coffee|S:40,4,2,20,1,,1,1;M:60,6,4,30,2,,1,1;L:80,8,5,40,2,,2,1;X:90,9,6,45,2,,2,1
+Cream for Iced Coffee|S:70,7,4,30,2,,1,1;M:80,8,5,35,2,,2,1;L:130,13,8,60,3,,3,2
+Cream for Tea|S:40,4,2,20,1,,1,1;M:60,6,4,30,2,,1,1;L:80,8,5,40,2,,2,1;X:90,9,6,45,2,,2,1
+2% Milk for Coffee|S:15,0.5,0.5,10,1,,1,1;M:20,1,0.5,20,2,,2,2;L:30,1,1,25,3,,3,2;X:40,1.5,1,30,4,,4,3
+2% Milk for Iced Coffee|S:25,1,0.5,20,2,,2,2;M:35,1,1,30,3,,3,2;L:45,2,1,35,4,,4,3
+2% Milk for Tea|S:10,0.5,0.3,10,1,,1,1;M:15,0.5,0.4,15,1,,1,1;L:20,1,0.5,20,2,,2,2;X:25,1,0.6,25,2,,2,2
+Sugar for Coffee & Tea|S:30,,,,7,,7,;M:35,,,,9,,9,;L:45,,,,12,,12,;X:60,,,,15,,15,
+#Syrups (per pump)
+Cane Sugar Syrup|25,,,,7,,7,
+Vanilla Syrup|30,,,15,7,,7,
+Mocha Syrup|25,,,30,6,,6,
+Caramel Toffee Syrup|30,,,45,7,,6,
+Roasted Hazelnut Flavoured Syrup|25,,,1,6,,6,
+Sugar Free Vanilla Syrup|5,,,10,1,,,
+#Donuts
+Apple Fritter|330,11,5,280,54,2,23,6
+Boston Cream Donut|240,8,3.5,240,38,1,16,4
+Canadian Maple Donut|250,8,3.5,240,38,1,16,4
+Chocolate Cruller Donut|360,22,11,120,40,,28,2
+Chocolate Dip Donut|220,8,3.5,190,33,1,12,4
+Chocolate Éclair Donut|310,14,9,230,45,1,20,5
+Chocolate Glazed Donut|330,21,10,210,34,1,20,3
+Chocolate Marble Donut|320,21,10,210,31,1,17,3
+Chocolate Snow Donut|290,21,10,210,24,1,10,3
+Chocolate Toasted Coconut Donut|360,24,14,220,34,2,19,3
+Coconut Cream Donut|260,10,5,240,39,1,17,4
+Double Chocolate Donut|310,21,10,210,28,1,14,3
+Honey Cruller Donut|320,22,11,120,30,,18,2
+Honey Dip Donut|250,7,3.5,190,41,1,21,4
+Long John Donut|240,9,4,210,36,1,13,4
+Maple Cruller Donut|360,22,11,120,40,,28,2
+Maple Dip Donut|220,7,3.5,190,33,1,12,4
+Maple Éclair Donut|310,14,9,230,43,1,18,5
+Maple Glazed Donut|260,8,4,200,42,1,20,4
+Maple Swirl Donut|250,8,3.5,240,39,1,17,4
+Old Fashioned Dip Donut|310,18,9,230,34,1,16,3
+Old Fashioned Glazed Donut|330,18,9,230,40,1,22,3
+Old Fashioned Plain Donut|280,18,9,230,26,1,9,3
+Old Fashioned Snow Donut|290,18,9,230,30,1,12,3
+Old Fashioned Sugar Donut|300,18,9,230,33,1,16,3
+Powdered Venetian Cream Donut|220,8,4,240,32,1,10,4
+Sour Cream Glazed Donut|340,18,8,180,40,1,24,3
+Sour Cream Plain Donut|280,18,8,180,26,1,11,3
+Sour Cream Sugar Donut|300,16,8,180,32,1,16,3
+Strawberry Dip Donut|220,7,3.5,190,33,1,12,4
+Strawberry Filled Donut|240,8,3.5,210,38,1,16,4
+Strawberry Swirl Donut|230,7,3.5,190,38,1,17,4
+Strawberry Vanilla Donut|270,8,3.5,210,49,1,15,4
+Sugar Loop Donut|200,7,3.5,190,29,1,8,4
+Toasted Coconut Donut|360,21,12,240,39,2,21,4
+Vanilla Dip Donut|250,7,3.5,190,40,1,19,4
+#Timbits (each)
+Birthday Cake Timbit|80,3,1.5,60,13,1,9,1
+Chocolate Glazed Timbit|80,3.5,1.5,70,11,,6,1
+Chocolate Snow Ball Timbit|70,3.5,1.5,70,8,,3,1
+Chocolate Toasted Coconut Timbit|90,4.5,3,75,11,1,6,1
+Honey Dip Timbit|50,1.5,0.5,25,8,,5,1
+Old Fashioned Glazed Timbit|80,3.5,1.5,64,12,,7,1
+Old Fashioned Plain Timbit|60,3.5,1.5,65,8,,3,1
+Old Fashioned Sugar Timbit|70,3.5,1.5,65,9,,4,1
+Snow Ball Timbit|70,3.5,1.5,65,8,,3,1
+Sour Cream Glazed Timbit|90,5,2.5,50,11,,7,1
+Sour Cream Plain Timbit|80,5,2.5,50,7,,3,1
+Sour Cream Sugar Timbit|80,5,2.5,50,8,,4,1
+Strawberry Timbit|50,1.5,0.5,30,8,,4,1
+Toasted Coconut Timbit|90,4.5,3,70,12,1,6,1
+Venetian Cream Timbit|50,1.5,1,40,7,,3,1
+#Muffins
+Chocolate Chip Muffin|420,17,5,400,64,2,36,6
+Fruit Explosion Muffin|360,12,2,490,59,2,30,5
+Wild Blueberry Muffin|380,14,2,500,56,2,29,6
+Raisin Bran Muffin|380,13,2,500,60,5,30,6
+Carrot Cake Walnut Muffin|360,13,2.5,480,55,2,28,6
+Banana Pecan Muffin|340,10,2,790,60,9,20,6
+#Cookies & Brownies
+Chocolate Chunk Cookie|310,17,10,260,38,1,22,3
+Oatmeal Raisin Cookie|290,11,6,220,44,2,26,4
+Peanut Butter Cookie|320,16,8,310,39,1,21,5
+Reese's Minis Dream Cookie|350,17,9,320,45,1,31,5
+Double Chocolate Brownie|410,20,8,190,57,2,39,5
+#Croissants
+Plain Croissant|260,13,7,240,30,1,3,6
+Cheese Croissant|290,14,8,280,30,1,3,7
+Chocolate Croissant|350,17,8,120,43,,18,6
+#Tea Biscuits
+Cheese Tea Biscuit|250,11,4,610,31,1,4,8
+Raisin Tea Biscuit|250,8,1.5,500,40,2,12,5
+#Savoury Pastries
+Herb & Garlic Savoury Pastry|240,11,6.5,470,29,1,6,6
+#Bagels
+Plain Bagel|290,1.5,0.4,380,62,2,9,9
+Sesame Seed Bagel|310,4,1,400,62,4,10,10
+Everything Bagel|290,2,0.5,390,60,4,9,10
+12-Grain Bagel|320,7,1,460,57,8,9,11
+Cinnamon Raisin Bagel|290,1,0.3,360,64,3,14,9
+Four Cheese Bagel|330,5,1.5,580,58,2,4,11
+Jalapeno Asiago Mozzarella Bagel|320,4.5,1.5,710,59,3,4,11
+Protein Bagel|280,3,1.5,590,45,3,4,20
+#Bagel Toppings
+Plain Cream Cheese|100,9,6,150,2,,2,2
+Herb & Garlic Cream Cheese|100,9,6,190,3,,2,2
+Strawberry Cream Cheese|100,7,5,120,6,,6,2
+Butter|60,7,4.5,55,,,,
+Strawberry Jam Packet|60,,,,14,,14,
+Raspberry Jam Packet|60,,,,14,,14,
+Peanut Butter|110,9,1.5,75,4,,1,3
+#Breakfast Sandwiches
+Sausage Homestyle Biscuit|530,35,17,900,34,2,4,20
+Bacon Homestyle Biscuit|410,22,13,930,33,1,3,18
+Egg & Cheese Homestyle Biscuit|350,18,11,720,33,1,3,14
+Simply Sausage Homestyle Biscuit|450,30,16,850,33,3,2,13
+Sausage English Muffin|450,29,11,680,28,2,3,19
+Bacon English Muffin|330,16,7,710,27,1,3,17
+Egg & Cheese English Muffin|270,12,5,500,27,1,3,14
+Sausage Plain Bagel Sandwich|600,28,11,820,65,3,10,23
+Bacon Plain Bagel Sandwich|480,16,7,850,64,3,10,22
+Sausage Sesame Seed Bagel Sandwich|620,31,11,840,65,4,11,25
+Bacon Sesame Seed Bagel Sandwich|500,18,7,870,64,4,11,23
+Sausage Everything Bagel Sandwich|600,29,11,830,63,4,9,24
+Bacon Everything Bagel Sandwich|480,16,7,860,62,4,9,23
+Sausage 12-Grain Bagel Sandwich|630,33,12,900,60,9,10,26
+Bacon 12-Grain Bagel Sandwich|510,21,7,940,59,8,10,24
+Plain Bagel BELT Sandwich|490,16,7,860,66,3,11,22
+Sesame Seed Bagel BELT Sandwich|510,15,7,880,66,5,12,23
+Everything Bagel BELT Sandwich|490,17,7,860,64,4,10,23
+12-Grain Bagel BELT Sandwich|520,21,7,940,61,9,11,24
+Protein Bagel BELT Sandwich|480,18,9,1100,49,4,6,33
+#Breakfast Wraps
+Sausage Breakfast Wrap|530,34,12,720,35,3,3,20
+Bacon Breakfast Wrap|400,21,8,750,34,2,3,18
+Sausage & Bacon Breakfast Wrap|580,38,13,930,35,3,3,23
+Sausage Farmer's Wrap|640,40,12,940,50,4,4,21
+Bacon Farmer's Wrap|520,27,8,970,49,4,4,19
+Sausage & Bacon Farmer's Wrap|700,44,14,1160,53,4,4,25
+#Loaded Breakfast
+Sausage Scrambled Egg Loaded Wrap|650,40,12,1020,53,4,5,22
+Bacon Scrambled Egg Loaded Wrap|530,27,8,1060,52,4,5,20
+Scrambled Egg & Cheese Loaded Wrap|470,23,6,840,52,4,5,16
+Sausage Scrambled Egg Loaded Box|600,40,10,1050,37,3,4,24
+Bacon Scrambled Egg Loaded Box|490,30,7,1030,36,3,4,21
+Scrambled Egg Loaded Box|440,26,5,810,36,3,4,17
+Sausage Scrambled Egg Loaded Croissant|590,39,16,800,40,2,6,21
+Bacon Scrambled Egg Loaded Croissant|460,26,12,840,39,2,6,19
+Scrambled Egg & Cheese Loaded Croissant|410,22,10,620,39,2,5,15
+#Omelette Bites (2 per serving)
+Bacon & Cheese Omelette Bites|210,21,8,730,10,1,4,15
+Spinach & Egg White Omelette Bites|130,6,2,420,8,1,2,14
+Sausage & Four Cheese Omelette Bites|290,23,8,610,9,1,3,13
+#Breakfast Sides
+Hash Brown|120,6,0.5,220,15,1,1,1
+Yogurt Parfait|250,7,1.5,115,40,3,25,8
+#Sandwiches
+Turkey Bacon Club Sandwich|550,23,5,1440,60,3,6,27
+BLT Sandwich|490,21,5,940,59,4,6,16
+Ham & Cheddar Sandwich|520,20,7,1330,60,3,7,25
+Steak & Cheddar Sandwich|560,22,8,1280,63,3,8,30
+Crispy Chicken Sandwich|660,37,7,1170,54,4,4,23
+Supreme Stack Sandwich|620,32,12,1670,49,3,10,36
+Crispy Chicken Craveable|470,19,3,960,55,3,1,21
+Steak Craveable|450,20,6,1080,43,2,3,24
+#Wraps
+Chicken Bacon Ranch Wrap|420,19,4.5,900,36,2,4,27
+Crispy Chicken Bacon Ranch Wrap|530,26,6,1010,54,4,4,24
+Classic Chicken Wrap|380,17,3,660,36,2,3,24
+Classic Crispy Chicken Wrap|490,24,4,770,53,4,3,20
+Cilantro Lime Chicken Loaded Wrap|590,28,6,1060,56,4,5,29
+Cilantro Lime Crispy Chicken Loaded Wrap|690,35,8,1200,72,6,5,25
+Cilantro Lime Veggie Loaded Wrap|570,26,6,1070,72,6,5,13
+Habanero Chicken Loaded Wrap|560,26,6,1240,54,5,5,29
+Habanero Crispy Chicken Loaded Wrap|660,33,7,1360,71,6,5,25
+Habanero Veggie Loaded Wrap|540,24,6,1220,70,6,6,13
+#Loaded Bowls
+Cilantro Lime Chicken Loaded Bowl|550,29,6,1100,41,4,4,34
+Cilantro Lime Crispy Chicken Loaded Bowl|710,36,7,1350,62,5,5,29
+Cilantro Lime Veggie Loaded Bowl|570,27,6,1250,73,7,5,12
+Habanero Chicken Loaded Bowl|530,26,6,1250,40,4,4,34
+Habanero Crispy Chicken Loaded Bowl|690,34,7,1500,61,6,5,29
+Habanero Veggie Loaded Bowl|550,26,5,1400,72,7,5,12
+#Flatbread Pizzas & Melts
+Simply Cheese Flatbread Pizza|630,26,11,1590,68,3,6,31
+Pepperoni Flatbread Pizza|750,37,15,1910,69,3,6,36
+Chicken Parmesan Flatbread Pizza|760,34,14,1890,69,3,6,48
+Grilled Cheese Melt|560,25,14,1550,59,3,2,28
+Bacon Grilled Cheese Melt|650,32,16,1920,60,4,2,35
+#Soups & Chili
+Chicken Noodle Soup|R:140,3,0.5,710,20,1,2,9;L:190,3.5,1,960,28,2,2,10
+Cream of Broccoli Soup|R:100,3.5,1.5,650,15,2,6,5;L:150,5,2,910,21,3,9,6
+Garden Minestrone Soup|R:100,1.5,0.3,590,20,6,6,5;L:140,2.5,0.5,820,28,8,9,6
+Tomato Parmesan Soup|R:150,7,4,740,17,3,6,5;L:210,10,5,1040,24,4,9,7
+Potato Bacon Soup|R:220,11,6,820,25,2,5,6;L:310,15,8,1150,35,2,6,9
+Clam Chowder|R:150,5,2,750,20,1,5,7;L:210,7,3,1050,27,2,6,10
+Chili|R:310,16,6,910,22,4,7,19;L:430,22,9,1270,31,6,10,27
+#Sides
+Potato Wedges|170,7,1,520,26,2,,2
+Soup Bun|210,4.5,0.5,400,37,1,1,6

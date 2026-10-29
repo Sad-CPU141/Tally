@@ -34,7 +34,7 @@ export function Recipe({ state, params }) {
   const t = recipeTotals(r);
   const per = r.perServing;
   const ed = fn => editRecipe(r.id, fn);
-  const qtyText = ing => ing.unit === 'g' ? `${fmtNum(ing.qty, 0)} g` : ing.qty === 1 ? ((ing.food.serving && ing.food.serving.label) || '1 serving') : `${fmtNum(ing.qty, 2)} × ${(ing.food.serving && ing.food.serving.label) || 'serving'}`;
+  const qtyText = ing => ing.unit === 'g' ? `${fmtNum(ing.qty, 0)} g` : ing.unit === 'oz' ? `${fmtNum(ing.qty, 1)} oz` : ing.qty === 1 ? ((ing.food.serving && ing.food.serving.label) || '1 serving') : `${fmtNum(ing.qty, 2)} × ${(ing.food.serving && ing.food.serving.label) || 'serving'}`;
   return html`
     <${TopBar} title=${r.name || 'Recipe'} back=${true} right=${html`<button class="btn sm primary" onClick=${() => nav.back()}>Done</button>`} />
     <div class="page">

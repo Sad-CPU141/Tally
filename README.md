@@ -55,7 +55,8 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 
 ## Credits
 
-- Everyday foods: USDA FoodData Central (SR Legacy + Foundation Foods), public domain, via [UntrustedTech/health-foods](https://github.com/UntrustedTech/health-foods) (CC0). Bundled in `data/foods.json`.
+- Everyday foods: USDA FoodData Central (SR Legacy + Foundation Foods), public domain, via [UntrustedTech/health-foods](https://github.com/UntrustedTech/health-foods) (CC0). Bundled in `data/foods.json` (+ `data/food-micros.json`); 141 everyday foods with variants in `data/generic.json`.
+- Restaurant menus from each chain's official nutrition guide (`data/src/`, built by `data/src/build-restaurants.py` into `data/restaurants.json`): Tim Hortons Canada (July 2026), Raising Cane's (August 2026).
 
 - Exercise images: [Exercise data by RepDB (repdb.co)](https://repdb.co), free tier, resized in `media/rd/` (map in `js/lib/rdmedia.js`). In-app use only; not to be redistributed as a dataset.
 - Exercise steps and details: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain), in `js/lib/exmedia.js`.
