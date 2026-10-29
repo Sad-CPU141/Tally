@@ -6,6 +6,7 @@ import { Icon, TopBar, Seg, Switch, confirmSheet, toast, nav } from '../lib/ui.j
 import { fmtDur, download, todayKey } from '../lib/util.js';
 import { logBodyweight } from '../lib/actions.js';
 import { makeSample } from '../lib/sample.js';
+import { plateCalc } from '../lib/plates.js';
 
 const ACCENTS = [['ice', 'Ice', '#6cb8ff'], ['iris', 'Iris', '#a597ff'], ['ember', 'Ember', '#ffad5c'], ['mint', 'Mint', '#5fd4a8'], ['rose', 'Rose', '#ff86ad']];
 
@@ -19,7 +20,7 @@ export function Me({ state }) {
   const s = state.settings;
   const counts = `${state.workouts.length} workouts · ${new Set(state.foodLog.map(e => e.date)).size} food days · ${state.bodyweight.length} weigh-ins`;
   return html`
-    <${TopBar} title="Me" />
+    <${TopBar} mode=${state.settings.mode} title="Me" />
     <div class="page">
       <div class="field"><label for="me-name">Your name</label>
         <input id="me-name" class="input" placeholder="What should Tally call you?" value=${s.name} onInput=${e => setS('name', e.target.value)} /></div>
@@ -72,6 +73,7 @@ export function Me({ state }) {
           </div><//>
         <${Row} title="Start rest timer after each set"><${Switch} id="set-autorest" label="Auto rest timer" checked=${s.autoRest} onChange=${v => setS('autoRest', v)} /><//>
         <${Row} title="Keep screen on during workouts"><${Switch} id="set-awake" label="Keep screen on" checked=${s.keepAwake} onChange=${v => setS('keepAwake', v)} /><//>
+        <${Row} title="Plate calculator" sub="Your bar and the plates at your gym"><button class="btn sm" onClick=${() => plateCalc(null)}>Open</button><//>
         <${Row} title="Week starts on"><div style="width:150px"><${Seg} label="Week start" value=${s.weekStart} onChange=${v => setS('weekStart', v)} options=${[[1, 'Mon'], [0, 'Sun']]} /></div><//>
       </div>
 
@@ -118,7 +120,7 @@ function loadSample() {
 
 function clearSample() {
   confirmSheet({ title: 'Clear sample data?', body: 'Removes the example workouts and weigh-ins. Your settings and routines stay.', confirm: 'Clear', onConfirm: () => {
-    store.update(st => { st.workouts = []; st.bodyweight = []; st.foodLog = []; st.water = {}; st.foods = []; st.meals = []; st.active = null; st.settings.sample = false; });
+    store.update(st => { st.workouts = []; st.bodyweight = []; st.measurements = []; st.foodLog = []; st.water = {}; st.foods = []; st.meals = []; st.active = null; st.settings.sample = false; });
     toast('Sample data cleared');
   } });
 }

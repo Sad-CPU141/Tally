@@ -285,8 +285,31 @@ export function plateaus(state, n = 4) {
 // Sets per muscle targets (weekly hard sets). Ranges commonly used for hypertrophy.
 export const MUSCLE_TARGET = { low: 10, high: 20 };
 
-// Suggest the next routine to run, rotating through the user's routines.
+// Weekly schedule: weekday (0 = Sunday) -> routine. Deleted routines are ignored.
+export function scheduled(state, weekday) {
+  const id = (state.schedule || {})[weekday];
+  return id ? state.routines.find(r => r.id === id) || null : null;
+}
+export function hasSchedule(state) {
+  return [0, 1, 2, 3, 4, 5, 6].some(d => scheduled(state, d));
+}
+// Next scheduled day after today: { routine, days } (days = 1 for tomorrow).
+export function nextScheduled(state, from = new Date()) {
+  for (let i = 1; i <= 7; i++) {
+    const r = scheduled(state, (from.getDay() + i) % 7);
+    if (r) return { routine: r, days: i };
+  }
+  return null;
+}
+
+// Suggest the next routine to run: today's scheduled routine if there's a schedule
+// (null on a rest day), otherwise rotate through the user's routines.
 export function nextRoutine(state) {
+  if (!state.routines.length) return null;
+  if (hasSchedule(state)) return scheduled(state, new Date().getDay());
+  return rotation(state);
+}
+export function rotation(state) {
   if (!state.routines.length) return null;
   const done = finished(state).filter(w => w.routineId);
   if (!done.length) return state.routines[0];

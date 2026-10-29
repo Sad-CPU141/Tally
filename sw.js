@@ -4,7 +4,7 @@
 // - Fonts, icons and exercise images are cache-first. The 58 built-in exercise images are
 //   saved on install; the other ~640 are saved the first time you view them.
 // Bump VERSION whenever you deploy.
-const VERSION = 'tally-v12';
+const VERSION = 'tally-v13';
 const ASSETS = [
   './',
   './css/app.css',
@@ -30,11 +30,13 @@ const ASSETS = [
   './js/lib/food.js',
   './js/lib/howto.js',
   './js/lib/photo.js',
+  './js/lib/plates.js',
   './js/lib/rdmedia.js',
   './js/lib/sample.js',
   './js/lib/store.js',
   './js/lib/ui.js',
   './js/lib/util.js',
+  './js/screens/body.js',
   './js/screens/food.js',
   './js/screens/me.js',
   './js/screens/picker.js',

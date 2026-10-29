@@ -1,17 +1,11 @@
-// Default Today dashboard. Each item is a card instance: { id, type, opts }.
+// Default dashboards. Each item is a card instance: { id, type, opts }.
 const id = () => Math.random().toString(36).slice(2, 9);
-export function defaultDashboard() {
-  return [
-    { id: id(), type: 'week', opts: {} },
-    { id: id(), type: 'score', opts: {} },
-    { id: id(), type: 'calories', opts: {} },
-    { id: id(), type: 'protein', opts: {} },
-    { id: id(), type: 'bodyweight', opts: {} },
-    { id: id(), type: 'streak', opts: {} },
-    { id: id(), type: 'strength', opts: {} },
-    { id: id(), type: 'muscles', opts: {} },
-    { id: id(), type: 'prs', opts: {} },
-    { id: id(), type: 'volume', opts: {} },
-    { id: id(), type: 'calendar', opts: {} },
-  ];
-}
+const make = types => types.map(type => ({ id: id(), type, opts: {} }));
+
+// Gym mode: Today
+export const defaultDashboard = () => make(['week', 'streak', 'prs', 'strength', 'muscles', 'volume', 'bodyweight', 'calendar']);
+// Food mode: Insights
+export const defaultFoodDashboard = () => make(['calories', 'protein', 'score', 'macroSplit', 'tdee', 'bodyweight', 'deficit', 'trainRest', 'proteinProgress']);
+
+// Card categories that belong to Food mode. 'Body' cards can sit on either dashboard.
+export const FOOD_CATS = new Set(['Food', 'Combined']);

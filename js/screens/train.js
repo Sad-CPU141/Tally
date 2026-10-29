@@ -9,7 +9,7 @@ import { ExPhoto, mediaFor, PHOTO_CREDIT } from '../lib/photo.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast } from '../lib/ui.js';
 import { fmtRel, fmtDate, fmtDateY, fmtMins, fmtBig, toUnit, fmtTime, fmtDur, fmtNum, w, toDist } from '../lib/util.js';
 import { ExThumb } from '../lib/photo.js';
-import { startWorkout, WorkoutSets, prevText } from './workout.js';
+import { startWorkout, WorkoutSets, prevText, tidyGroups, supersetWithNext, leaveSuperset, groupPos } from './workout.js';
 import { pickExercise, editExercise, TYPE_LABEL } from './picker.js';
 import { Seg } from '../lib/ui.js';
 import { LiftDetail } from '../lib/cards.js';
@@ -18,29 +18,34 @@ export function Train({ state }) {
   const exm = A.exMap(state);
   const hist = A.finished(state).slice().reverse();
   const next = A.nextRoutine(state);
+  const sched = A.hasSchedule(state);
+  // On a scheduled rest day the main button offers the next scheduled routine instead.
+  const up = next || (sched ? (A.nextScheduled(state) || {}).routine : null);
   const unit = state.settings.unit;
   return html`
-    <${TopBar} title="Train" right=${html`<button class="btn sm" onClick=${() => nav.go('library')}>Exercises</button>`} />
+    <${TopBar} mode=${state.settings.mode} title="Train" right=${html`<button class="btn sm" onClick=${() => nav.go('library')}>Exercises</button>`} />
     <div class="page">
       ${state.active ? html`<button class="card tap hstack" onClick=${() => nav.go('workout')} style="border-color:var(--accent)">
         <span style="color:var(--accent)"><${Icon} name="play" /></span>
         <div class="grow"><div class="h-md">Resume ${state.active.name}</div><div class="small muted">Started ${fmtTime(state.active.start)}</div></div>
         <span class="chev"><${Icon} name="chev" /></span></button>` : null}
       <div class="grid2">
-        <button class="btn primary" onClick=${() => startWorkout(next)} disabled=${!next}><${Icon} name="play" size=${18} /> ${next ? next.name : 'No routine'}</button>
+        <button class="btn primary" onClick=${() => startWorkout(up)} disabled=${!up}><${Icon} name="play" size=${18} /> ${up ? up.name : 'No routine'}</button>
         <button class="btn" onClick=${() => startWorkout(null)}>Empty workout</button>
       </div>
+
+      ${state.routines.length ? html`<${WeekPlan} state=${state} />` : null}
 
       <div class="section-head"><span class="h-md">Routines</span><button class="link-btn" onClick=${() => newRoutine()}>New routine</button></div>
       ${state.routines.length ? html`<div class="list">${state.routines.map((r, i) => html`<div class="row">
           <button class="grow" style="background:none;border:0;text-align:left;padding:0;min-width:0" onClick=${() => nav.go('routine', { id: r.id })}>
-            <div class="title">${r.name}${next && next.id === r.id ? html` <span class="pill accent">Up next</span>` : null}</div>
+            <div class="title">${r.name}${next && next.id === r.id ? html` <span class="pill accent">${sched ? 'Today' : 'Up next'}</span>` : null}</div>
             <div class="sub">${r.items.map(it => (exm.get(it.exId) || {}).name).filter(Boolean).join(', ') || 'No exercises yet'}</div>
           </button>
           <button class="icon-btn" aria-label=${'Start ' + r.name} disabled=${!r.items.length} onClick=${() => startWorkout(r)} style="color:var(--accent)"><${Icon} name="play" /></button>
         </div>`)}</div>`
         : html`<div class="card empty"><span class="h-md">No routines yet</span><span class="small">A routine is one workout day, like "Push" or "Legs". Make one for each day of your split.</span><button class="btn primary" onClick=${() => newRoutine()}><${Icon} name="plus" size=${18} /> Create your first routine</button></div>`}
-      ${state.routines.length ? html`<p class="tiny muted" style="margin:0">Tap a routine to edit it, or ▶ to start. "Up next" goes through your routines in order.</p>` : null}
+      ${state.routines.length ? html`<p class="tiny muted" style="margin:0">${sched ? 'Tap a routine to edit it, or ▶ to start. Tap a day above to change your week.' : 'Tap a routine to edit it, or ▶ to start. "Up next" goes through your routines in order until you set a weekly schedule.'}</p>` : null}
 
       <div class="section-head"><span class="h-md">History</span><span class="small muted">${hist.length} workouts</span></div>
       ${hist.length ? html`<div class="list">${hist.slice(0, 40).map(wo => {
@@ -50,6 +55,56 @@ export function Train({ state }) {
           <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`;
       })}</div>` : html`<div class="card empty small">Finished workouts show up here.</div>`}
     </div>`;
+}
+
+// ---------- weekly schedule ----------
+export const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WD_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const weekOrder = state => state.settings.weekStart === 1 ? [1, 2, 3, 4, 5, 6, 0] : [0, 1, 2, 3, 4, 5, 6];
+
+// Assign a routine (or null for rest) to a weekday. Food mode's training days follow the schedule.
+export function setDay(d, routineId) {
+  store.update(st => {
+    st.schedule = st.schedule || {};
+    if (routineId) st.schedule[d] = routineId; else delete st.schedule[d];
+    const days = Object.keys(st.schedule).map(Number).filter(k => st.routines.some(r => r.id === st.schedule[k]));
+    if (days.length) st.food.trainDays = days.sort();
+  });
+}
+
+function dayMenu(d) {
+  function Body() {
+    const st = store.get();
+    const cur = A.scheduled(st, d);
+    const pick = id => { setDay(d, id); closeSheet(); };
+    return html`
+      <${SheetHead} title=${WD_LONG[d]} />
+      <div class="list">
+        ${st.routines.map(r => html`<button class="row" onClick=${() => pick(r.id)}>
+          <div class="grow"><div class="title">${r.name}</div><div class="sub">${r.items.length} exercises</div></div>
+          ${cur && cur.id === r.id ? html`<span style="color:var(--accent)"><${Icon} name="check" /></span>` : null}</button>`)}
+        <button class="row" onClick=${() => pick(null)}>
+          <div class="grow"><div class="title">Rest day</div></div>
+          ${!cur ? html`<span style="color:var(--accent)"><${Icon} name="check" /></span>` : null}</button>
+      </div>
+      <p class="tiny muted" style="margin:0">Food mode uses these days for your training-day targets.</p>`;
+  }
+  openSheet(() => html`<${Body} />`);
+}
+
+function WeekPlan({ state }) {
+  const today = new Date().getDay();
+  const sched = A.hasSchedule(state);
+  return html`
+    <div class="section-head"><span class="h-md">This week</span>${sched ? html`<button class="link-btn" onClick=${() => store.update(st => { st.schedule = {}; })}>Clear</button>` : null}</div>
+    <div class="sched" role="group" aria-label="Weekly schedule">
+      ${weekOrder(state).map(d => {
+        const r = A.scheduled(state, d);
+        return html`<button class=${'sched-day' + (d === today ? ' today' : '') + (r ? ' on' : '')} aria-label=${`${WD_LONG[d]}: ${r ? r.name : 'rest'}`} onClick=${() => dayMenu(d)}>
+          <span class="sched-wd">${WD[d].slice(0, 1)}</span><span class="sched-r">${r ? r.name : sched ? 'Rest' : '+'}</span></button>`;
+      })}
+    </div>
+    ${!sched ? html`<p class="tiny muted" style="margin:0">Tap a day to plan your split. Without a schedule, Tally just rotates through your routines.</p>` : null}`;
 }
 
 export function newRoutine() {
@@ -62,18 +117,22 @@ export function RoutineEdit({ state, params }) {
   const r = state.routines.find(x => x.id === params.id);
   if (!r) return html`<${TopBar} title="Routine" back=${true} /><div class="page"><div class="card empty">This routine was deleted.</div></div>`;
   const exm = A.exMap(state);
-  const edit = fn => store.update(st => { const x = st.routines.find(y => y.id === r.id); x && fn(x, st); });
+  const edit = fn => store.update(st => { const x = st.routines.find(y => y.id === r.id); if (x) { fn(x, st); tidyGroups(x.items); } });
   const rest = state.settings.restDefault;
   return html`
     <${TopBar} title=${r.name || 'Routine'} back=${true} right=${html`<button class="btn sm primary" disabled=${!r.items.length} onClick=${() => startWorkout(r)}>Start</button>`} />
     <div class="page">
       <div class="field"><label for="rt-name">Routine name</label>
         <input id="rt-name" class="input" value=${r.name} onInput=${e => edit(x => { x.name = e.target.value; })} /></div>
+      <div class="field"><label>Days</label>
+        <div class="wk">${weekOrder(state).map(d => { const on = (state.schedule || {})[d] === r.id; return html`<button aria-pressed=${on} aria-label=${WD_LONG[d]} onClick=${() => setDay(d, on ? null : r.id)}>${WD[d]}</button>`; })}</div></div>
       <div class="list">
         ${r.items.map((it, i) => {
           const ex = exm.get(it.exId) || { name: 'Unknown', type: 'weight' };
           const repsLabel = ex.type === 'time' ? 'sec' : ex.type === 'cardio' ? '' : ex.type === 'sprint' ? '' : 'reps';
-          return html`<div class="row" style="flex-wrap:wrap;row-gap:8px">
+          const gp = groupPos(r.items, i);
+          return html`<div class=${'row' + (gp ? ' ss-row' + (gp.first ? ' ss-first' : '') + (gp.last ? ' ss-last' : '') : '')} style="flex-wrap:wrap;row-gap:8px">
+            ${gp && gp.first ? html`<div class="ss-label" style="flex-basis:100%"><${Icon} name="swap" size=${14} /> Superset</div>` : null}
             <button class="ex-link" style="min-width:150px" onClick=${() => nav.go('exercise', { id: it.exId })}><${ExThumb} ex=${ex} size=${36} /><div class="grow" style="min-width:0"><div class="title">${ex.name}</div><div class="sub">${ex.muscle} · rest ${fmtDur(it.rest ?? ex.rest ?? rest)}</div></div></button>
             <div class="hstack" style="gap:6px">
               <${Mini} label="sets" value=${it.sets} onChange=${v => edit(x => { x.items[i].sets = Math.max(1, Math.min(20, v)); })} />
@@ -99,6 +158,7 @@ function Mini({ label, value, onChange, step = 1 }) {
 
 function itemMenu(r, i, edit) {
   const it = r.items[i];
+  const gp = groupPos(r.items, i);
   openSheet(() => html`
     <${SheetHead} title="Exercise" />
     <div class="grid2">
@@ -107,6 +167,8 @@ function itemMenu(r, i, edit) {
     </div>
     <div class="field"><label>Rest timer for this routine</label>
       <div class="chips">${[0, 60, 90, 120, 150, 180, 240].map(s => html`<button class="chip" aria-pressed=${it.rest === s} onClick=${() => { edit(x => { x.items[i].rest = s; }); closeSheet(); }}>${s ? fmtDur(s) : 'Off'}</button>`)}</div></div>
+    ${i < r.items.length - 1 && !(gp && !gp.last) ? html`<button class="btn block" onClick=${() => { edit(x => supersetWithNext(x.items, i)); closeSheet(); }}><${Icon} name="swap" size=${18} /> Superset with next exercise</button>` : null}
+    ${gp ? html`<button class="btn block" onClick=${() => { edit(x => leaveSuperset(x.items, i)); closeSheet(); }}>Remove from superset</button>` : null}
     <button class="btn block" onClick=${() => { closeSheet(); pickExercise(exId => edit(x => { x.items[i].exId = exId; }), { title: 'Replace with' }); }}><${Icon} name="swap" size=${18} /> Replace</button>
     <button class="btn block danger" onClick=${() => { edit(x => { x.items.splice(i, 1); }); closeSheet(); }}><${Icon} name="trash" size=${18} /> Remove</button>`);
 }

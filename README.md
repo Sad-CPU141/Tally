@@ -37,9 +37,15 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
    - Targets: calculator (Mifflin–St Jeor + goal) and manual, with separate training and rest day targets
 3. **Combined insights** ✓
    - Adaptive burn (TDEE from intake + trend weight), strength vs deficit, protein vs progress, weekly score
-   - 20 analytics cards in total, customizable Today dashboard
-4. **Polish** — progress photos, challenges, more customization
-5. **Accounts + friends (last)** — Firebase Google sign-in, automatic backup, friend codes, leaderboards
+   - 21 analytics cards in total, customizable dashboards
+4. **Modes + training extras** ✓
+   - Tap **Tally** (top left) to flip between Gym mode (Today, Train, Body, Stats, Me) and Food mode (Diary, Insights, Body, Targets, Me); each has its own dashboard
+   - Body tab: bodyweight trend plus waist, chest, hips, arms, thighs, calves, shoulders, neck and body fat, with charts
+   - Plate calculator (per-side plates, your bar and your gym's plates), from any barbell exercise or Me
+   - Supersets in routines and workouts; the rest timer waits until the last exercise of the superset
+   - Weekly schedule: pick a routine (or rest) per weekday; Today follows it and Food mode's training days match it
+5. **Polish** — progress photos, auto-progression hints, challenges
+6. **Accounts + friends (last)** — Firebase Google sign-in, automatic backup, friend codes, leaderboards
 
 ## Credits
 

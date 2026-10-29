@@ -27,7 +27,7 @@ export function Food({ state }) {
   const yEnt = F.dayEntries(state, yKey);
 
   return html`
-    <${TopBar} title="Food" right=${html`<div class="daynav">
+    <${TopBar} mode=${state.settings.mode} title="" right=${html`<div class="daynav">
       <button class="icon-btn" aria-label="Previous day" onClick=${() => shift(-1)}><${Icon} name="left" /></button>
       <button class="lbl" onClick=${() => setKey(todayKey())}>${fmtRel(fromKey(key))}</button>
       <button class="icon-btn" aria-label="Next day" disabled=${isToday} onClick=${() => shift(1)}><${Icon} name="right" /></button>
@@ -482,7 +482,7 @@ export function Targets({ state }) {
   };
 
   return html`
-    <${TopBar} title="Food targets" back=${true} />
+    <${TopBar} mode=${state.settings.mode} title="Targets" back=${nav.depth() > 1} />
     <div class="page">
       <div class="section-head" style="margin-top:0"><span class="h-md">Calculate my targets</span></div>
       <div class="card stack">

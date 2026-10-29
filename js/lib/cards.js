@@ -7,6 +7,7 @@ import { Sparkline, LineChart, BarChart } from './charts.js';
 import { Icon, Tally, nav, Seg } from './ui.js';
 import { logBodyweight } from './actions.js';
 import * as F from './food.js';
+import { MEASURES, series, showVal, logMeasurements, lenUnit } from '../screens/body.js';
 import { w, toUnit, fmtNum, fmtBig, signed, fmtDate, fmtRel, fmtMins, fmtDur, toDist, startOfWeek, addDays, dayKey, DAY } from './util.js';
 
 const unitOf = s => s.settings.unit;
@@ -728,6 +729,37 @@ function ppRows(state) {
   }).filter(r => r.n);
 }
 
-export const CARDS = { week, bodyweight, streak, strength, lift, muscles, prs, plateau, volume, calendar, cardio, sessionLength, calories, protein, macroSplit, trainRest, score, tdee, deficit, proteinProgress };
+
+// ================================================================ BODY: measurements
+const measure = {
+  type: 'measure', title: 'Measurements', cat: 'Body',
+  blurb: 'Your latest body measurements and how they changed. Waist first, since it tracks fat loss best.',
+  compact({ state }) {
+    const keys = MEASURES.map(m => m[0]).filter(k => series(state, k).length);
+    if (!keys.length) return html`<${Head} title="Measurements" />
+      <div class="small text-2">Track waist, arms and more to see changes the scale misses.</div>
+      <div class="tile-foot"><button class="btn sm primary" onClick=${e => { e.stopPropagation(); logMeasurements(); }}>Log</button></div>`;
+    const k = keys.includes('waist') ? 'waist' : keys[0];
+    const s = series(state, k);
+    const d = s.length > 1 ? s[s.length - 1].value - s[0].value : null;
+    const conv = v => k === 'bodyfat' ? v : lenUnit(state) === 'in' ? v / 2.54 : v;
+    return html`<${Head} title=${MEASURES.find(m => m[0] === k)[1]} />
+      <div class="big" style="font-size:26px">${showVal(state, k, s[s.length - 1].value)}</div>
+      <div class="tiny muted">${d == null ? 'one entry so far' : html`<span class=${d < 0 ? 'good' : 'text-2'}>${signed(conv(d), 1)}</span> since first entry`}</div>
+      <div class="tile-foot" style="display:block"><${Sparkline} values=${s.slice(-12).map(p => p.value)} /></div>`;
+  },
+  detail({ state }) {
+    return html`<div class="list">${MEASURES.map(([k, label]) => {
+      const s = series(state, k);
+      return html`<button class="row" onClick=${() => s.length ? nav.go('measure', { key: k }) : logMeasurements()}>
+        <div class="grow"><div class="title">${label}</div><div class="sub">${s.length ? `${s.length} entries` : 'Not logged yet'}</div></div>
+        <span class="num">${s.length ? showVal(state, k, s[s.length - 1].value) : ''}</span><span class="chev"><${Icon} name="chev" size=${18} /></span>
+      </button>`;
+    })}</div>
+    <button class="btn primary block" onClick=${() => logMeasurements()}>Log measurements</button>`;
+  },
+};
+
+export const CARDS = { week, bodyweight, streak, strength, lift, muscles, prs, plateau, volume, calendar, cardio, sessionLength, calories, protein, macroSplit, trainRest, score, tdee, deficit, proteinProgress, measure };
 export const CATEGORIES = ['Combined', 'Training', 'Strength', 'Food', 'Body', 'Cardio'];
 export const COMING = [];

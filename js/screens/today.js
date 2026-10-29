@@ -41,8 +41,10 @@ export function Today({ state }) {
   const next = A.nextRoutine(state);
   const exm = A.exMap(state);
   const done = A.trainedToday(state);
+  const restDay = !next && A.hasSchedule(state);
+  const ns = restDay ? A.nextScheduled(state) : null;
   return html`
-    <${TopBar} brand=${true} title="Tally" right=${html`<span class="small muted">${fmtWeekdayLong(new Date())}, ${fmtDate(new Date())}</span>`} />
+    <${TopBar} mode=${state.settings.mode} title="" right=${html`<span class="small muted">${fmtWeekdayLong(new Date()).slice(0, 3)}, ${fmtDate(new Date())}</span>`} />
     <div class="page">
       ${s.sample ? html`<div class="banner"><span class="grow">You're looking at sample data. Clear it in Me whenever you're ready to start.</span><button class="btn sm" onClick=${() => nav.tab('me')}>Me</button></div>` : null}
 
@@ -61,6 +63,15 @@ export function Today({ state }) {
             <button class="btn" onClick=${() => startWorkout(next)} disabled=${!next}>Train again</button>
           </div>
         </div>`
+      : restDay ? html`
+        <div class="hero">
+          <div class="stack" style="gap:4px"><span class="eyebrow">${greeting()}${s.name ? ', ' + s.name : ''}</span><h2 class="h-xl">Rest day</h2></div>
+          <span class="small text-2">${ns ? `Next up: ${ns.routine.name} ${ns.days === 1 ? 'tomorrow' : 'in ' + ns.days + ' days'}.` : ''} Recovery is where the gains happen.</span>
+          <div class="grid2">
+            <button class="btn" onClick=${() => startWorkout(ns ? ns.routine : null)}>Train anyway</button>
+            <button class="btn" onClick=${() => nav.tab('train')}>Schedule</button>
+          </div>
+        </div>`
       : next ? html`
         <div class="hero">
           <div class="stack" style="gap:4px"><span class="eyebrow">${greeting()}${s.name ? ', ' + s.name : ''} · up next</span><h2 class="h-xl">${next.name}</h2></div>
@@ -73,13 +84,13 @@ export function Today({ state }) {
       : html`
         <div class="hero">
           <div class="stack" style="gap:4px"><span class="eyebrow">${greeting()}${s.name ? ', ' + s.name : ''}</span><h2 class="h-xl">Set up your split</h2></div>
-          <span class="small text-2">Pick a template or build your own routines, then start logging.</span>
+          <span class="small text-2">Build a routine for each day of your split, then start logging.</span>
           <button class="btn primary block" onClick=${() => nav.tab('train')}>Choose routines</button>
         </div>`}
 
-      <div class="section-head"><span class="h-md">Your stats</span><button class="link-btn" onClick=${() => nav.go('editDash')}>Customize</button></div>
+      <div class="section-head"><span class="h-md">Your stats</span><button class="link-btn" onClick=${() => nav.go('editDash', { dash: 'gym' })}>Customize</button></div>
       ${state.dashboard.length ? html`<div class="dash">
-        ${pack(state.dashboard).map(({ inst, wide }) => html`<${Card} key=${inst.id} inst=${inst} wide=${wide} state=${state} onOpen=${() => nav.go('card', { id: inst.id, type: inst.type })} />`)}
-      </div>` : html`<div class="card empty"><span class="h-md">No cards on your dashboard</span><button class="btn" onClick=${() => nav.go('editDash')}>Add cards</button></div>`}
+        ${pack(state.dashboard).map(({ inst, wide }) => html`<${Card} key=${inst.id} inst=${inst} wide=${wide} state=${state} onOpen=${() => nav.go('card', { id: inst.id, type: inst.type, dash: 'gym' })} />`)}
+      </div>` : html`<div class="card empty"><span class="h-md">No cards on your dashboard</span><button class="btn" onClick=${() => nav.go('editDash', { dash: 'gym' })}>Add cards</button></div>`}
     </div>`;
 }

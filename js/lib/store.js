@@ -2,12 +2,12 @@
 // Cloud backup (Firebase) plugs in later through onChange().
 
 import { EXERCISES } from './exercises.js';
-import { defaultDashboard } from './dash-defaults.js';
+import { defaultDashboard, defaultFoodDashboard } from './dash-defaults.js';
 
 const DB_NAME = 'tally';
 const STORE = 'kv';
 const KEY = 'state';
-export const SCHEMA = 2;
+export const SCHEMA = 3;
 
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
@@ -42,13 +42,19 @@ export function freshState() {
       keepAwake: true,
       onboarded: false,
       sample: false,
+      mode: 'gym',           // 'gym' | 'food' — tap Tally in the top bar to switch
+      barKg: null,           // plate calculator bar weight (null = 45 lb / 20 kg)
+      plates: null,          // available plates in the user's unit (null = standard set)
     },
+    schedule: {},            // weekday (0 = Sunday) -> routine id
+    measurements: [],        // { date, key, value } — lengths in cm, body fat in %
     food: defaultFoodSettings(),
     foods: [],               // saved/custom foods (nutrition per 100 g and/or per serving)
     meals: [],               // saved meals: { id, name, items: [log-style items] }
     foodLog: [],             // { id, date, meal, foodId, name, brand, qty, unit, kcal, p, c, f, fiber, sugar, sodium }
     water: {},               // { 'YYYY-MM-DD': ml }
     dashboard: defaultDashboard(),
+    foodDashboard: defaultFoodDashboard(),
     exercises: EXERCISES.map(e => ({ ...e })),
     routines: [],
     workouts: [],
@@ -116,6 +122,12 @@ function migrate(s) {
   // v2: food arrived, so put the food and combined cards on existing dashboards.
   if ((s.schema || 1) < 2) {
     for (const type of ['score', 'calories', 'protein']) if (!out.dashboard.some(d => d.type === type)) out.dashboard.push({ id: uid(), type, opts: {} });
+  }
+  // v3: Gym and Food modes. Food and combined cards move to the Food dashboard.
+  if ((s.schema || 1) < 3) {
+    const food = new Set(['calories', 'protein', 'macroSplit', 'trainRest', 'score', 'tdee', 'deficit', 'proteinProgress']);
+    if (!s.foodDashboard) out.foodDashboard = defaultFoodDashboard();
+    out.dashboard = out.dashboard.filter(d => !food.has(d.type));
   }
   out.schema = SCHEMA;
   return out;

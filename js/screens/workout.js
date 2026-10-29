@@ -8,6 +8,7 @@ import { w, toUnit, fromUnit, fmtNum, fmtDur, parseDur, toDist, fromDist, fmtBig
 import { ExThumb } from '../lib/photo.js';
 import { pickExercise } from './picker.js';
 import { prValue } from '../lib/cards.js';
+import { plateCalc } from '../lib/plates.js';
 
 const uid = store.uid;
 const newSet = (target) => ({ t: 'n', kg: null, reps: null, sec: null, km: null, done: false, target: target || null });
@@ -45,7 +46,7 @@ function begin(routine) {
         // Keep the warm-up sets you did last time.
         const last = A.lastSets(s, it.exId) || [];
         const warm = last.filter(x => x.t === 'w').map(() => ({ ...newSet(null), t: 'w' }));
-        return { id: uid(), exId: it.exId, note: '', rest: it.rest ?? null, sets: [...warm, ...Array.from({ length: it.sets || 3 }, () => newSet(it.reps))] };
+        return { id: uid(), exId: it.exId, note: '', rest: it.rest ?? null, group: it.group || null, sets: [...warm, ...Array.from({ length: it.sets || 3 }, () => newSet(it.reps))] };
       }) : [],
       rest: null,
     };
@@ -108,7 +109,50 @@ function useTick(ms = 1000) {
   useEffect(() => { const i = setInterval(() => setT(t => t + 1), ms); return () => clearInterval(i); }, [ms]);
 }
 
-function editActive(fn) { store.update(st => { if (st.active) fn(st.active, st); }); }
+function editActive(fn) { store.update(st => { if (st.active) { fn(st.active, st); tidyGroups(st.active.entries); } }); }
+
+// ---------- supersets ----------
+// Exercises in a superset share a group id and sit next to each other. A group only counts
+// for neighbours, so moving or removing an exercise can't leave a stray one behind.
+export function tidyGroups(list) {
+  list.forEach((e, i) => {
+    if (!e.group) return;
+    const prev = list[i - 1], next = list[i + 1];
+    if (!(prev && prev.group === e.group) && !(next && next.group === e.group)) e.group = null;
+  });
+}
+export function supersetWithNext(list, i) {
+  const a = list[i], b = list[i + 1];
+  if (!a || !b) return;
+  const g = a.group || b.group || uid();
+  const old = b.group;
+  a.group = g; b.group = g;
+  // Pull the rest of b's old superset along.
+  if (old && old !== g) list.forEach(e => { if (e.group === old) e.group = g; });
+}
+export function leaveSuperset(list, i) {
+  const e = list[i];
+  if (!e || !e.group) return;
+  const g = e.group;
+  const prev = list[i - 1], next = list[i + 1];
+  e.group = null;
+  // If it sat in the middle, the two halves become separate supersets.
+  if (prev && next && prev.group === g && next.group === g) {
+    const ng = uid();
+    for (let j = i + 1; j < list.length && list[j].group === g; j++) list[j].group = ng;
+  }
+  tidyGroups(list);
+}
+// Position within its superset: { n, k, last } or null.
+export function groupPos(list, i) {
+  const e = list[i];
+  if (!e || !e.group) return null;
+  let a = i, b = i;
+  while (a > 0 && list[a - 1].group === e.group) a--;
+  while (b < list.length - 1 && list[b + 1].group === e.group) b++;
+  return { n: b - a + 1, k: i - a, first: i === a, last: i === b, start: a };
+}
+const LETTERS = 'ABCDEFGH';
 
 function startRest(sec) {
   if (!sec) return;
@@ -240,14 +284,24 @@ function Entry({ en, idx, state }) {
       : cur.sec != null;
     if (!ok) { toast(ex.type === 'weight' ? 'Enter weight and reps' : 'Fill in the set first'); return; }
     editSet(i, x => { x.done = true; if (ex.type === 'bw' && x.kg == null) x.kg = 0; });
-    if (settings.autoRest && (!isCardio || ex.type === 'sprint')) startRest(restSec);
+    const gp = groupPos(store.get().active.entries, idx);
+    if (gp && !gp.last) {
+      // Mid-superset: no rest, go straight to the next exercise.
+      const nx = A.exMap(store.get()).get(store.get().active.entries[idx + 1].exId);
+      toast(`Superset: ${nx ? nx.name : 'next exercise'}`, 1400);
+    } else if (settings.autoRest && (!isCardio || ex.type === 'sprint')) startRest(restSec);
     if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {}
   };
 
-  return html`<div class="card ex-card">
+  const gp = groupPos(state.active.entries, idx);
+  const isBar = ex.type === 'weight' && /barbell|smith|trap/i.test(ex.equip || '');
+  const plateKg = () => { const s = en.sets.find(x => !x.done && x.t !== 'w' && x.kg != null) || en.sets.find(x => x.kg != null); if (s) return s.kg; const p = prev.filter(x => x.t !== 'w'); return p.length ? p[p.length - 1].kg : null; };
+  return html`<div class=${'card ex-card' + (gp ? ' ss' + (gp.first ? ' ss-first' : '') + (gp.last ? ' ss-last' : '') : '')}>
+    ${gp && gp.first ? html`<div class="ss-label"><${Icon} name="swap" size=${14} /> Superset · ${gp.n} exercises · rest after the last</div>` : null}
     <div class="ex-top">
+      ${gp ? html`<span class="ss-tag" aria-label=${'Superset exercise ' + LETTERS[gp.k]}>${LETTERS[gp.k] || ''}</span>` : null}
       <button class="ex-link" onClick=${() => nav.go('exercise', { id: en.exId, entry: en.id })}><${ExThumb} ex=${ex} size=${36} /><span class="ex-name">${ex.name}</span></button>
-      <span class="pill">${restSec ? fmtDur(restSec) + ' rest' : 'no timer'}</span>
+      <span class="pill">${gp && !gp.last ? 'no rest' : restSec ? fmtDur(restSec) + ' rest' : 'no timer'}</span>
       <button class="icon-btn" aria-label="Exercise options" onClick=${() => entryMenu(en, idx, ex, restSec)}><${Icon} name="more" /></button>
     </div>
     ${en.note ? html`<div class="ex-note small text-2">${en.note}</div>` : null}
@@ -272,6 +326,7 @@ function Entry({ en, idx, state }) {
     <div class="ex-actions">
       <button class="btn sm ghost" onClick=${() => editActive(a => { const e = a.entries.find(x => x.id === en.id); const last = e.sets[e.sets.length - 1]; e.sets.push(newSet(last ? last.target : null)); })}><${Icon} name="plus" size=${16} /> Add set</button>
       ${en.sets.length > 1 ? html`<button class="btn sm ghost" onClick=${() => editActive(a => { const e = a.entries.find(x => x.id === en.id); e.sets.pop(); })}><${Icon} name="minus" size=${16} /> Remove set</button>` : null}
+      ${isBar ? html`<button class="btn sm ghost" onClick=${() => plateCalc(plateKg())}><${Icon} name="train" size=${16} /> Plates</button>` : null}
     </div>
   </div>`;
 }
@@ -280,7 +335,10 @@ function entryMenu(en, idx, ex, restSec) {
   function Body() {
     const [note, setNote] = useState(en.note || '');
     const [rest, setRest] = useState(restSec);
-    const n = store.get().active.entries.length;
+    const list = store.get().active.entries;
+    const n = list.length;
+    const gp = groupPos(list, idx);
+    const nextIn = gp && !gp.last;
     const move = d => { editActive(a => { const j = idx + d; if (j < 0 || j >= a.entries.length) return; const [e] = a.entries.splice(idx, 1); a.entries.splice(j, 0, e); }); closeSheet(); };
     return html`
       <${SheetHead} title=${ex.name} />
@@ -297,6 +355,8 @@ function entryMenu(en, idx, ex, restSec) {
         <button class="btn" disabled=${idx === 0} onClick=${() => move(-1)}><${Icon} name="up" size=${18} /> Move up</button>
         <button class="btn" disabled=${idx === n - 1} onClick=${() => move(1)}><${Icon} name="down" size=${18} /> Move down</button>
       </div>
+      ${idx < n - 1 && !nextIn ? html`<button class="btn block" onClick=${() => { editActive(a => supersetWithNext(a.entries, idx)); closeSheet(); toast('Superset made'); }}><${Icon} name="swap" size=${18} /> Superset with next exercise</button>` : null}
+      ${gp ? html`<button class="btn block" onClick=${() => { editActive(a => leaveSuperset(a.entries, idx)); closeSheet(); }}>Remove from superset</button>` : null}
       <button class="btn block" onClick=${() => { closeSheet(); pickExercise(exId => editActive(a => { const e = a.entries.find(x => x.id === en.id); e.exId = exId; e.sets.forEach(s => { if (!s.done) { s.av = s.bv = null; s.kg = s.reps = s.sec = s.km = null; } }); }), { title: 'Replace with' }); }}><${Icon} name="swap" size=${18} /> Replace exercise</button>
       <button class="btn block danger" onClick=${() => { editActive(a => { a.entries = a.entries.filter(x => x.id !== en.id); }); closeSheet(); }}><${Icon} name="trash" size=${18} /> Remove from workout</button>`;
   }

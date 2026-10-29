@@ -54,7 +54,13 @@ export function Icon({ name, size = 22, sw = 1.9 }) {
 // A stack of { name, params }. Top-level tabs reset the stack.
 const listeners = new Set();
 let stack = [{ name: 'today', params: {} }];
-export const TABS = ['today', 'train', 'food', 'stats', 'me'];
+// Two modes, each with its own tab bar. Body and Me are shared.
+export const MODES = {
+  gym: [['today', 'Today', 'today'], ['train', 'Train', 'train'], ['body', 'Body', 'scale'], ['stats', 'Stats', 'stats'], ['me', 'Me', 'me']],
+  food: [['food', 'Diary', 'food'], ['insights', 'Insights', 'stats'], ['body', 'Body', 'scale'], ['targets', 'Targets', 'bolt'], ['me', 'Me', 'me']],
+};
+export const TABS = [...new Set([...MODES.gym, ...MODES.food].map(t => t[0]))];
+export const isRootTab = name => TABS.includes(name);
 
 function emit() { listeners.forEach(l => l(stack[stack.length - 1], stack.length)); }
 
@@ -137,10 +143,17 @@ export function toast(msg, ms = 2200) {
 }
 
 // ---------- Misc ----------
-export function TopBar({ title, back, right, brand }) {
+let modeHandler = null;
+export function onModeSwitch(fn) { modeHandler = fn; }
+
+// Root screens show the Tally switch on the left; tap it to flip between Gym and Food.
+export function TopBar({ title, back, right, mode }) {
   return html`<header class="topbar"><div class="topbar-in">
-    ${back ? html`<button class="icon-btn" aria-label="Back" onClick=${() => nav.back()} style="margin-left:-8px"><${Icon} name="back" /></button>` : null}
-    <h1 class=${brand ? 'brand' : ''}>${title}</h1>
+    ${back ? html`<button class="icon-btn" aria-label="Back" onClick=${() => nav.back()} style="margin-left:-8px"><${Icon} name="back" /></button>`
+      : mode ? html`<button class="mode-switch" aria-label=${`Tally, ${mode} mode. Switch to ${mode === 'gym' ? 'food' : 'gym'}`} onClick=${() => modeHandler && modeHandler()}>
+          <span class="brand">Tally</span><span class=${'mode-pill ' + mode}><${Icon} name="swap" size=${13} sw=${2.4} />${mode === 'gym' ? 'Gym' : 'Food'}</span>
+        </button>` : null}
+    <h1 class=${mode && !back ? 'subtitle' : ''}>${title}</h1>
     ${right}
   </div></header>`;
 }
