@@ -69,10 +69,10 @@ export function PhotoStrip({ state }) {
 
 // Weight trend and waist on (or just before) a day.
 function statsOn(state, key) {
-  const t = A.weightTrend(state).filter(p => p.key <= key).pop();
+  const t = A.weighIns(state).filter(p => p.key <= key).pop();
   const wst = series(state, 'waist').filter(p => p.date <= key).pop();
   const u = bwUnit(state);
-  return [t ? `${w(t.trend, u)} ${u}` : null, wst ? `waist ${showVal(state, 'waist', wst.value)}` : null].filter(Boolean).join(' · ') || ' ';
+  return [t ? `${w(t.raw, u)} ${u}` : null, wst ? `waist ${showVal(state, 'waist', wst.value)}` : null].filter(Boolean).join(' · ') || ' ';
 }
 
 function Compare({ state, pose }) {

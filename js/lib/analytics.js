@@ -211,6 +211,18 @@ export function weightTrend(state) {
   });
 }
 
+// Each weigh-in with the average of all weigh-ins in the 7 days up to it.
+export function weighIns(state) {
+  return memo(state, 'weighins', () => {
+    const tr = weightTrend(state);
+    return tr.map((p, i) => {
+      let sum = 0, n = 0;
+      for (let j = i; j >= 0 && p.date - tr[j].date < 7 * DAY; j--) { sum += tr[j].raw; n++; }
+      return { ...p, avg7: sum / n };
+    });
+  });
+}
+
 // Weekly rate of change (kg/week) from a least-squares fit of the trend over the last `days`.
 export function weightRate(state, days = 21) {
   const tr = weightTrend(state);

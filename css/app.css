@@ -546,3 +546,4 @@ html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
 .chart-tip { position: absolute; top: 0; background: var(--surface-3); color: var(--text); border-radius: 10px; padding: 6px 10px; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.28); z-index: 3; text-align: center; }
 .chart-tip .d { font-size: 11px; color: var(--muted); font-weight: 600; }
 .chart-tip .v { font: 650 15px var(--font-num); white-space: nowrap; }
+.chart .pdot { fill: var(--accent); stroke: var(--surface); stroke-width: 1; }

@@ -92,7 +92,7 @@ export function logMeasurements(prefillDate) {
 
 export function Body({ state }) {
   const unit = bwUnit(state);
-  const tr = A.weightTrend(state);
+  const tr = A.weighIns(state);
   const last = tr[tr.length - 1];
   const rate = A.weightRate(state);
   const lastLog = state.measurements.reduce((m, x) => x.date > m ? x.date : m, '');
@@ -103,9 +103,9 @@ export function Body({ state }) {
         <div class="tile-head"><span class="eyebrow">Bodyweight</span><span class="chev"><${Icon} name="chev" size=${18} /></span></div>
         ${last ? html`
           <div class="hstack" style="justify-content:space-between;align-items:flex-end">
-            <div><div class="big">${w(last.trend, unit)}<small>${unit}</small></div>
-              <div class="tiny muted">trend · <span class=${rate != null && rate < 0 ? 'good' : 'text-2'}>${rate == null ? 'need 3+ weigh-ins' : signed(toUnit(rate, unit), 1) + ' ' + unit + '/wk'}</span></div></div>
-            <div style="width:45%"><${Sparkline} values=${tr.slice(-30).map(p => p.trend)} /></div>
+            <div><div class="big">${w(last.raw, unit)}<small>${unit}</small></div>
+              <div class="tiny muted">7-day avg ${w(last.avg7, unit)} · <span class=${rate != null && rate < 0 ? 'good' : 'text-2'}>${rate == null ? 'need 3+ weigh-ins' : signed(toUnit(rate, unit), 1) + ' ' + unit + '/wk'}</span></div></div>
+            <div style="width:45%"><${Sparkline} values=${tr.slice(-30).map(p => p.raw)} /></div>
           </div>` : html`<div class="small text-2">No weigh-ins yet.</div>`}
       </button>
       <div class="grid2">

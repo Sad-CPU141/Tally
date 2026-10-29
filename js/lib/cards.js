@@ -64,7 +64,7 @@ const week = {
 // ---------------------------------------------------------------- bodyweight
 const bodyweight = {
   type: 'bodyweight', title: 'Bodyweight', cat: 'Body',
-  blurb: 'Smoothed trend weight and your weekly rate of change.',
+  blurb: 'Your weigh-ins, 7-day average and weekly rate of change.',
   compact({ state }) {
     const unit = bwUnit(state);
     const tr = A.weightTrend(state);
@@ -72,41 +72,43 @@ const bodyweight = {
       <${Head} title="Bodyweight" />
       <div class="text-2 small">Log your weight to start a trend line.</div>
       <div class="tile-foot"><button class="btn sm primary" onClick=${e => { e.stopPropagation(); logBodyweight(); }}>Log weight</button></div>`;
-    const last = tr[tr.length - 1];
+    const wi = A.weighIns(state);
+    const last = wi[wi.length - 1];
     const rate = A.weightRate(state);
     const lossy = rate != null && rate < 0;
     return html`
       <${Head} title="Bodyweight" right=${html`<button class="icon-btn" style="width:30px;height:30px;margin:-6px -6px -6px 0" aria-label="Log weight" onClick=${e => { e.stopPropagation(); logBodyweight(); }}><${Icon} name="plus" size=${18} /></button>`} />
-      <div class="big">${w(last.trend, unit)}<small>${unit}</small></div>
-      <div class="tiny muted">trend · <span class=${lossy ? 'good' : 'text-2'}>${rate == null ? 'need 3+ weigh-ins' : signed(toUnit(rate, unit), 1) + ' ' + unit + '/wk'}</span></div>
-      <div class="tile-foot" style="display:block"><${Sparkline} values=${tr.slice(-30).map(p => p.trend)} /></div>`;
+      <div class="big">${w(last.raw, unit)}<small>${unit}</small></div>
+      <div class="tiny muted">7-day avg ${w(last.avg7, unit)} · <span class=${lossy ? 'good' : 'text-2'}>${rate == null ? 'need 3+ weigh-ins' : signed(toUnit(rate, unit), 1) + ' ' + unit + '/wk'}</span></div>
+      <div class="tile-foot" style="display:block"><${Sparkline} values=${wi.slice(-30).map(p => p.raw)} /></div>`;
   },
   detail({ state }) {
     const unit = bwUnit(state);
     const [range, setRange] = useState('12w');
     const [all, setAll] = useState(false);
-    const tr = A.weightTrend(state);
+    const tr = A.weighIns(state);
     const cut = Date.now() - rangeDays(range) * DAY;
     const pts = tr.filter(p => p.date >= cut);
     const rate = A.weightRate(state);
     const last = tr[tr.length - 1];
     const first = pts[0];
+    const avgAt = new Map(tr.map(p => [p.date, p.avg7]));
     return html`
       <button class="btn primary block" onClick=${() => logBodyweight()}><${Icon} name="plus" size=${18} /> Log weight</button>
       <div class="card stack">
         <div class="hstack" style="justify-content:space-between">
-          <span class="eyebrow">Trend</span>
+          <span class="eyebrow">Weigh-ins</span>
           <${RangePick} value=${range} onChange=${setRange} />
         </div>
-        <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit} label="Trend" rawLabel="Scale"
-          points=${pts.map(p => ({ x: p.date, y: toUnit(p.trend, unit) }))}
-          raw=${pts.map(p => ({ x: p.date, y: toUnit(p.raw, unit) }))} />
-        <span class="tiny muted">Dots are your weigh-ins. The line is the smoothed trend, which is what to judge progress by.</span>
+        <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit} dots=${true}
+          points=${pts.map(p => ({ x: p.date, y: toUnit(p.raw, unit) }))}
+          extra=${a => [`7-day avg ${fmtNum(toUnit(avgAt.get(a.x), unit), 1)} ${unit}`]} />
+        <span class="tiny muted">Tap the chart to see each weigh-in and your 7-day average. Day-to-day jumps of 1–3 ${unit} are mostly water; the 7-day average shows where you're really heading.</span>
       </div>
       ${last ? html`<div class="summary-grid">
-        <div class="stat"><span class="eyebrow">Trend</span><span class="mid">${w(last.trend, unit)}</span></div>
+        <div class="stat"><span class="eyebrow">7-day avg</span><span class="mid">${w(last.avg7, unit)}</span></div>
         <div class="stat"><span class="eyebrow">Per week</span><span class="mid">${rate == null ? '–' : signed(toUnit(rate, unit), 1)}</span></div>
-        <div class="stat"><span class="eyebrow">In range</span><span class="mid">${first ? signed(toUnit(last.trend - first.trend, unit), 1) : '–'}</span></div>
+        <div class="stat"><span class="eyebrow">In range</span><span class="mid">${first ? signed(toUnit(last.avg7 - first.avg7, unit), 1) : '–'}</span></div>
       </div>` : null}
       ${rate != null && last ? html`<div class="card small text-2">
         ${rate < 0
@@ -116,7 +118,7 @@ const bodyweight = {
       <div class="section-head"><span class="h-md">Weigh-ins</span></div>
       <div class="list">
         ${tr.slice().reverse().slice(0, all ? 400 : 14).map(p => html`<button class="row" onClick=${() => logBodyweight(p.key)}>
-          <div class="grow"><div class="title">${fmtRel(p.date)}</div><div class="sub">trend ${w(p.trend, unit)}</div></div>
+          <div class="grow"><div class="title">${fmtRel(p.date)}</div><div class="sub">7-day avg ${w(p.avg7, unit)}</div></div>
           <span class="num">${w(p.raw, unit)} ${unit}</span>
         </button>`)}
         ${!tr.length ? html`<div class="empty">No weigh-ins yet.</div>` : null}

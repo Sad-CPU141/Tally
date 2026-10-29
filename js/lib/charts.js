@@ -96,7 +96,7 @@ function usePointer(onIndex) {
 
 // points: [{ x: timestamp, y }], raw: optional faint points, goal: optional y value.
 // fmtV formats a value in the tooltip (defaults to fmtY), unit is appended.
-export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(v), fmtV, unit = '', area = true, label = '', rawLabel = 'Scale' }) {
+export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(v), fmtV, unit = '', area = true, label = '', rawLabel = 'Scale', extra, dots = false }) {
   const [ref, wd] = useWidth(320);
   const left = 40, right = 12, top = 12, bottom = 24;
   const ok = points && points.length >= 2;
@@ -130,11 +130,12 @@ export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(
       ${raw ? raw.map(p => html`<circle class="rawdot" cx=${X(p.x)} cy=${Y(p.y)} r="2.2" />`) : null}
       ${area ? html`<path class="area" d=${areaD} />` : null}
       <path class="line" d=${path(pts)} />
+      ${dots && pts.length <= 150 ? pts.map(p => html`<circle class="pdot" cx=${p[0]} cy=${p[1]} r="2.4" />`) : null}
       ${a ? html`<line class="cursor" x1=${pts[active][0]} x2=${pts[active][0]} y1=${top} y2=${height - bottom} /><circle class="dot" cx=${pts[active][0]} cy=${pts[active][1]} r="5" />`
         : html`<circle class="dot" cx=${last[0]} cy=${last[1]} r="4.5" />`}
       <rect x="0" y="0" width=${wd} height=${height} fill="transparent" style="touch-action:pan-y" />
     </svg>
-    ${a ? html`<${Tip} x=${pts[active][0]} wd=${wd} lines=${[fmtDate(a.x) + ' ' + yr2(a.x), `${label ? label + ' ' : ''}${fv(a.y)}${unit ? ' ' + unit : ''}`, ...(rawSame && Math.abs(rawSame.y - a.y) > 1e-9 ? [`${rawLabel} ${fv(rawSame.y)}${unit ? ' ' + unit : ''}`] : [])]} />` : null}
+    ${a ? html`<${Tip} x=${pts[active][0]} wd=${wd} lines=${[fmtDate(a.x) + ' ' + yr2(a.x), `${label ? label + ' ' : ''}${fv(a.y)}${unit ? ' ' + unit : ''}`, ...(rawSame && Math.abs(rawSame.y - a.y) > 1e-9 ? [`${rawLabel} ${fv(rawSame.y)}${unit ? ' ' + unit : ''}`] : []), ...(extra ? extra(a) : [])]} />` : null}
   </div>`;
 }
 
