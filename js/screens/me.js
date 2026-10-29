@@ -8,6 +8,7 @@ import { logBodyweight } from '../lib/actions.js';
 import { makeSample } from '../lib/sample.js';
 import { plateCalc } from '../lib/plates.js';
 import { clearPhotos } from '../lib/photos.js';
+import { importCSV, exportCSV } from '../lib/importer.js';
 
 const ACCENTS = [['ice', 'Ice', '#6cb8ff'], ['iris', 'Iris', '#a597ff'], ['ember', 'Ember', '#ffad5c'], ['mint', 'Mint', '#5fd4a8'], ['rose', 'Rose', '#ff86ad']];
 
@@ -85,6 +86,10 @@ export function Me({ state }) {
       <div class="list">
         <${Row} title="Export backup" sub=${counts}>
           <button class="btn sm" onClick=${() => { download(`tally-backup-${todayKey()}.json`, JSON.stringify({ app: 'tally', exported: Date.now(), data: store.get() })); toast('Backup saved'); }}><${Icon} name="download" size=${16} /> Export</button><//>
+        <${Row} title="Import from another app" sub="Strong, Hevy or FitNotes CSV export. Adds to what's here">
+          <label class="btn sm" style="position:relative"><${Icon} name="upload" size=${16} /> CSV
+            <input type="file" accept=".csv,text/csv,text/comma-separated-values,text/plain" style="position:absolute;inset:0;opacity:0" onChange=${e => importCSV(e.target.files[0], e.target)} /></label><//>
+        <${Row} title="Export workouts as CSV" sub="Opens in Excel or Sheets; Hevy and Strong can import it"><button class="btn sm" onClick=${exportCSV}><${Icon} name="download" size=${16} /> CSV</button><//>
         <${Row} title="Restore from backup" sub="Replaces everything on this phone">
           <label class="btn sm" style="position:relative"><${Icon} name="upload" size=${16} /> Import
             <input type="file" accept="application/json,.json" style="position:absolute;inset:0;opacity:0" onChange=${e => importFile(e.target.files[0], e.target)} /></label><//>
