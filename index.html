@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark" data-accent="ice">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Tally</title>
   <meta name="description" content="Tally — gym and macro tracker">
   <meta name="theme-color" content="#0d1014">
@@ -35,6 +35,11 @@
     if ('serviceWorker' in navigator && location.protocol === 'https:') {
       window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (r) { r.update(); }).catch(function () {}); });
     }
+  </script>
+  <script>
+    // No pinch or double-tap zoom: it's an app, not a web page. (iOS ignores user-scalable=no in Safari.)
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+    document.addEventListener('touchmove', e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
   </script>
 </body>
 </html>

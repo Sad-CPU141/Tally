@@ -45,7 +45,8 @@ export function freshState() {
       mode: 'gym',           // 'gym' | 'food' — tap Tally in the top bar to switch
       barKg: null,           // plate calculator bar weight (null = 45 lb / 20 kg)
       plates: null,          // available plates in the user's unit (null = standard set)
-      suggest: true,         // weight suggestions while logging
+      coach: false,          // weight suggestions while logging (off unless turned on in Me)
+      bwUnit: null,          // bodyweight unit; null = same as the lifting unit
       rir: false,            // ask "reps left" after each working set
     },
     schedule: {},            // weekday (0 = Sunday) -> routine id

@@ -62,7 +62,10 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+/* Inputs at 16px or more so iPhones don't zoom in when you tap one. */
+input, select, textarea { font-size: 16px; }
+* { touch-action: manipulation; }
 html, body { margin: 0; background: var(--bg); color: var(--text); }
 body {
   font: 15px/1.45 var(--font-body);
@@ -106,6 +109,8 @@ img { max-width: 100%; }
   padding-block: 8px 0;
   display: flex; flex-direction: column; gap: 14px;
 }
+/* Never squash sheet content to fit; scroll instead (kept the plate drawing from being cut off). */
+.sheet > * { flex-shrink: 0; }
 
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
@@ -315,7 +320,7 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 .sheet-wrap { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
 .sheet-bg { position: absolute; inset: 0; background: rgba(4, 7, 10, .55); animation: fade .18s ease-out; }
 .sheet {
-  position: relative; width: 100%; max-width: 720px; max-height: 88vh; overflow-y: auto;
+  position: relative; width: 100%; max-width: 720px; max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain;
   background: var(--surface); border-top-left-radius: 24px; border-top-right-radius: 24px; border: 1px solid var(--line); border-bottom: 0;
   padding-top: 8px;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
@@ -482,3 +487,23 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 .ph-range { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: ew-resize; }
 .ph-cmp-one { border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 3 / 4; }
 .ph-cmp-one img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* routine editor */
+.rt-item { padding: 12px 12px 8px; display: flex; flex-direction: column; gap: 10px; }
+.rt-item.ss { border-left: 3px solid var(--accent); }
+.rt-top { display: flex; align-items: center; gap: 6px; }
+.rt-top .ex-link { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.rt-name { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+.rt-name .title { font-weight: 650; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rt-name .sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rt-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini { display: flex; flex-direction: column; gap: 4px; }
+.mini-in { display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); border-radius: 12px; padding: 3px; }
+.mini-in .num { font-weight: 650; font-size: 18px; min-width: 32px; text-align: center; }
+.mini-in .icon-btn { width: 40px; height: 36px; }
+.rt-per { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+.rt-set { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.rt-toggle { align-self: flex-start; padding: 0; }
+
+/* Keep text inputs at 16px: iPhones zoom the page when you tap a smaller one. */
+.input, select.input, textarea.input { font-size: 16px; }

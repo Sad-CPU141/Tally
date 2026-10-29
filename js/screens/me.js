@@ -46,7 +46,8 @@ export function Me({ state }) {
 
       <div class="section-head"><span class="h-md">Units</span></div>
       <div class="list">
-        <${Row} title="Weight"><div style="width:130px"><${Seg} label="Weight unit" value=${s.unit} onChange=${v => setS('unit', v)} options=${[['lb', 'lb'], ['kg', 'kg']]} /></div><//>
+        <${Row} title="Lifting weights" sub="Barbells, dumbbells, machines"><div style="width:130px"><${Seg} label="Lifting unit" value=${s.unit} onChange=${v => setS('unit', v)} options=${[['lb', 'lb'], ['kg', 'kg']]} /></div><//>
+        <${Row} title="Bodyweight" sub=${'Weigh-ins, food targets' + ((s.bwUnit || s.unit) === 'lb' ? ', inches' : ', centimetres')}><div style="width:130px"><${Seg} label="Bodyweight unit" value=${s.bwUnit || s.unit} onChange=${v => setS('bwUnit', v)} options=${[['lb', 'lb'], ['kg', 'kg']]} /></div><//>
         <${Row} title="Distance"><div style="width:130px"><${Seg} label="Distance unit" value=${s.distUnit} onChange=${v => setS('distUnit', v)} options=${[['km', 'km'], ['mi', 'mi']]} /></div><//>
       </div>
 
@@ -73,7 +74,7 @@ export function Me({ state }) {
             <button class="icon-btn" aria-label="More rest" onClick=${() => setS('restDefault', Math.min(600, s.restDefault + 15))}><${Icon} name="plus" size=${18} /></button>
           </div><//>
         <${Row} title="Start rest timer after each set"><${Switch} id="set-autorest" label="Auto rest timer" checked=${s.autoRest} onChange=${v => setS('autoRest', v)} /><//>
-        <${Row} title="Weight suggestions" sub="Tells you when to add weight, based on last time"><${Switch} id="set-suggest" label="Weight suggestions" checked=${s.suggest !== false} onChange=${v => setS('suggest', v)} /><//>
+        <${Row} title="Weight suggestions" sub="Off: the faded numbers are last time's. On: they're what to aim for today"><${Switch} id="set-suggest" label="Weight suggestions" checked=${!!s.coach} onChange=${v => setS('coach', v)} /><//>
         <${Row} title="Ask reps left after each set" sub="Tap 0–4 after a set. Makes suggestions smarter"><${Switch} id="set-rir" label="Ask reps left" checked=${!!s.rir} onChange=${v => setS('rir', v)} /><//>
         <${Row} title="Keep screen on during workouts"><${Switch} id="set-awake" label="Keep screen on" checked=${s.keepAwake} onChange=${v => setS('keepAwake', v)} /><//>
         <${Row} title="Plate calculator" sub="Your bar and the plates at your gym"><button class="btn sm" onClick=${() => plateCalc(null)}>Open</button><//>

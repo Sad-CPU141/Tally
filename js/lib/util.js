@@ -5,6 +5,8 @@ export const KM_PER_MI = 1.609344;
 
 export const toUnit = (kg, unit) => unit === 'lb' ? kg / KG_PER_LB : kg;
 export const fromUnit = (v, unit) => unit === 'lb' ? v * KG_PER_LB : v;
+// Bodyweight can use a different unit from the weights you lift (e.g. lift in lb, weigh yourself in kg).
+export const bwUnit = state => state.settings.bwUnit || state.settings.unit;
 export const stepFor = unit => unit === 'lb' ? 5 : 2.5;
 
 export function round(n, dp = 1) { const f = 10 ** dp; return Math.round(n * f) / f; }

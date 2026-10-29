@@ -126,22 +126,31 @@ export function RoutineEdit({ state, params }) {
         <input id="rt-name" class="input" value=${r.name} onInput=${e => edit(x => { x.name = e.target.value; })} /></div>
       <div class="field"><label>Days</label>
         <div class="wk">${weekOrder(state).map(d => { const on = (state.schedule || {})[d] === r.id; return html`<button aria-pressed=${on} aria-label=${WD_LONG[d]} onClick=${() => setDay(d, on ? null : r.id)}>${WD[d]}</button>`; })}</div></div>
-      <div class="list">
+      <div class="stack" style="gap:10px">
         ${r.items.map((it, i) => {
           const ex = exm.get(it.exId) || { name: 'Unknown', type: 'weight' };
-          const repsLabel = ex.type === 'time' ? 'sec' : ex.type === 'cardio' ? '' : ex.type === 'sprint' ? '' : 'reps';
+          const repsLabel = ex.type === 'time' ? 'Seconds' : ex.type === 'cardio' || ex.type === 'sprint' ? '' : 'Reps';
+          const step = ex.type === 'time' ? 15 : 1;
           const gp = groupPos(r.items, i);
-          return html`<div class=${'row' + (gp ? ' ss-row' + (gp.first ? ' ss-first' : '') + (gp.last ? ' ss-last' : '') : '')} style="flex-wrap:wrap;row-gap:8px">
-            ${gp && gp.first ? html`<div class="ss-label" style="flex-basis:100%"><${Icon} name="swap" size=${14} /> Superset</div>` : null}
-            <button class="ex-link" style="min-width:150px" onClick=${() => nav.go('exercise', { id: it.exId })}><${ExThumb} ex=${ex} size=${36} /><div class="grow" style="min-width:0"><div class="title">${ex.name}</div><div class="sub">${ex.muscle} · rest ${fmtDur(it.rest ?? ex.rest ?? rest)}</div></div></button>
-            <div class="hstack" style="gap:6px">
-              <${Mini} label="sets" value=${it.sets} onChange=${v => edit(x => { x.items[i].sets = Math.max(1, Math.min(20, v)); })} />
-              ${repsLabel ? html`<${Mini} label=${repsLabel} value=${it.reps} step=${ex.type === 'time' ? 15 : 1} onChange=${v => edit(x => { x.items[i].reps = Math.max(1, v); })} />` : null}
-              <button class="icon-btn" aria-label="More" onClick=${() => itemMenu(r, i, edit)}><${Icon} name="more" /></button>
+          const per = Array.isArray(it.setReps);
+          const setSets = v => edit(x => { const t = x.items[i]; t.sets = Math.max(1, Math.min(20, v)); if (Array.isArray(t.setReps)) { const last = t.setReps[t.setReps.length - 1] ?? t.reps; t.setReps = Array.from({ length: t.sets }, (_, k) => t.setReps[k] ?? last); } });
+          return html`<div class=${'card rt-item' + (gp ? ' ss' + (gp.first ? ' ss-first' : '') + (gp.last ? ' ss-last' : '') : '')}>
+            ${gp && gp.first ? html`<div class="ss-label" style="padding:0 0 8px"><${Icon} name="swap" size=${14} /> Superset · rest after the last</div>` : null}
+            <div class="rt-top">
+              <button class="ex-link" onClick=${() => nav.go('exercise', { id: it.exId })}><${ExThumb} ex=${ex} size=${40} />
+                <span class="rt-name"><span class="title">${ex.name}</span><span class="sub">${ex.muscle} · rest ${fmtDur(it.rest ?? ex.rest ?? rest)}</span></span></button>
+              <button class="icon-btn" aria-label=${'Options for ' + ex.name} onClick=${() => itemMenu(r, i, edit)}><${Icon} name="more" /></button>
             </div>
+            <div class="rt-steps">
+              <${Mini} label="Sets" value=${it.sets} onChange=${setSets} />
+              ${repsLabel && !per ? html`<${Mini} label=${repsLabel} value=${it.reps} step=${step} onChange=${v => edit(x => { x.items[i].reps = Math.max(1, v); })} />` : null}
+            </div>
+            ${repsLabel && per ? html`<div class="rt-per">${it.setReps.map((v, k) => html`<label class="rt-set"><span class="tiny muted">Set ${k + 1}</span>
+              <input class="cell" inputmode="numeric" aria-label=${`Set ${k + 1} ${repsLabel.toLowerCase()}`} value=${v ?? ''} onChange=${e => { const n = parseInt(e.target.value); edit(x => { x.items[i].setReps[k] = n > 0 ? n : x.items[i].reps; }); }} /></label>`)}</div>` : null}
+            ${repsLabel ? html`<button class="link-btn tiny rt-toggle" onClick=${() => edit(x => { const t = x.items[i]; if (Array.isArray(t.setReps)) { t.reps = t.setReps[0] ?? t.reps; delete t.setReps; } else t.setReps = Array.from({ length: t.sets }, () => t.reps); })}>${per ? `Same ${repsLabel.toLowerCase()} every set` : `Different ${repsLabel.toLowerCase()} per set`}</button>` : null}
           </div>`;
         })}
-        ${!r.items.length ? html`<div class="empty small">Add the exercises for this day.</div>` : null}
+        ${!r.items.length ? html`<div class="card empty small">Add the exercises for this day.</div>` : null}
       </div>
       <button class="btn block" onClick=${() => pickExercise(exId => { const ex = exm.get(exId); edit(x => { x.items.push({ exId, sets: ex && (ex.type === 'cardio') ? 1 : 3, reps: ex && ex.type === 'time' ? 45 : 10 }); }); })}><${Icon} name="plus" size=${18} /> Add exercise</button>
       <button class="btn ghost danger block" onClick=${() => confirmSheet({ title: 'Delete routine?', body: 'Your past workouts stay in your history.', onConfirm: () => { store.update(st => { st.routines = st.routines.filter(y => y.id !== r.id); }); nav.back(); toast('Routine deleted'); } })}>Delete routine</button>
@@ -149,10 +158,13 @@ export function RoutineEdit({ state, params }) {
 }
 
 function Mini({ label, value, onChange, step = 1 }) {
-  return html`<div class="hstack" style="gap:2px;background:var(--surface-2);border-radius:10px;padding:2px">
-    <button class="icon-btn" style="width:28px;height:30px" aria-label=${'Fewer ' + label} onClick=${() => onChange(value - step)}><${Icon} name="minus" size=${16} /></button>
-    <div style="text-align:center;min-width:38px;line-height:1.05"><div class="num" style="font-weight:600">${value}</div><div class="tiny muted" style="font-size:10px">${label}</div></div>
-    <button class="icon-btn" style="width:28px;height:30px" aria-label=${'More ' + label} onClick=${() => onChange(value + step)}><${Icon} name="plus" size=${16} /></button>
+  return html`<div class="mini">
+    <span class="tiny muted">${label}</span>
+    <div class="mini-in">
+      <button class="icon-btn" aria-label=${'Fewer ' + label.toLowerCase()} onClick=${() => onChange(value - step)}><${Icon} name="minus" size=${18} /></button>
+      <span class="num">${value}</span>
+      <button class="icon-btn" aria-label=${'More ' + label.toLowerCase()} onClick=${() => onChange(value + step)}><${Icon} name="plus" size=${18} /></button>
+    </div>
   </div>`;
 }
 

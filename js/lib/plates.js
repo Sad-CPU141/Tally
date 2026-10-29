@@ -48,7 +48,7 @@ export function plateCalc(prefillKg) {
       ${r ? r.under ? html`<div class="card small text-2">That's lighter than the bar (${barU} ${unit}).</div>` : html`
         <div class="card stack" style="align-items:center">
           <span class="eyebrow">Each side</span>
-          <svg viewBox="0 0 320 120" width="100%" style="max-width:360px" role="img" aria-label=${'Plates per side: ' + (r.side.join(', ') || 'none')}>
+          <svg viewBox="0 -18 320 142" width="100%" style="max-width:360px;overflow:visible" role="img" aria-label=${'Plates per side: ' + (r.side.join(', ') || 'none')}>
             <rect x="0" y="54" width="320" height="12" rx="4" fill="var(--surface-3)" />
             <rect x="150" y="44" width="10" height="32" rx="2" fill="var(--muted)" />
             ${(() => { let x = 162; return r.side.map(p => {

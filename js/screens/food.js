@@ -4,7 +4,7 @@ import { html, useState, useEffect, useRef } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
 import * as F from '../lib/food.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast, Seg, Switch } from '../lib/ui.js';
-import { todayKey, dayKey, fromKey, addDays, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
+import { bwUnit, todayKey, dayKey, fromKey, addDays, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
 import { isRecipe, addIngredient, addEntryAsIngredient, newRecipe } from '../lib/recipes.js';
 
@@ -473,7 +473,7 @@ const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function Targets({ state }) {
   const fs = state.food;
-  const unit = state.settings.unit;
+  const unit = bwUnit(state);
   const tr = weightTrend(state);
   const latestKg = tr.length ? tr[tr.length - 1].trend : null;
   const pr = fs.profile;

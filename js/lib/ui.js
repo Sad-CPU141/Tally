@@ -67,6 +67,7 @@ function emit() { listeners.forEach(l => l(stack[stack.length - 1], stack.length
 export const nav = {
   current: () => stack[stack.length - 1],
   depth: () => stack.length,
+  root: () => stack[0],
   tab(name) { stack = [{ name, params: {} }]; history.replaceState({ d: 0 }, ''); emit(); window.scrollTo(0, 0); },
   go(name, params = {}) {
     stack.push({ name, params });

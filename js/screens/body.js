@@ -7,7 +7,7 @@ import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, toast, confirmShee
 import { Sparkline, LineChart } from '../lib/charts.js';
 import { logBodyweight } from '../lib/actions.js';
 import { PhotoStrip } from './photos.js';
-import { w, fmtNum, signed, toUnit, todayKey, fmtRel, fmtDate, fromKey, DAY, round } from '../lib/util.js';
+import { bwUnit, w, fmtNum, signed, toUnit, todayKey, fmtRel, fmtDate, fromKey, DAY, round } from '../lib/util.js';
 
 // key, label, kind ('len' in cm, 'pct'), a hint shown when logging
 export const MEASURES = [
@@ -23,7 +23,7 @@ export const MEASURES = [
 ];
 const M = Object.fromEntries(MEASURES.map(m => [m[0], m]));
 
-export const lenUnit = state => state.settings.unit === 'lb' ? 'in' : 'cm';
+export const lenUnit = state => bwUnit(state) === 'lb' ? 'in' : 'cm';
 const toLen = (cm, u) => u === 'in' ? cm / 2.54 : cm;
 const fromLen = (v, u) => u === 'in' ? v * 2.54 : v;
 export function showVal(state, key, v) {
@@ -91,7 +91,7 @@ export function logMeasurements(prefillDate) {
 }
 
 export function Body({ state }) {
-  const unit = state.settings.unit;
+  const unit = bwUnit(state);
   const tr = A.weightTrend(state);
   const last = tr[tr.length - 1];
   const rate = A.weightRate(state);

@@ -6,7 +6,7 @@ import * as A from '../lib/analytics.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, toast, confirmSheet, Seg } from '../lib/ui.js';
 import { POSES, addPhoto, deletePhoto, PhotoImg, byDate } from '../lib/photos.js';
 import { series, showVal } from './body.js';
-import { w, todayKey, fromKey, fmtDateY, fmtRel, daysBetween } from '../lib/util.js';
+import { bwUnit, w, todayKey, fromKey, fmtDateY, fmtRel, daysBetween } from '../lib/util.js';
 
 const POSE = Object.fromEntries(POSES);
 
@@ -71,7 +71,7 @@ export function PhotoStrip({ state }) {
 function statsOn(state, key) {
   const t = A.weightTrend(state).filter(p => p.key <= key).pop();
   const wst = series(state, 'waist').filter(p => p.date <= key).pop();
-  const u = state.settings.unit;
+  const u = bwUnit(state);
   return [t ? `${w(t.trend, u)} ${u}` : null, wst ? `waist ${showVal(state, 'waist', wst.value)}` : null].filter(Boolean).join(' · ') || ' ';
 }
 

@@ -3,11 +3,11 @@
 import { html, useState } from '../vendor/preact-htm.js';
 import * as store from './store.js';
 import { openSheet, closeSheet, SheetHead, toast } from './ui.js';
-import { todayKey, toUnit, fromUnit, round, fmtNum } from './util.js';
+import { bwUnit, todayKey, toUnit, fromUnit, round, fmtNum } from './util.js';
 
 export function logBodyweight(prefillKey) {
   const s = store.get();
-  const unit = s.settings.unit;
+  const unit = bwUnit(s);
   const sorted = s.bodyweight.slice().sort((a, b) => a.date < b.date ? -1 : 1);
   const last = sorted[sorted.length - 1];
   function Body() {

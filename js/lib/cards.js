@@ -8,7 +8,7 @@ import { Icon, Tally, nav, Seg } from './ui.js';
 import { logBodyweight } from './actions.js';
 import * as F from './food.js';
 import { MEASURES, series, showVal, logMeasurements, lenUnit } from '../screens/body.js';
-import { w, toUnit, fmtNum, fmtBig, signed, fmtDate, fmtRel, fmtMins, fmtDur, toDist, startOfWeek, addDays, dayKey, DAY } from './util.js';
+import { bwUnit, w, toUnit, fmtNum, fmtBig, signed, fmtDate, fmtRel, fmtMins, fmtDur, toDist, startOfWeek, addDays, dayKey, DAY } from './util.js';
 
 const unitOf = s => s.settings.unit;
 const exName = (s, id) => (A.exMap(s).get(id) || { name: 'Exercise' }).name;
@@ -66,7 +66,7 @@ const bodyweight = {
   type: 'bodyweight', title: 'Bodyweight', cat: 'Body',
   blurb: 'Smoothed trend weight and your weekly rate of change.',
   compact({ state }) {
-    const unit = unitOf(state);
+    const unit = bwUnit(state);
     const tr = A.weightTrend(state);
     if (!tr.length) return html`
       <${Head} title="Bodyweight" />
@@ -82,7 +82,7 @@ const bodyweight = {
       <div class="tile-foot" style="display:block"><${Sparkline} values=${tr.slice(-30).map(p => p.trend)} /></div>`;
   },
   detail({ state }) {
-    const unit = unitOf(state);
+    const unit = bwUnit(state);
     const [range, setRange] = useState('12w');
     const [all, setAll] = useState(false);
     const tr = A.weightTrend(state);
@@ -496,7 +496,7 @@ const protein = {
         <span class="tiny muted">Highlighted bars hit the target (within 5%).</span></div>
       <div class="summary-grid">
         <div class="stat"><span class="eyebrow">Average</span><span class="mid">${Math.round(avgP)} g</span></div>
-        <div class="stat"><span class="eyebrow">Per ${state.settings.unit}</span><span class="mid">${unitKg ? fmtNum(avgP / toUnit(unitKg.trend, state.settings.unit), 2) : '–'}</span></div>
+        <div class="stat"><span class="eyebrow">Per ${bwUnit(state)}</span><span class="mid">${unitKg ? fmtNum(avgP / toUnit(unitKg.trend, bwUnit(state)), 2) : '–'}</span></div>
         <div class="stat"><span class="eyebrow">Days hit</span><span class="mid">${logged.filter(d => d.totals.p >= d.target.p * 0.95).length}/${logged.length}</span></div>
       </div>
       <div class="card small text-2">A common evidence-based range when cutting is 1.6–2.2 g of protein per kg of bodyweight (about 0.7–1 g per lb).</div>`;
@@ -600,7 +600,7 @@ const tdee = {
   },
   detail({ state }) {
     const r = F.adaptiveTDEE(state);
-    const unit = state.settings.unit;
+    const unit = bwUnit(state);
     const tg = state.food;
     if (!r.ready) return html`<div class="card small text-2">Log your food and weigh in most days. After about two weeks (${r.logged} of ${r.need} food days so far) Tally can estimate your real daily burn, which is usually more accurate than any formula.</div>`;
     const avgTarget = tg.split ? (tg.train.kcal * tg.trainDays.length + tg.rest.kcal * (7 - tg.trainDays.length)) / 7 : tg.train.kcal;

@@ -47,7 +47,7 @@ function begin(routine) {
         // Keep the warm-up sets you did last time.
         const last = A.lastSets(s, it.exId) || [];
         const warm = last.filter(x => x.t === 'w').map(() => ({ ...newSet(null), t: 'w' }));
-        return { id: uid(), exId: it.exId, note: '', rest: it.rest ?? null, group: it.group || null, sets: [...warm, ...Array.from({ length: it.sets || 3 }, () => newSet(it.reps))] };
+        return { id: uid(), exId: it.exId, note: '', rest: it.rest ?? null, group: it.group || null, sets: [...warm, ...Array.from({ length: it.sets || 3 }, (_, k) => newSet(Array.isArray(it.setReps) ? it.setReps[k] ?? it.reps : it.reps))] };
       }) : [],
       rest: null,
     };
@@ -233,8 +233,10 @@ function Entry({ en, idx, state }) {
   }[ex.type] || [unit, 'Reps'];
 
   // Coach: what to aim for today. Working-set placeholders follow it, so ticking an empty set accepts it.
-  const target = (en.sets.find(x => x.t === 'n') || {}).target || null;
-  const sug = settings.suggest !== false && !en.hideSug ? suggestion(state, ex, target, state.active.start) : null;
+  // With different reps per set (e.g. 10/8/6), the heaviest set is the one with the fewest reps.
+  const targets = en.sets.filter(x => x.t === 'n' && x.target).map(x => x.target);
+  const target = targets.length ? Math.min(...targets) : null;
+  const sug = settings.coach && !en.hideSug ? suggestion(state, ex, target, state.active.start) : null;
   const [why, setWhy] = useState(false);
 
   let workingN = 0;
@@ -257,8 +259,8 @@ function Entry({ en, idx, state }) {
       return [a, String(sug.reps)];
     }
     switch (ex.type) {
-      case 'weight': return [p && p.kg != null ? fmtNum(toUnit(p.kg, unit), 1) : '', s.target ? String(s.target) : p ? String(p.reps) : ''];
-      case 'bw': return [p && p.kg ? fmtNum(toUnit(p.kg, unit), 1) : '0', s.target ? String(s.target) : p ? String(p.reps) : ''];
+      case 'weight': return [p && p.kg != null ? fmtNum(toUnit(p.kg, unit), 1) : '', p && p.reps != null ? String(p.reps) : s.target ? String(s.target) : ''];
+      case 'bw': return [p && p.kg ? fmtNum(toUnit(p.kg, unit), 1) : '0', p && p.reps != null ? String(p.reps) : s.target ? String(s.target) : ''];
       case 'time': return [p ? fmtDur(p.sec) : s.target ? fmtDur(s.target) : '0:45', ''];
       case 'cardio': return [p ? fmtNum(toDist(p.km, du), 2) : '', p ? fmtDur(p.sec) : ''];
       case 'sprint': return [p ? String(Math.round(p.km * 1000)) : '100', p ? fmtNum(p.sec, 2) : ''];

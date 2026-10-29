@@ -52,11 +52,14 @@ function App() {
     <${ToastHost} />`;
 }
 
-// Tap Tally (top left) to flip between Gym and Food. Each mode opens on its first tab.
+// Tap Tally (top left) to flip between Gym and Food, landing on the matching page:
+// Today ↔ Diary, Train ↔ Targets, Stats ↔ Insights. Body and Me are shared, so you stay put.
+const TWIN = { today: 'food', food: 'today', train: 'targets', targets: 'train', stats: 'insights', insights: 'stats' };
 onModeSwitch(() => {
   const next = store.get().settings.mode === 'food' ? 'gym' : 'food';
+  const root = nav.root().name;
   store.update(st => { st.settings.mode = next; });
-  nav.tab(MODES[next][0][0]);
+  if (root !== 'body' && root !== 'me') nav.tab(TWIN[root] || MODES[next][0][0]);
   try { navigator.vibrate && navigator.vibrate(10); } catch (e) {}
   toast(next === 'food' ? 'Food mode' : 'Gym mode', 1200);
 });
