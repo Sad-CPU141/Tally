@@ -96,7 +96,7 @@ function usePointer(onIndex) {
 
 // points: [{ x: timestamp, y }], raw: optional faint points, goal: optional y value.
 // fmtV formats a value in the tooltip (defaults to fmtY), unit is appended.
-export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(v), fmtV, unit = '', area = true }) {
+export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(v), fmtV, unit = '', area = true, label = '', rawLabel = 'Scale' }) {
   const [ref, wd] = useWidth(320);
   const left = 40, right = 12, top = 12, bottom = 24;
   const ok = points && points.length >= 2;
@@ -134,7 +134,7 @@ export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(
         : html`<circle class="dot" cx=${last[0]} cy=${last[1]} r="4.5" />`}
       <rect x="0" y="0" width=${wd} height=${height} fill="transparent" style="touch-action:pan-y" />
     </svg>
-    ${a ? html`<${Tip} x=${pts[active][0]} wd=${wd} lines=${[fmtDate(a.x) + ' ' + yr2(a.x), `${fv(a.y)}${unit ? ' ' + unit : ''}`, ...(rawSame && Math.abs(rawSame.y - a.y) > 1e-9 ? [`weighed ${fv(rawSame.y)}${unit ? ' ' + unit : ''}`] : [])]} />` : null}
+    ${a ? html`<${Tip} x=${pts[active][0]} wd=${wd} lines=${[fmtDate(a.x) + ' ' + yr2(a.x), `${label ? label + ' ' : ''}${fv(a.y)}${unit ? ' ' + unit : ''}`, ...(rawSame && Math.abs(rawSame.y - a.y) > 1e-9 ? [`${rawLabel} ${fv(rawSame.y)}${unit ? ' ' + unit : ''}`] : [])]} />` : null}
   </div>`;
 }
 

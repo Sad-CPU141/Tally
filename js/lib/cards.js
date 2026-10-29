@@ -98,7 +98,7 @@ const bodyweight = {
           <span class="eyebrow">Trend</span>
           <${RangePick} value=${range} onChange=${setRange} />
         </div>
-        <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit}
+        <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit} label="Trend" rawLabel="Scale"
           points=${pts.map(p => ({ x: p.date, y: toUnit(p.trend, unit) }))}
           raw=${pts.map(p => ({ x: p.date, y: toUnit(p.raw, unit) }))} />
         <span class="tiny muted">Dots are your weigh-ins. The line is the smoothed trend, which is what to judge progress by.</span>
