@@ -299,3 +299,45 @@ export function trainedToday(state) {
 }
 
 export { startOfDay };
+
+// All-time records for one exercise, plus rep maxes (best weight for at least N reps).
+export const REP_MAX = [1, 3, 5, 8, 10, 12];
+export function exerciseRecords(state, exId) {
+  return memo(state, 'rec:' + exId, () => {
+    const ex = exMap(state).get(exId);
+    const r = { heaviest: null, e1rm: null, bestSet: null, bestSession: null, mostReps: null, hold: null, longest: null, longestTime: null, pace: null, sprints: {}, repMax: {} };
+    const better = (cur, val) => !cur || val > cur.value;
+    for (const w of finished(state)) {
+      let sessionVol = 0;
+      for (const en of w.entries) {
+        if (en.exId !== exId) continue;
+        for (const s of en.sets) {
+          if (!isWorking(s)) continue;
+          const at = { date: w.start, workoutId: w.id };
+          const kg = s.kg || 0, reps = s.reps || 0;
+          sessionVol += setVolume(s, ex);
+          if (ex && (ex.type === 'weight' || ex.type === 'bw')) {
+            if (kg && (!r.heaviest || kg > r.heaviest.value || (kg === r.heaviest.value && reps > r.heaviest.reps))) r.heaviest = { value: kg, reps, ...at };
+            const est = e1rm(kg, reps);
+            if (est && better(r.e1rm, est)) r.e1rm = { value: est, kg, reps, ...at };
+            if (kg * reps && better(r.bestSet, kg * reps)) r.bestSet = { value: kg * reps, kg, reps, ...at };
+            if (reps && (!r.mostReps || reps > r.mostReps.value || (reps === r.mostReps.value && kg > r.mostReps.kg))) r.mostReps = { value: reps, kg, ...at };
+            if (kg) for (const n of REP_MAX) if (reps >= n && (!r.repMax[n] || kg > r.repMax[n].value)) r.repMax[n] = { value: kg, reps, ...at };
+          }
+          if (ex && ex.type === 'time' && s.sec && better(r.hold, s.sec)) r.hold = { value: s.sec, ...at };
+          if (ex && ex.type === 'cardio') {
+            if (s.km && better(r.longest, s.km)) r.longest = { value: s.km, sec: s.sec, ...at };
+            if (s.sec && better(r.longestTime, s.sec)) r.longestTime = { value: s.sec, km: s.km, ...at };
+            if (s.km && s.sec) { const pace = s.sec / s.km; if (!r.pace || pace < r.pace.value) r.pace = { value: pace, ...at }; }
+          }
+          if (ex && ex.type === 'sprint' && s.sec) {
+            const m = Math.round((s.km || 0) * 1000);
+            if (!r.sprints[m] || s.sec < r.sprints[m].value) r.sprints[m] = { value: s.sec, ...at };
+          }
+        }
+      }
+      if (sessionVol && better(r.bestSession, sessionVol)) r.bestSession = { value: sessionVol, date: w.start, workoutId: w.id };
+    }
+    return r;
+  });
+}

@@ -2,11 +2,9 @@
 
 import { html, useState } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
-import { TEMPLATES } from '../lib/exercises.js';
 import { Icon, TopBar, Seg, Switch, confirmSheet, toast, nav } from '../lib/ui.js';
 import { fmtDur, download, todayKey } from '../lib/util.js';
 import { logBodyweight } from '../lib/actions.js';
-import { addTemplate } from './train.js';
 import { makeSample } from '../lib/sample.js';
 
 const ACCENTS = [['ice', 'Ice', '#6cb8ff'], ['iris', 'Iris', '#a597ff'], ['ember', 'Ember', '#ffad5c'], ['mint', 'Mint', '#5fd4a8'], ['rose', 'Rose', '#ff86ad']];
@@ -134,9 +132,7 @@ export function Onboarding() {
   const cur = store.get().settings;
   const [name, setName] = useState(cur.name);
   const [unit, setUnit] = useState(cur.unit);
-  const [tpls, setTpls] = useState(['ppl', 'cond']);
   const [mode, setMode] = useState('fresh');
-  const toggle = id => setTpls(t => t.includes(id) ? t.filter(x => x !== id) : [...t, id]);
   const go = () => {
     if (mode === 'sample') {
       const st = makeSample({ ...cur, name: name.trim(), unit, onboarded: true });
@@ -145,9 +141,8 @@ export function Onboarding() {
       store.update(st => {
         st.settings.name = name.trim(); st.settings.unit = unit; st.settings.onboarded = true;
       });
-      TEMPLATES.filter(t => tpls.includes(t.id)).forEach(addTemplate);
     }
-    nav.tab('today');
+    nav.tab(mode === 'sample' ? 'today' : 'train');
   };
   return html`<div class="onb">
     <div class="logo"><${Mark} /><span class="logo-word">Tally</span></div>
@@ -156,13 +151,9 @@ export function Onboarding() {
     <div class="field"><label>Weight unit</label><${Seg} label="Weight unit" value=${unit} onChange=${setUnit} options=${[['lb', 'Pounds (lb)'], ['kg', 'Kilograms (kg)']]} /></div>
     <div class="field"><label>How do you want to start?</label>
       <div class="stack" style="gap:8px">
-        <button class="opt" aria-pressed=${mode === 'fresh'} onClick=${() => setMode('fresh')}><div class="grow"><div class="h-md">Start fresh</div><div class="small muted">Pick starter routines, edit them any time.</div></div></button>
+        <button class="opt" aria-pressed=${mode === 'fresh'} onClick=${() => setMode('fresh')}><div class="grow"><div class="h-md">Start fresh</div><div class="small muted">Build your own routines, one for each day of your split.</div></div></button>
         <button class="opt" aria-pressed=${mode === 'sample'} onClick=${() => setMode('sample')}><div class="grow"><div class="h-md">Explore with sample data</div><div class="small muted">8 weeks of example training so you can see every chart. Clear it later in Me.</div></div></button>
       </div></div>
-    ${mode === 'fresh' ? html`<div class="field"><label>Starter routines</label>
-      <div class="stack" style="gap:8px">${TEMPLATES.map(t => html`<button class="opt" aria-pressed=${tpls.includes(t.id)} onClick=${() => toggle(t.id)}>
-        <div class="grow"><div class="h-md">${t.name}</div><div class="small muted">${t.blurb}</div></div>
-        <span style=${`color:${tpls.includes(t.id) ? 'var(--accent)' : 'var(--line)'}`}><${Icon} name="check" sw=${2.6} /></span></button>`)}</div></div>` : null}
     <button class="btn primary block" style="height:52px" onClick=${go}>Get started</button>
   </div>`;
 }

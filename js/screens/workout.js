@@ -5,6 +5,7 @@ import * as store from '../lib/store.js';
 import * as A from '../lib/analytics.js';
 import { Icon, nav, openSheet, closeSheet, SheetHead, confirmSheet, toast, TopBar } from '../lib/ui.js';
 import { w, toUnit, fromUnit, fmtNum, fmtDur, parseDur, toDist, fromDist, fmtBig, fmtMins, round } from '../lib/util.js';
+import { MuscleFig } from '../lib/figure.js';
 import { pickExercise } from './picker.js';
 import { prValue } from '../lib/cards.js';
 
@@ -12,9 +13,27 @@ const uid = store.uid;
 const newSet = (target) => ({ t: 'n', kg: null, reps: null, sec: null, km: null, done: false, target: target || null });
 
 // ---------- starting / finishing ----------
+// Starting while another workout is open asks what to do with the open one.
 export function startWorkout(routine) {
   const s = store.get();
-  if (s.active) { nav.go('workout'); return; }
+  const a = s.active;
+  if (a) {
+    if (routine && a.routineId === routine.id) { nav.go('workout'); return; }
+    const done = a.entries.reduce((n, e) => n + e.sets.filter(x => x.done).length, 0);
+    const next = routine ? routine.name : 'an empty workout';
+    openSheet(() => html`
+      <${SheetHead} title=${`Start ${next}?`} />
+      <p class="text-2" style="margin:0">${a.name} is still open${done ? ` with ${done} ${done === 1 ? 'set' : 'sets'} logged` : ', with nothing logged yet'}. What should happen to it?</p>
+      ${done ? html`<button class="btn primary block" onClick=${() => { closeSheet(); saveActive(); begin(routine); toast(`${a.name} saved`); }}>Save ${a.name} and start</button>` : null}
+      <button class=${'btn block' + (done ? ' danger' : ' primary')} onClick=${() => { closeSheet(); store.update(st => { st.active = null; }); begin(routine); if (done) toast(`${a.name} discarded`); }}>${done ? `Discard ${a.name} and start` : 'Start'}</button>
+      <button class="btn block" onClick=${() => { closeSheet(); nav.go('workout'); }}>Go back to ${a.name}</button>`);
+    return;
+  }
+  begin(routine);
+}
+
+function begin(routine) {
+  const s = store.get();
   store.update(st => {
     st.active = {
       id: uid(),
@@ -31,19 +50,27 @@ export function startWorkout(routine) {
       rest: null,
     };
   });
-  nav.go('workout');
+  if (nav.current().name === 'workout') nav.replace('workout'); else nav.go('workout');
+}
+
+// Save the open workout's ticked sets to history. Returns the saved workout, or null if nothing was ticked.
+function saveActive() {
+  const a = store.get().active;
+  if (!a) return null;
+  const entries = a.entries.map(e => ({ exId: e.exId, note: e.note, sets: e.sets.filter(x => x.done).map(clean) })).filter(e => e.sets.length);
+  if (!entries.length) return null;
+  const wo = { id: a.id, routineId: a.routineId, name: a.name, start: a.start, end: Date.now(), notes: a.notes, entries };
+  store.update(st => { st.workouts.push(wo); st.active = null; });
+  return wo;
 }
 
 function finishWorkout() {
-  const s = store.get();
-  const a = s.active;
-  const entries = a.entries.map(e => ({ exId: e.exId, note: e.note, sets: e.sets.filter(x => x.done).map(clean) })).filter(e => e.sets.length);
-  if (!entries.length) {
+  const a = store.get().active;
+  const wo = saveActive();
+  if (!wo) {
     confirmSheet({ title: 'Nothing logged yet', body: 'Tick off at least one set to save this workout, or discard it.', confirm: 'Discard workout', onConfirm: discard });
     return;
   }
-  const wo = { id: a.id, routineId: a.routineId, name: a.name, start: a.start, end: Date.now(), notes: a.notes, entries };
-  store.update(st => { st.workouts.push(wo); st.active = null; });
   releaseWake();
   nav.replace('summary', { id: wo.id });
 }
@@ -219,7 +246,7 @@ function Entry({ en, idx, state }) {
 
   return html`<div class="card ex-card">
     <div class="ex-top">
-      <button class="ex-name" onClick=${() => nav.go('exercise', { id: en.exId })}>${ex.name}</button>
+      <button class="ex-link" onClick=${() => nav.go('exercise', { id: en.exId, entry: en.id })}><${MuscleFig} ex=${ex} size=${36} /><span class="ex-name">${ex.name}</span></button>
       <span class="pill">${restSec ? fmtDur(restSec) + ' rest' : 'no timer'}</span>
       <button class="icon-btn" aria-label="Exercise options" onClick=${() => entryMenu(en, idx, ex, restSec)}><${Icon} name="more" /></button>
     </div>
@@ -358,6 +385,7 @@ export function WorkoutSets({ wo, state }) {
     const ex = exm.get(en.exId) || { name: 'Exercise', type: 'weight' };
     const exPr = prs.filter(p => p.exId === en.exId);
     return html`<button class="row" style="align-items:flex-start" onClick=${() => nav.go('exercise', { id: en.exId })}>
+      <${MuscleFig} ex=${ex} size=${36} />
       <div class="grow">
         <div class="title">${ex.name}${exPr.length ? html`<span class="pill accent pr-flag">PR</span>` : null}</div>
         <div class="sub" style="white-space:normal">${en.sets.map(s => (s.t !== 'n' ? s.t.toUpperCase() + ' ' : '') + prevText(s, ex, state.settings)).join('  ·  ')}</div>

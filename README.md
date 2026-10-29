@@ -19,7 +19,9 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 ## Phases
 
 1. **Core gym** ✓
-   - Routines, templates (PPL, Upper/Lower, Full Body, Conditioning), custom exercises
+   - Your own routines (no templates), 58 built-in exercises plus custom ones
+   - Starting a workout while one is open asks to save it, discard it, or go back
+   - A muscle picture beside every exercise; tap the name for its page: overview (this workout, records, rep maxes, e1RM chart), how-to guide, and full history
    - Workout logging: previous numbers per set (matched by set type), tick an empty set to accept the suggested numbers, warm-ups carried over
    - Set types (warm-up, working, drop, failure), per-exercise notes and rest times
    - Rest timer that starts on its own, with ±15s and a sound/vibration at the end

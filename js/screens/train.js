@@ -1,20 +1,18 @@
-// Train tab: routines, templates, history, exercise pages.
+// Train tab: routines, history, exercise pages.
 
 import { html, useState } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
 import * as A from '../lib/analytics.js';
-import { TEMPLATES, MUSCLES } from '../lib/exercises.js';
+import { MUSCLES } from '../lib/exercises.js';
+import { howtoFor } from '../lib/howto.js';
+import { MuscleMap } from '../lib/figure.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast } from '../lib/ui.js';
-import { fmtRel, fmtDate, fmtDateY, fmtMins, fmtBig, toUnit, fmtTime, fmtDur } from '../lib/util.js';
-import { startWorkout, WorkoutSets } from './workout.js';
+import { fmtRel, fmtDate, fmtDateY, fmtMins, fmtBig, toUnit, fmtTime, fmtDur, fmtNum, w, toDist } from '../lib/util.js';
+import { MuscleFig } from '../lib/figure.js';
+import { startWorkout, WorkoutSets, prevText } from './workout.js';
 import { pickExercise, editExercise, TYPE_LABEL } from './picker.js';
+import { Seg } from '../lib/ui.js';
 import { LiftDetail } from '../lib/cards.js';
-
-export function addTemplate(t) {
-  store.update(st => {
-    for (const d of t.days) st.routines.push({ id: store.uid(), name: d.name, items: d.items.map(i => ({ ...i })) });
-  });
-}
 
 export function Train({ state }) {
   const exm = A.exMap(state);
@@ -29,8 +27,8 @@ export function Train({ state }) {
         <div class="grow"><div class="h-md">Resume ${state.active.name}</div><div class="small muted">Started ${fmtTime(state.active.start)}</div></div>
         <span class="chev"><${Icon} name="chev" /></span></button>` : null}
       <div class="grid2">
-        <button class="btn primary" onClick=${() => startWorkout(next)} disabled=${!next || !!state.active}><${Icon} name="play" size=${18} /> ${next ? next.name : 'No routine'}</button>
-        <button class="btn" onClick=${() => startWorkout(null)} disabled=${!!state.active}>Empty workout</button>
+        <button class="btn primary" onClick=${() => startWorkout(next)} disabled=${!next}><${Icon} name="play" size=${18} /> ${next ? next.name : 'No routine'}</button>
+        <button class="btn" onClick=${() => startWorkout(null)}>Empty workout</button>
       </div>
 
       <div class="section-head"><span class="h-md">Routines</span><button class="link-btn" onClick=${() => newRoutine()}>New routine</button></div>
@@ -39,14 +37,10 @@ export function Train({ state }) {
             <div class="title">${r.name}${next && next.id === r.id ? html` <span class="pill accent">Up next</span>` : null}</div>
             <div class="sub">${r.items.map(it => (exm.get(it.exId) || {}).name).filter(Boolean).join(', ') || 'No exercises yet'}</div>
           </button>
-          <button class="icon-btn" aria-label=${'Start ' + r.name} disabled=${!!state.active} onClick=${() => startWorkout(r)} style="color:var(--accent)"><${Icon} name="play" /></button>
+          <button class="icon-btn" aria-label=${'Start ' + r.name} disabled=${!r.items.length} onClick=${() => startWorkout(r)} style="color:var(--accent)"><${Icon} name="play" /></button>
         </div>`)}</div>`
-        : html`<div class="card empty"><span class="h-md">No routines yet</span><span class="small">Start from a template below, or build your own.</span></div>`}
-
-      <div class="section-head"><span class="h-md">Templates</span></div>
-      <div class="list">${TEMPLATES.map(t => html`<button class="row" onClick=${() => confirmSheet({ title: `Add ${t.name}?`, body: `Adds ${t.days.length} routines: ${t.days.map(d => d.name).join(', ')}. You can edit or delete any of them.`, confirm: 'Add routines', danger: false, onConfirm: () => { addTemplate(t); toast(`Added ${t.days.length} routines`); } })}>
-        <div class="grow"><div class="title">${t.name}</div><div class="sub">${t.blurb}</div></div><span class="chev"><${Icon} name="plus" size=${18} /></span>
-      </button>`)}</div>
+        : html`<div class="card empty"><span class="h-md">No routines yet</span><span class="small">A routine is one workout day, like "Push" or "Legs". Make one for each day of your split.</span><button class="btn primary" onClick=${() => newRoutine()}><${Icon} name="plus" size=${18} /> Create your first routine</button></div>`}
+      ${state.routines.length ? html`<p class="tiny muted" style="margin:0">Tap a routine to edit it, or ▶ to start. "Up next" goes through your routines in order.</p>` : null}
 
       <div class="section-head"><span class="h-md">History</span><span class="small muted">${hist.length} workouts</span></div>
       ${hist.length ? html`<div class="list">${hist.slice(0, 40).map(wo => {
@@ -58,7 +52,7 @@ export function Train({ state }) {
     </div>`;
 }
 
-function newRoutine() {
+export function newRoutine() {
   const id = store.uid();
   store.update(st => { st.routines.push({ id, name: 'New routine', items: [] }); });
   nav.go('routine', { id, isNew: true });
@@ -71,7 +65,7 @@ export function RoutineEdit({ state, params }) {
   const edit = fn => store.update(st => { const x = st.routines.find(y => y.id === r.id); x && fn(x, st); });
   const rest = state.settings.restDefault;
   return html`
-    <${TopBar} title=${r.name || 'Routine'} back=${true} right=${html`<button class="btn sm primary" disabled=${!r.items.length || !!state.active} onClick=${() => startWorkout(r)}>Start</button>`} />
+    <${TopBar} title=${r.name || 'Routine'} back=${true} right=${html`<button class="btn sm primary" disabled=${!r.items.length} onClick=${() => startWorkout(r)}>Start</button>`} />
     <div class="page">
       <div class="field"><label for="rt-name">Routine name</label>
         <input id="rt-name" class="input" value=${r.name} onInput=${e => edit(x => { x.name = e.target.value; })} /></div>
@@ -80,7 +74,7 @@ export function RoutineEdit({ state, params }) {
           const ex = exm.get(it.exId) || { name: 'Unknown', type: 'weight' };
           const repsLabel = ex.type === 'time' ? 'sec' : ex.type === 'cardio' ? '' : ex.type === 'sprint' ? '' : 'reps';
           return html`<div class="row" style="flex-wrap:wrap;row-gap:8px">
-            <div class="grow" style="min-width:140px"><div class="title">${ex.name}</div><div class="sub">${ex.muscle} · rest ${fmtDur(it.rest ?? ex.rest ?? rest)}</div></div>
+            <button class="ex-link" style="min-width:150px" onClick=${() => nav.go('exercise', { id: it.exId })}><${MuscleFig} ex=${ex} size=${36} /><div class="grow" style="min-width:0"><div class="title">${ex.name}</div><div class="sub">${ex.muscle} · rest ${fmtDur(it.rest ?? ex.rest ?? rest)}</div></div></button>
             <div class="hstack" style="gap:6px">
               <${Mini} label="sets" value=${it.sets} onChange=${v => edit(x => { x.items[i].sets = Math.max(1, Math.min(20, v)); })} />
               ${repsLabel ? html`<${Mini} label=${repsLabel} value=${it.reps} step=${ex.type === 'time' ? 15 : 1} onChange=${v => edit(x => { x.items[i].reps = Math.max(1, v); })} />` : null}
@@ -139,18 +133,104 @@ export function WorkoutView({ state, params }) {
 
 export function ExerciseScreen({ state, params }) {
   const ex = A.exMap(state).get(params.id);
+  const [tab, setTab] = useState('overview');
   if (!ex) return html`<${TopBar} title="Exercise" back=${true} /><div class="page"><div class="card empty">Exercise not found.</div></div>`;
   const h = A.exerciseHistory(state, ex.id);
   return html`
     <${TopBar} title=${ex.name} back=${true} right=${html`<button class="btn sm" onClick=${() => editExercise(ex)}>Edit</button>`} />
     <div class="page">
-      <div class="hstack wrap" style="gap:6px"><span class="pill">${ex.muscle}</span><span class="pill">${ex.equip}</span><span class="pill">${TYPE_LABEL[ex.type]}</span>${ex.custom ? html`<span class="pill accent">Custom</span>` : null}</div>
-      ${ex.type === 'weight' ? html`<${LiftDetail} state=${state} exId=${ex.id} />` : html`
-        <div class="list">${h.slice().reverse().map(p => html`<button class="row" onClick=${() => nav.go('workoutView', { id: p.workoutId })}>
-          <div class="grow"><div class="title">${fmtRel(p.date)}</div><div class="sub">${p.sets} sets${p.maxReps ? ` · best ${p.maxReps} reps` : ''}${p.sprint ? ` · fastest ${p.sprint}s` : ''}${p.km ? ` · ${p.km.toFixed(2)} km` : ''}</div></div>
-          <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`)}
-          ${!h.length ? html`<div class="empty small">Not logged yet.</div>` : null}</div>`}
+      <div class="hstack wrap" style="gap:6px"><span class="pill accent">${ex.muscle}</span>${(ex.secondary || []).map(m => html`<span class="pill">${m}</span>`)}<span class="pill">${ex.equip}</span>${ex.custom ? html`<span class="pill">Custom</span>` : null}</div>
+      <${Seg} label="Exercise sections" value=${tab} onChange=${setTab} options=${[['overview', 'Overview'], ['howto', 'How to'], ['history', `History (${h.length})`]]} />
+      ${tab === 'overview' ? html`<${ExOverview} state=${state} ex=${ex} params=${params} />`
+        : tab === 'howto' ? html`<${ExHowTo} state=${state} ex=${ex} />`
+        : html`<${ExHistory} state=${state} ex=${ex} />`}
     </div>`;
+}
+
+function ExOverview({ state, ex, params }) {
+  const unit = state.settings.unit, du = state.settings.distUnit;
+  const a = state.active;
+  const live = a && (a.entries.find(e => e.id === params.entry) || a.entries.find(e => e.exId === ex.id));
+  const r = A.exerciseRecords(state, ex.id);
+  const h = A.exerciseHistory(state, ex.id);
+  const last = h[h.length - 1];
+  const Rec = ({ label, value, sub, at }) => html`<button class="stat" style="border:0;text-align:left;color:inherit" disabled=${!at} onClick=${() => at && nav.go('workoutView', { id: at.workoutId })}>
+    <span class="eyebrow">${label}</span><span class="mid">${value}</span><span class="tiny muted">${sub || (at ? fmtDate(at.date) : '')}</span></button>`;
+  const isW = ex.type === 'weight' || ex.type === 'bw';
+  return html`
+    ${live ? html`<div class="card stack" style="border-color:color-mix(in srgb,var(--accent) 40%,var(--line))">
+      <div class="hstack" style="justify-content:space-between"><span class="eyebrow">This workout · ${a.name}</span><span class="pill accent">Live</span></div>
+      ${live.sets.filter(s => s.done).length ? html`<div class="kv small">${(() => { let n = 0; return live.sets.map(s => { if (s.t === 'n') n++; return s.done ? html`<span class="text-2">${s.t === 'n' ? 'Set ' + n : { w: 'Warm-up', d: 'Drop set', f: 'To failure' }[s.t]}</span><span class="num">${prevText(s, ex, state.settings)}</span>` : null; }); })()}</div>`
+        : html`<span class="small text-2">No sets ticked yet.${last ? ` Last time: ${(A.lastSets(state, ex.id) || []).filter(s => s.t !== 'w').map(s => prevText(s, ex, state.settings)).join(', ')}` : ''}</span>`}
+      <button class="btn sm" onClick=${() => nav.back()}>Back to workout</button>
+    </div>` : null}
+
+    ${!h.length ? html`<div class="card empty"><span class="h-md">No history yet</span><span class="small">Records and charts appear after your first session with this exercise. Check How to for form tips.</span></div>` : html`
+      <div class="section-head" style="margin-top:0"><span class="h-md">Personal records</span><${Icon} name="trophy" size=${18} /></div>
+      ${isW ? html`<div class="rec">
+          ${ex.type === 'weight' ? html`<${Rec} label="Best est. 1RM" value=${r.e1rm ? `${w(r.e1rm.value, unit, 0)} ${unit}` : '–'} sub=${r.e1rm ? `${w(r.e1rm.kg, unit)} × ${r.e1rm.reps} · ${fmtDate(r.e1rm.date)}` : ''} at=${r.e1rm} />` : null}
+          <${Rec} label=${ex.type === 'bw' ? 'Most added weight' : 'Heaviest'} value=${r.heaviest ? `${w(r.heaviest.value, unit)} ${unit}` : '–'} sub=${r.heaviest ? `× ${r.heaviest.reps} · ${fmtDate(r.heaviest.date)}` : ''} at=${r.heaviest} />
+          <${Rec} label="Most reps" value=${r.mostReps ? `${r.mostReps.value}` : '–'} sub=${r.mostReps ? `${r.mostReps.kg ? '@ ' + w(r.mostReps.kg, unit) + ' ' + unit + ' · ' : ''}${fmtDate(r.mostReps.date)}` : ''} at=${r.mostReps} />
+          ${ex.type === 'weight' ? html`<${Rec} label="Best set" value=${r.bestSet ? `${fmtBig(toUnit(r.bestSet.value, unit))} ${unit}` : '–'} sub=${r.bestSet ? `${w(r.bestSet.kg, unit)} × ${r.bestSet.reps}` : ''} at=${r.bestSet} />` : null}
+          ${ex.type === 'weight' ? html`<${Rec} label="Best session" value=${r.bestSession ? `${fmtBig(toUnit(r.bestSession.value, unit))} ${unit}` : '–'} sub="total volume" at=${r.bestSession} />` : null}
+        </div>
+        ${ex.type === 'weight' && Object.keys(r.repMax).length ? html`<div class="card stack"><span class="eyebrow">Best weight for at least N reps (${unit})</span>
+          <div class="reps-table">${A.REP_MAX.map(n => html`<div><span class="tiny muted">${n} RM</span><span class="num" style="font-weight:600">${r.repMax[n] ? w(r.repMax[n].value, unit) : '–'}</span></div>`)}</div></div>` : null}`
+      : ex.type === 'time' ? html`<div class="rec"><${Rec} label="Longest hold" value=${r.hold ? fmtDur(r.hold.value) : '–'} at=${r.hold} /><${Rec} label="Sessions" value=${h.length} sub="all time" /></div>`
+      : ex.type === 'cardio' ? html`<div class="rec">
+          <${Rec} label="Longest" value=${r.longest ? `${fmtNum(toDist(r.longest.value, du), 2)} ${du}` : '–'} at=${r.longest} />
+          <${Rec} label="Best pace" value=${r.pace ? `${fmtDur(r.pace.value * (du === 'mi' ? 1.609344 : 1))}/${du}` : '–'} at=${r.pace} />
+          <${Rec} label="Longest time" value=${r.longestTime ? fmtDur(r.longestTime.value) : '–'} at=${r.longestTime} />
+          <${Rec} label="Sessions" value=${h.length} sub="all time" />
+        </div>`
+      : html`<div class="rec">${Object.entries(r.sprints).sort((x, y) => +x[0] - +y[0]).map(([m, v]) => html`<${Rec} label=${`Fastest ${m} m`} value=${`${fmtNum(v.value, 2)} s`} at=${v} />`)}<${Rec} label="Sessions" value=${h.length} sub="all time" /></div>`}
+
+      ${ex.type === 'weight' ? html`<${LiftDetail} state=${state} exId=${ex.id} chartOnly=${true} />` : null}
+    `}
+    <${MyNotes} ex=${ex} />`;
+}
+
+function MyNotes({ ex }) {
+  const [v, setV] = useState(ex.notes || '');
+  return html`<div class="field"><label for="ex-notes">My notes</label>
+    <textarea id="ex-notes" class="input" placeholder="Seat height, grip, cues that work for you…" value=${v} onInput=${e => setV(e.target.value)}
+      onBlur=${() => store.update(st => { const x = st.exercises.find(y => y.id === ex.id); if (x) x.notes = v; })}></textarea>
+    <span class="tiny muted">Saved on this phone, shown whenever you open this exercise.</span></div>`;
+}
+
+function ExHowTo({ state, ex }) {
+  const g = howtoFor(ex);
+  return html`
+    <div class="card"><${MuscleMap} ex=${ex} height=${150} />
+      <div class="hstack wrap" style="justify-content:center;gap:14px;margin-top:10px">
+        <span class="hstack tiny" style="gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:var(--accent)"></span>Main</span>
+        <span class="hstack tiny" style="gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:var(--fig-sec)"></span>Also works</span>
+      </div></div>
+    ${g ? html`
+      <div class="card stack"><span class="eyebrow">Steps</span><ol class="steps">${g.steps.map(t => html`<li>${t}</li>`)}</ol></div>
+      ${g.tips.length ? html`<div class="card stack"><span class="eyebrow">Tips</span>${g.tips.map(t => html`<div class="hstack small" style="align-items:flex-start;gap:10px"><span style="color:var(--accent);margin-top:1px"><${Icon} name="bolt" size=${16} /></span><span class="text-2">${t}</span></div>`)}</div>` : null}`
+      : html`<div class="card empty small"><span class="h-md">No guide for this exercise yet</span>Add your own steps with Edit, one step per line.<button class="btn sm" onClick=${() => editExercise(ex)}>Write a guide</button></div>`}
+    ${g && g.custom ? null : g ? html`<p class="tiny muted" style="margin:0">General guidance. If something hurts, stop and get it checked.</p>` : null}`;
+}
+
+function ExHistory({ state, ex }) {
+  const exm = A.exMap(state);
+  const rows = A.finished(state).filter(w => w.entries.some(e => e.exId === ex.id)).slice().reverse();
+  const prs = A.prEvents(state).filter(p => p.exId === ex.id && p.kind !== 'vol');
+  if (!rows.length) return html`<div class="card empty small">Not logged yet.</div>`;
+  return html`<div class="list">${rows.slice(0, 60).map(wo => {
+    const sets = wo.entries.filter(e => e.exId === ex.id).flatMap(e => e.sets);
+    const notes = wo.entries.filter(e => e.exId === ex.id && e.note).map(e => e.note);
+    const hasPr = prs.some(p => p.workoutId === wo.id);
+    let n = 0;
+    return html`<button class="row" style="align-items:flex-start" onClick=${() => nav.go('workoutView', { id: wo.id })}>
+      <div class="grow">
+        <div class="title">${fmtRel(wo.start)} · ${wo.name}${hasPr ? html`<span class="pill accent pr-flag">PR</span>` : null}</div>
+        <div class="kv small" style="margin-top:6px">${sets.map(s => { if (s.t === 'n') n++; return html`<span class="muted">${s.t === 'n' ? 'Set ' + n : { w: 'Warm-up', d: 'Drop', f: 'Failure' }[s.t]}</span><span class="num">${prevText(s, ex, state.settings)}</span>`; })}</div>
+        ${notes.length ? html`<div class="tiny muted" style="margin-top:6px">${notes.join(' · ')}</div>` : null}
+      </div>
+    </button>`;
+  })}</div>`;
 }
 
 export function Library({ state }) {
@@ -166,6 +246,7 @@ export function Library({ state }) {
       <input id="lib-search" class="input" placeholder="Search ${state.exercises.length} exercises" value=${q} onInput=${e => setQ(e.target.value)} />
       <div class="chips">${['All', ...MUSCLES].map(x => html`<button class="chip" aria-pressed=${m === x} onClick=${() => setM(x)}>${x}</button>`)}</div>
       <div class="list">${list.map(e => html`<button class="row" onClick=${() => nav.go('exercise', { id: e.id })}>
+        <${MuscleFig} ex=${e} size=${36} />
         <div class="grow"><div class="title">${e.name}</div><div class="sub">${e.muscle} · ${e.equip}${e.custom ? ' · custom' : ''}</div></div>
         ${counts.get(e.id) ? html`<span class="small muted num">${counts.get(e.id)}×</span>` : null}
         <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`)}</div>

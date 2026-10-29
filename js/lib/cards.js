@@ -179,7 +179,7 @@ const strength = {
   },
 };
 
-export function LiftDetail({ state, exId }) {
+export function LiftDetail({ state, exId, chartOnly }) {
   const unit = unitOf(state);
   const [range, setRange] = useState('12w');
   const h = A.exerciseHistory(state, exId);
@@ -194,6 +194,7 @@ export function LiftDetail({ state, exId }) {
       <${LineChart} fmtY=${v => fmtNum(toUnit(v, unit), 0)} points=${pts.filter(p => p.e1rm).map(p => ({ x: p.date, y: p.e1rm }))} />
       <span class="tiny muted">Estimated from your best set each session (Epley formula). Sets over 12 reps are capped since estimates get unreliable.</span>
     </div>
+    ${chartOnly ? null : html`
     <div class="summary-grid">
       <div class="stat"><span class="eyebrow">Best e1RM</span><span class="mid">${w(best.e1rm, unit, 0)}</span><span class="tiny muted">${best.date ? fmtDate(best.date) : ''}</span></div>
       <div class="stat"><span class="eyebrow">Heaviest</span><span class="mid">${w(heaviest.top, unit)}</span><span class="tiny muted">${heaviest.date ? `× ${heaviest.topReps}` : ''}</span></div>
@@ -205,7 +206,7 @@ export function LiftDetail({ state, exId }) {
     <div class="list">${h.slice().reverse().slice(0, 30).map(p => html`<button class="row" onClick=${() => nav.go('workoutView', { id: p.workoutId })}>
       <div class="grow"><div class="title">${fmtRel(p.date)}</div><div class="sub">${p.sets} sets · top ${w(p.top, unit)} × ${p.topReps}</div></div>
       <span class="num small">${w(p.e1rm, unit, 0)}</span><span class="chev"><${Icon} name="chev" size=${18} /></span>
-    </button>`)}</div>`;
+    </button>`)}</div>`}`;
 }
 
 export function prValue(p, state) {

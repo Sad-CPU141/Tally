@@ -23,6 +23,8 @@
   --on-accent: #08111b;
   --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
   --chart-grid: #222932;
+  --fig-base: #2e3642;
+  --fig-sec: color-mix(in srgb, var(--accent) 38%, var(--fig-base));
   color-scheme: dark;
 
   --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -47,7 +49,7 @@
     --bg: #f2f4f7; --surface: #ffffff; --surface-2: #eef1f5; --surface-3: #e3e8ee; --line: #dde2e9;
     --text: #11151b; --text-2: #3a4452; --muted: #657083;
     --good: #148a4f; --warn: #a66a00; --bad: #c9302c;
-    --accent: var(--accent-l); --on-accent: #ffffff; --chart-grid: #e6eaf0;
+    --accent: var(--accent-l); --on-accent: #ffffff; --chart-grid: #e6eaf0; --fig-base: #d3d9e1;
     color-scheme: light;
   }
 }
@@ -55,7 +57,7 @@
   --bg: #f2f4f7; --surface: #ffffff; --surface-2: #eef1f5; --surface-3: #e3e8ee; --line: #dde2e9;
   --text: #11151b; --text-2: #3a4452; --muted: #657083;
   --good: #148a4f; --warn: #a66a00; --bad: #c9302c;
-  --accent: var(--accent-l); --on-accent: #ffffff; --chart-grid: #e6eaf0;
+  --accent: var(--accent-l); --on-accent: #ffffff; --chart-grid: #e6eaf0; --fig-base: #d3d9e1;
   color-scheme: light;
 }
 
@@ -385,3 +387,17 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 .tgt { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
 .tgt .field label { font-size: 11px; }
 .tgt .input { padding: 0 8px; text-align: center; font-family: var(--font-num); }
+
+/* Muscle picture */
+.fig { flex: none; display: grid; place-items: center; border-radius: 11px; background: var(--surface-2); }
+.row .fig { margin-left: -4px; }
+.ex-top .fig { margin-right: 2px; }
+.ex-link { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; background: none; border: 0; padding: 0; text-align: left; color: inherit; }
+.ex-link .ex-name { flex: 1; min-width: 0; }
+.rec { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.rec > :last-child:nth-child(odd) { grid-column: span 2; }
+.steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+.steps li { padding-left: 4px; }
+.steps li::marker { color: var(--accent); font-weight: 700; font-family: var(--font-num); }
+.reps-table { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.reps-table div { background: var(--surface-2); border-radius: 10px; padding: 8px 4px; text-align: center; display: flex; flex-direction: column; gap: 2px; min-width: 0; }

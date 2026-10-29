@@ -1,6 +1,6 @@
 // Offline support: cache the app shell, serve it cache-first, refresh in the background.
 // Bump VERSION whenever you deploy so phones pick up the new files.
-const VERSION = 'tally-v5';
+const VERSION = 'tally-v6';
 const ASSETS = [
   './',
   './css/app.css',
@@ -19,8 +19,10 @@ const ASSETS = [
   './js/lib/charts.js',
   './js/lib/dash-defaults.js',
   './js/lib/exercises.js',
+  './js/lib/figure.js',
   './js/lib/firebase-config.js',
   './js/lib/food.js',
+  './js/lib/howto.js',
   './js/lib/sample.js',
   './js/lib/store.js',
   './js/lib/ui.js',
