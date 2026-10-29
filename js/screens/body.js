@@ -150,7 +150,7 @@ export function MeasureDetail({ state, params }) {
       <div class="card stack">
         <div class="hstack" style="justify-content:space-between"><span class="eyebrow">${def[1]} (${def[2] === 'pct' ? '%' : u})</span>
           <${Seg} label="Range" value=${range} onChange=${setRange} options=${[['4w', '4W'], ['12w', '3M'], ['26w', '6M'], ['all', 'All']]} /></div>
-        <${LineChart} fmtY=${v => fmtNum(conv(v), 1)} points=${pts.map(p => ({ x: +fromKey(p.date), y: p.value }))} />
+        <${LineChart} fmtY=${v => fmtNum(v, 1)} unit=${def[2] === "pct" ? "%" : u} points=${pts.map(p => ({ x: +fromKey(p.date), y: conv(p.value) }))} />
       </div>
       ${s.length > 1 ? html`<div class="summary-grid">
         <div class="stat"><span class="eyebrow">Latest</span><span class="mid">${fmtNum(conv(s[s.length - 1].value), 1)}</span></div>

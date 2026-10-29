@@ -8,7 +8,7 @@ import { Icon, Tally, nav, Seg } from './ui.js';
 import { logBodyweight } from './actions.js';
 import * as F from './food.js';
 import { MEASURES, series, showVal, logMeasurements, lenUnit } from '../screens/body.js';
-import { bwUnit, w, toUnit, fmtNum, fmtBig, signed, fmtDate, fmtRel, fmtMins, fmtDur, toDist, startOfWeek, addDays, dayKey, DAY } from './util.js';
+import { fmtWeekday, bwUnit, w, toUnit, fmtNum, fmtBig, signed, fmtDate, fmtRel, fmtMins, fmtDur, toDist, startOfWeek, addDays, dayKey, DAY } from './util.js';
 
 const unitOf = s => s.settings.unit;
 const exName = (s, id) => (A.exMap(s).get(id) || { name: 'Exercise' }).name;
@@ -49,7 +49,7 @@ const week = {
     return html`
       <div class="card stack">
         <span class="eyebrow">Sessions per week</span>
-        <${BarChart} goal=${goal} bars=${b.map((x, i) => ({ label: fmtDate(x.start).split(' ')[1] + (i === b.length - 1 ? '*' : ''), value: x.sessions, dim: x.sessions < goal }))} />
+        <${BarChart} goal=${goal} unit="sessions" bars=${b.map((x, i) => ({ x: x.start, week: true, value: x.sessions, dim: x.sessions < goal, tip: 'Week of ' + fmtDate(x.start) + (i === b.length - 1 ? ' (this week)' : '') }))} />
         <span class="tiny muted">Dashed line is your goal of ${goal}. Weeks start ${['Sunday', 'Monday'][state.settings.weekStart]}. * this week.</span>
       </div>
       <div class="list">
@@ -98,9 +98,9 @@ const bodyweight = {
           <span class="eyebrow">Trend</span>
           <${RangePick} value=${range} onChange=${setRange} />
         </div>
-        <${LineChart} fmtY=${v => fmtNum(toUnit(v, unit), 0)}
-          points=${pts.map(p => ({ x: p.date, y: p.trend }))}
-          raw=${pts.map(p => ({ x: p.date, y: p.raw }))} />
+        <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit}
+          points=${pts.map(p => ({ x: p.date, y: toUnit(p.trend, unit) }))}
+          raw=${pts.map(p => ({ x: p.date, y: toUnit(p.raw, unit) }))} />
         <span class="tiny muted">Dots are your weigh-ins. The line is the smoothed trend, which is what to judge progress by.</span>
       </div>
       ${last ? html`<div class="summary-grid">
@@ -142,7 +142,7 @@ const streak = {
     const b = A.weeks(state, 26), goal = state.settings.weeklyGoal;
     return html`<div class="card stack">
       <span class="eyebrow">Last 26 weeks</span>
-      <${BarChart} goal=${goal} bars=${b.map(x => ({ label: fmtDate(x.start).split(' ')[0], value: x.sessions, dim: x.sessions < goal }))} />
+      <${BarChart} goal=${goal} unit="sessions" bars=${b.map(x => ({ x: x.start, week: true, value: x.sessions, dim: x.sessions < goal }))} />
       <span class="tiny muted">Highlighted weeks hit your goal of ${goal} sessions. Change the goal in Me → Training.</span>
     </div>`;
   },
@@ -192,7 +192,7 @@ export function LiftDetail({ state, exId, chartOnly }) {
   return html`
     <div class="card stack">
       <div class="hstack" style="justify-content:space-between"><span class="eyebrow">Estimated 1RM</span><${RangePick} value=${range} onChange=${setRange} /></div>
-      <${LineChart} fmtY=${v => fmtNum(toUnit(v, unit), 0)} points=${pts.filter(p => p.e1rm).map(p => ({ x: p.date, y: p.e1rm }))} />
+      <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit + ' e1RM'} points=${pts.filter(p => p.e1rm).map(p => ({ x: p.date, y: toUnit(p.e1rm, unit) }))} />
       <span class="tiny muted">Estimated from your best set each session (Epley formula). Sets over 12 reps are capped since estimates get unreliable.</span>
     </div>
     ${chartOnly ? null : html`
@@ -352,7 +352,7 @@ const volume = {
     const b = A.weeks(state, 12);
     return html`<div class="card stack">
       <span class="eyebrow">Weight lifted per week (${unit})</span>
-      <${BarChart} fmtY=${v => fmtBig(toUnit(v, unit))} bars=${b.map(x => ({ label: fmtDate(x.start).split(' ')[1], value: x.volume }))} />
+      <${BarChart} fmtY=${v => fmtBig(v)} fmtV=${v => Math.round(v).toLocaleString()} unit=${unit} bars=${b.map(x => ({ x: x.start, week: true, value: toUnit(x.volume, unit) }))} />
       <span class="tiny muted">Counts working sets only, not warm-ups. Bodyweight exercises count only added weight.</span>
     </div>`;
   },
@@ -406,11 +406,11 @@ const cardio = {
     const sprintHist = sprintIds.flatMap(id => A.exerciseHistory(state, id)).filter(p => p.sprint).sort((a, b) => a.date - b.date);
     return html`
       <div class="card stack"><span class="eyebrow">Distance per week (${du})</span>
-        <${BarChart} fmtY=${v => fmtNum(toDist(v, du), 0)} bars=${b.map(x => ({ label: fmtDate(x.start).split(' ')[1], value: x.km }))} /></div>
+        <${BarChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 2)} unit=${du} bars=${b.map(x => ({ x: x.start, week: true, value: toDist(x.km, du) }))} /></div>
       <div class="card stack"><span class="eyebrow">Minutes per week</span>
-        <${BarChart} bars=${b.map(x => ({ label: fmtDate(x.start).split(' ')[1], value: Math.round(x.cardioSec / 60) }))} /></div>
+        <${BarChart} unit="min" bars=${b.map(x => ({ x: x.start, week: true, value: Math.round(x.cardioSec / 60) }))} /></div>
       ${sprintHist.length > 1 ? html`<div class="card stack"><span class="eyebrow">Fastest sprint per session (s)</span>
-        <${LineChart} area=${false} fmtY=${v => fmtNum(v, 1)} points=${sprintHist.map(p => ({ x: p.date, y: p.sprint }))} />
+        <${LineChart} area=${false} fmtY=${v => fmtNum(v, 1)} fmtV=${v => fmtNum(v, 2)} unit="s" points=${sprintHist.map(p => ({ x: p.date, y: p.sprint }))} />
         <span class="tiny muted">Lower is faster. Compare sprints over the same distance.</span></div>` : null}`;
   },
 };
@@ -429,7 +429,7 @@ const sessionLength = {
   detail({ state }) {
     const b = A.weeks(state, 12);
     return html`<div class="card stack"><span class="eyebrow">Average minutes per session</span>
-      <${BarChart} bars=${b.map(x => ({ label: fmtDate(x.start).split(' ')[1], value: x.sessions ? Math.round(x.duration / x.sessions / 60) : 0 }))} /></div>`;
+      <${BarChart} unit="min" bars=${b.map(x => ({ x: x.start, week: true, value: x.sessions ? Math.round(x.duration / x.sessions / 60) : 0 }))} /></div>`;
   },
 };
 
@@ -463,7 +463,7 @@ const calories = {
     const within = logged.filter(d => Math.abs(d.totals.kcal - d.target.kcal) <= d.target.kcal * 0.1).length;
     return html`
       <div class="card stack"><span class="eyebrow">Last 14 days (kcal)</span>
-        <${BarChart} goal=${Math.round(avg(ds.map(d => d.target.kcal)))} fmtY=${v => fmtBig(v)} bars=${ds.map(d => ({ label: shortDay(d.date), value: Math.round(d.totals.kcal), dim: !d.logged }))} />
+        <${BarChart} goal=${Math.round(avg(ds.map(d => d.target.kcal)))} fmtY=${v => fmtBig(v)} fmtV=${v => v.toLocaleString()} unit="kcal" bars=${ds.map(d => ({ x: d.date, label: shortDay(d.date), value: Math.round(d.totals.kcal), dim: !d.logged, tip: fmtWeekday(d.date) + ', ' + fmtDate(d.date) + (d.logged ? '' : ' · not logged') }))} />
         <span class="tiny muted">Dashed line is your average target. ${within} of ${logged.length} logged days landed within 10% of target.</span></div>
       <div class="list">${ds.slice().reverse().filter(d => d.logged).map(d => html`<div class="row">
         <div class="grow"><div class="title">${fmtRel(d.date)}</div><div class="sub">${d.train ? 'Training day' : 'Rest day'} · target ${kc(d.target.kcal)}</div></div>
@@ -492,7 +492,7 @@ const protein = {
     const avgP = avg(logged.map(d => d.totals.p));
     return html`
       <div class="card stack"><span class="eyebrow">Protein per day (g), last 28 days</span>
-        <${BarChart} goal=${Math.round(avg(ds.map(d => d.target.p)))} bars=${ds.map(d => ({ label: fmtDate(d.date).split(' ')[1], value: Math.round(d.totals.p), dim: !d.logged || d.totals.p < d.target.p * 0.95 }))} />
+        <${BarChart} goal=${Math.round(avg(ds.map(d => d.target.p)))} unit="g protein" bars=${ds.map(d => ({ x: d.date, value: Math.round(d.totals.p), dim: !d.logged || d.totals.p < d.target.p * 0.95, tip: fmtWeekday(d.date) + ', ' + fmtDate(d.date) }))} />
         <span class="tiny muted">Highlighted bars hit the target (within 5%).</span></div>
       <div class="summary-grid">
         <div class="stat"><span class="eyebrow">Average</span><span class="mid">${Math.round(avgP)} g</span></div>
@@ -641,7 +641,7 @@ const deficit = {
     const r = F.adaptiveTDEE(state);
     return html`
       <div class="card stack"><span class="eyebrow">Average intake per week (kcal)</span>
-        <${BarChart} goal=${r.ready ? Math.round(r.tdee) : undefined} fmtY=${v => fmtBig(v)} bars=${weeksIntake.map(w => ({ label: fmtDate(w.start).split(' ')[1], value: Math.round(w.kcal), dim: !w.n }))} />
+        <${BarChart} goal=${r.ready ? Math.round(r.tdee) : undefined} fmtY=${v => fmtBig(v)} fmtV=${v => v.toLocaleString()} unit="kcal/day" bars=${weeksIntake.map(w => ({ x: w.start, week: true, value: Math.round(w.kcal), dim: !w.n }))} />
         <span class="tiny muted">${r.ready ? 'Dashed line is your adaptive burn. Bars under it are deficit weeks.' : 'Your burn line appears once Adaptive burn has enough data.'}</span></div>
       <div class="list">${weeksIntake.slice().reverse().map(w => html`<div class="row">
         <div class="grow"><div class="title">Week of ${fmtDate(w.start)}</div><div class="sub">${w.n ? `${kc(w.kcal)} kcal avg over ${w.n} days` : 'no food logged'}</div></div>
@@ -692,7 +692,7 @@ const score = {
         <span class="tiny muted">Training: sessions vs your weekly goal, scaled to how far into the week you are. Protein and calories: days on target (calories within 10%). Weigh-ins: up to 4 a week. Today isn't counted for food until it's over.</span>
       </div>
       <div class="card stack"><span class="eyebrow">Last 8 weeks</span>
-        <${BarChart} goal=${80} bars=${hist.map(h => ({ label: fmtDate(h.start).split(' ')[1], value: h.total, dim: h.total < 80 }))} /></div>`;
+        <${BarChart} goal=${80} unit="/ 100" bars=${hist.map(h => ({ x: h.start, week: true, value: h.total, dim: h.total < 80 }))} /></div>`;
   },
 };
 

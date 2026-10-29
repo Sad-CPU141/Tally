@@ -53,57 +53,126 @@ export function Sparkline({ values, height = 38 }) {
   </svg></div>`;
 }
 
-// points: [{ x: timestamp, y }], raw: optional faint points, goal: optional y value
-export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(v), area = true }) {
+const DAY = 86400000;
+const yr2 = t => '’' + String(new Date(t).getFullYear()).slice(2);
+
+// Calendar-aligned date ticks: days, weeks (Mondays), months or quarters, as many as fit.
+function timeTicks(x0, x1, plotW) {
+  const fit = Math.max(2, Math.floor(plotW / 58));
+  const span = (x1 - x0) / DAY;
+  const steps = [[1, 'd'], [2, 'd'], [7, 'w'], [14, 'w'], [1, 'm'], [2, 'm'], [3, 'm'], [6, 'm'], [12, 'm']];
+  const [n, kind] = steps.find(([n, k]) => span / (k === 'm' ? n * 30.4 : n) <= fit) || [12, 'm'];
+  const out = [];
+  const d = new Date(x0); d.setHours(0, 0, 0, 0);
+  if (kind === 'w') { while (d.getDay() !== 1) d.setDate(d.getDate() + 1); }
+  if (kind === 'm') { d.setDate(1); if (+d < x0) d.setMonth(d.getMonth() + 1); while (d.getMonth() % n) d.setMonth(d.getMonth() + 1); }
+  for (let guard = 0; +d <= x1 && guard < 60; guard++) {
+    if (+d >= x0) out.push(+d);
+    if (kind === 'm') d.setMonth(d.getMonth() + n); else d.setDate(d.getDate() + n);
+  }
+  const multiYear = new Date(x0).getFullYear() !== new Date(x1).getFullYear();
+  const label = t => kind === 'm' ? (new Date(t).getMonth() === 0 || (multiYear && t === out[0]) ? fmtMonth(t) + ' ' + yr2(t) : fmtMonth(t)) : fmtDate(t);
+  return out.map(t => [t, label(t)]);
+}
+
+// Shared tooltip: follows the finger or mouse, stays inside the chart.
+function Tip({ x, wd, lines }) {
+  if (x == null) return null;
+  const w = Math.max(96, Math.max(...lines.map(l => String(l).length)) * 8.5 + 20);
+  const left = Math.max(0, Math.min(wd - w, x - w / 2));
+  return html`<div class="chart-tip" style=${`left:${left}px;width:${w}px`}>${lines.map((l, i) => html`<div class=${i ? 'v' : 'd'}>${l}</div>`)}</div>`;
+}
+function usePointer(onIndex) {
+  const [active, setActive] = useState(null);
+  const handle = e => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setActive(onIndex(e.clientX - r.left));
+  };
+  return [active, {
+    onPointerDown: handle, onPointerMove: handle,
+    onPointerLeave: e => { if (e.pointerType === 'mouse') setActive(null); },
+  }];
+}
+
+// points: [{ x: timestamp, y }], raw: optional faint points, goal: optional y value.
+// fmtV formats a value in the tooltip (defaults to fmtY), unit is appended.
+export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(v), fmtV, unit = '', area = true }) {
   const [ref, wd] = useWidth(320);
-  if (!points || points.length < 2) {
+  const left = 40, right = 12, top = 12, bottom = 24;
+  const ok = points && points.length >= 2;
+  const x0 = ok ? points[0].x : 0, x1 = ok ? points[points.length - 1].x : 1;
+  const X = t => left + ((t - x0) / Math.max(1, x1 - x0)) * (wd - left - right);
+  const [active, on] = usePointer(px => {
+    if (!ok) return null;
+    let best = 0, bd = Infinity;
+    points.forEach((p, i) => { const d = Math.abs(X(p.x) - px); if (d < bd) { bd = d; best = i; } });
+    return best;
+  });
+  if (!ok) {
     return html`<div ref=${ref} class="empty small" style="min-height:${height}px;justify-content:center">Log a few more sessions to see this chart.</div>`;
   }
-  const left = 40, right = 10, top = 10, bottom = 24;
   const allY = points.map(p => p.y).concat(raw ? raw.map(p => p.y) : []).concat(goal != null ? [goal] : []);
   const ticks = niceTicks(Math.min(...allY), Math.max(...allY), 4);
   const y0 = ticks[0], y1 = ticks[ticks.length - 1];
-  const x0 = points[0].x, x1 = points[points.length - 1].x;
-  const X = t => left + ((t - x0) / Math.max(1, x1 - x0)) * (wd - left - right);
   const Y = v => top + (1 - (v - y0) / Math.max(1e-9, y1 - y0)) * (height - top - bottom);
   const pts = points.map(p => [X(p.x), Y(p.y)]);
   const areaD = path(pts) + ` L${pts[pts.length - 1][0].toFixed(1)} ${Y(y0)} L${pts[0][0].toFixed(1)} ${Y(y0)} Z`;
-  const spanDays = (x1 - x0) / 86400000;
-  const xl = [x0, x0 + (x1 - x0) / 2, x1];
-  const xfmt = t => spanDays > 200 ? fmtMonth(t) + ' ’' + String(new Date(t).getFullYear()).slice(2) : fmtDate(t);
+  const xt = timeTicks(x0, x1, wd - left - right);
   const last = pts[pts.length - 1];
-  return html`<div ref=${ref}><svg class="chart" viewBox="0 0 ${wd} ${height}" width=${wd} height=${height} role="img">
-    ${ticks.map(t => html`<g><line class="grid" x1=${left} x2=${wd - right} y1=${Y(t)} y2=${Y(t)} /><text x=${left - 8} y=${Y(t) + 3.5} text-anchor="end">${fmtY(t)}</text></g>`)}
-    ${xl.map((t, i) => html`<text x=${X(t)} y=${height - 6} text-anchor=${i === 0 ? 'start' : i === 2 ? 'end' : 'middle'}>${xfmt(t)}</text>`)}
-    ${goal != null ? html`<line class="goal" x1=${left} x2=${wd - right} y1=${Y(goal)} y2=${Y(goal)} />` : null}
-    ${raw ? raw.map(p => html`<circle class="rawdot" cx=${X(p.x)} cy=${Y(p.y)} r="2.2" />`) : null}
-    ${area ? html`<path class="area" d=${areaD} />` : null}
-    <path class="line" d=${path(pts)} />
-    <circle class="dot" cx=${last[0]} cy=${last[1]} r="4.5" />
-  </svg></div>`;
+  const fv = fmtV || fmtY;
+  const a = active != null ? points[active] : null;
+  const rawSame = a && raw ? raw.find(r => Math.abs(r.x - a.x) < DAY / 2) : null;
+  return html`<div ref=${ref} class="chart-wrap">
+    <svg class="chart" viewBox="0 0 ${wd} ${height}" width=${wd} height=${height} role="img" ...${on}>
+      ${ticks.map(t => html`<g><line class="grid" x1=${left} x2=${wd - right} y1=${Y(t)} y2=${Y(t)} /><text x=${left - 8} y=${Y(t) + 3.5} text-anchor="end">${fmtY(t)}</text></g>`)}
+      ${xt.map(([t, l]) => html`<g><line class="tick" x1=${X(t)} x2=${X(t)} y1=${height - bottom} y2=${height - bottom + 4} /><text x=${Math.min(wd - right - 14, Math.max(left + 14, X(t)))} y=${height - 6} text-anchor="middle">${l}</text></g>`)}
+      ${goal != null ? html`<line class="goal" x1=${left} x2=${wd - right} y1=${Y(goal)} y2=${Y(goal)} />` : null}
+      ${raw ? raw.map(p => html`<circle class="rawdot" cx=${X(p.x)} cy=${Y(p.y)} r="2.2" />`) : null}
+      ${area ? html`<path class="area" d=${areaD} />` : null}
+      <path class="line" d=${path(pts)} />
+      ${a ? html`<line class="cursor" x1=${pts[active][0]} x2=${pts[active][0]} y1=${top} y2=${height - bottom} /><circle class="dot" cx=${pts[active][0]} cy=${pts[active][1]} r="5" />`
+        : html`<circle class="dot" cx=${last[0]} cy=${last[1]} r="4.5" />`}
+      <rect x="0" y="0" width=${wd} height=${height} fill="transparent" style="touch-action:pan-y" />
+    </svg>
+    ${a ? html`<${Tip} x=${pts[active][0]} wd=${wd} lines=${[fmtDate(a.x) + ' ' + yr2(a.x), `${fv(a.y)}${unit ? ' ' + unit : ''}`, ...(rawSame && Math.abs(rawSame.y - a.y) > 1e-9 ? [`weighed ${fv(rawSame.y)}${unit ? ' ' + unit : ''}`] : [])]} />` : null}
+  </div>`;
 }
 
-// bars: [{ label, value, dim }]
-export function BarChart({ bars, height = 160, fmtY = v => String(v), goal }) {
+// bars: [{ label, value, dim, x? (timestamp), tip? }]. Labels thin out to fit; tap or hover for the exact value.
+export function BarChart({ bars, height = 160, fmtY = v => String(v), fmtV, unit = '', goal }) {
   const [ref, wd] = useWidth(320);
-  const left = 40, right = 6, top = 10, bottom = 22;
+  const left = 40, right = 6, top = 12, bottom = 22;
+  const slot = (wd - left - right) / Math.max(1, bars.length);
+  const [active, on] = usePointer(px => {
+    const i = Math.floor((px - left) / slot);
+    return i >= 0 && i < bars.length ? i : null;
+  });
   const max = Math.max(1, ...bars.map(b => b.value), goal || 0);
   const ticks = niceTicks(0, max, 4);
   const y1 = ticks[ticks.length - 1];
   const Y = v => top + (1 - v / y1) * (height - top - bottom);
-  const slot = (wd - left - right) / bars.length;
   const bw = Math.max(4, Math.min(28, slot * 0.62));
-  const every = Math.ceil(bars.length / 7);
-  return html`<div ref=${ref}><svg class="chart" viewBox="0 0 ${wd} ${height}" width=${wd} height=${height} role="img">
-    ${ticks.map(t => html`<g><line class="grid" x1=${left} x2=${wd - right} y1=${Y(t)} y2=${Y(t)} /><text x=${left - 8} y=${Y(t) + 3.5} text-anchor="end">${fmtY(t)}</text></g>`)}
-    ${goal ? html`<line class="goal" x1=${left} x2=${wd - right} y1=${Y(goal)} y2=${Y(goal)} />` : null}
-    ${bars.map((b, i) => {
-      const cx = left + slot * i + slot / 2;
-      const hgt = Math.max(b.value > 0 ? 2 : 0, Y(0) - Y(b.value));
-      return html`<g>
-        <rect class=${'bar' + (b.dim ? ' dim' : '')} x=${cx - bw / 2} y=${Y(0) - hgt} width=${bw} height=${hgt} rx="3" />
-        ${(i % every === 0 || i === bars.length - 1) ? html`<text x=${cx} y=${height - 6} text-anchor="middle">${b.label}</text>` : null}
-      </g>`;
-    })}
-  </svg></div>`;
+  const lab = b => b.x != null ? fmtDate(b.x) : b.label;
+  const labW = Math.max(...bars.map(b => String(lab(b) || '').length)) * 6 + 10;
+  const every = Math.max(1, Math.ceil(labW / slot));
+  const shown = i => (bars.length - 1 - i) % every === 0; // always label the latest bar, then every Nth back
+  const fv = fmtV || fmtY;
+  const a = active != null ? bars[active] : null;
+  return html`<div ref=${ref} class="chart-wrap">
+    <svg class="chart" viewBox="0 0 ${wd} ${height}" width=${wd} height=${height} role="img" ...${on}>
+      ${ticks.map(t => html`<g><line class="grid" x1=${left} x2=${wd - right} y1=${Y(t)} y2=${Y(t)} /><text x=${left - 8} y=${Y(t) + 3.5} text-anchor="end">${fmtY(t)}</text></g>`)}
+      ${goal ? html`<line class="goal" x1=${left} x2=${wd - right} y1=${Y(goal)} y2=${Y(goal)} />` : null}
+      ${bars.map((b, i) => {
+        const cx = left + slot * i + slot / 2;
+        const hgt = Math.max(b.value > 0 ? 2 : 0, Y(0) - Y(b.value));
+        return html`<g>
+          ${active === i ? html`<rect class="bar-hl" x=${left + slot * i} y=${top} width=${slot} height=${height - top - bottom} rx="4" />` : null}
+          <rect class=${'bar' + (b.dim ? ' dim' : '') + (active === i ? ' on' : '')} x=${cx - bw / 2} y=${Y(0) - hgt} width=${bw} height=${hgt} rx="3" />
+          ${shown(i) ? html`<text x=${Math.min(wd - right - 12, cx)} y=${height - 6} text-anchor="middle">${lab(b)}</text>` : null}
+        </g>`;
+      })}
+      <rect x="0" y="0" width=${wd} height=${height} fill="transparent" style="touch-action:pan-y" />
+    </svg>
+    ${a ? html`<${Tip} x=${left + slot * active + slot / 2} wd=${wd} lines=${[a.tip || (a.x != null ? (a.week ? 'Week of ' : '') + fmtDate(a.x) : a.label), `${fv(a.value)}${unit ? ' ' + unit : ''}`]} />` : null}
+  </div>`;
 }

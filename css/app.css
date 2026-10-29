@@ -536,3 +536,13 @@ html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
 .fp-add { position: fixed; left: 0; right: 0; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px)); padding: 10px max(var(--gutter), env(safe-area-inset-left, 0px)); background: linear-gradient(to top, var(--bg) 70%, transparent); z-index: 20; }
 .fp-add .btn { max-width: 720px; margin: 0 auto; display: flex; }
 .brand-row .badge { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 750; font-size: 14px; flex: none; }
+
+/* chart tooltips */
+.chart-wrap { position: relative; user-select: none; -webkit-user-select: none; }
+.chart .tick { stroke: var(--chart-grid); }
+.chart .cursor { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .bar.on { fill: var(--accent); filter: brightness(1.15); }
+.chart .bar-hl { fill: var(--surface-2); }
+.chart-tip { position: absolute; top: 0; background: var(--surface-3); color: var(--text); border-radius: 10px; padding: 6px 10px; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.28); z-index: 3; text-align: center; }
+.chart-tip .d { font-size: 11px; color: var(--muted); font-weight: 600; }
+.chart-tip .v { font: 650 15px var(--font-num); white-space: nowrap; }
