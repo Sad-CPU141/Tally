@@ -57,7 +57,8 @@ let stack = [{ name: 'today', params: {} }];
 // Two modes, each with its own tab bar. Body and Me are shared.
 export const MODES = {
   gym: [['today', 'Today', 'today'], ['train', 'Train', 'train'], ['body', 'Body', 'scale'], ['stats', 'Stats', 'stats'], ['me', 'Me', 'me']],
-  food: [['food', 'Diary', 'food'], ['insights', 'Insights', 'stats'], ['body', 'Body', 'scale'], ['targets', 'Targets', 'bolt'], ['me', 'Me', 'me']],
+  // Same order as Gym so each spot means the same thing: home, plan, body, analytics, settings.
+  food: [['food', 'Diary', 'food'], ['targets', 'Targets', 'bolt'], ['body', 'Body', 'scale'], ['insights', 'Insights', 'stats'], ['me', 'Me', 'me']],
 };
 export const TABS = [...new Set([...MODES.gym, ...MODES.food].map(t => t[0]))];
 export const isRootTab = name => TABS.includes(name);
