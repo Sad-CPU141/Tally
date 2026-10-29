@@ -5,7 +5,7 @@ import * as store from '../lib/store.js';
 import * as A from '../lib/analytics.js';
 import { Icon, nav, openSheet, closeSheet, SheetHead, confirmSheet, toast, TopBar } from '../lib/ui.js';
 import { w, toUnit, fromUnit, fmtNum, fmtDur, parseDur, toDist, fromDist, fmtBig, fmtMins, round } from '../lib/util.js';
-import { MuscleFig } from '../lib/figure.js';
+import { ExThumb } from '../lib/photo.js';
 import { pickExercise } from './picker.js';
 import { prValue } from '../lib/cards.js';
 
@@ -246,7 +246,7 @@ function Entry({ en, idx, state }) {
 
   return html`<div class="card ex-card">
     <div class="ex-top">
-      <button class="ex-link" onClick=${() => nav.go('exercise', { id: en.exId, entry: en.id })}><${MuscleFig} ex=${ex} size=${36} /><span class="ex-name">${ex.name}</span></button>
+      <button class="ex-link" onClick=${() => nav.go('exercise', { id: en.exId, entry: en.id })}><${ExThumb} ex=${ex} size=${36} /><span class="ex-name">${ex.name}</span></button>
       <span class="pill">${restSec ? fmtDur(restSec) + ' rest' : 'no timer'}</span>
       <button class="icon-btn" aria-label="Exercise options" onClick=${() => entryMenu(en, idx, ex, restSec)}><${Icon} name="more" /></button>
     </div>
@@ -385,7 +385,7 @@ export function WorkoutSets({ wo, state }) {
     const ex = exm.get(en.exId) || { name: 'Exercise', type: 'weight' };
     const exPr = prs.filter(p => p.exId === en.exId);
     return html`<button class="row" style="align-items:flex-start" onClick=${() => nav.go('exercise', { id: en.exId })}>
-      <${MuscleFig} ex=${ex} size=${36} />
+      <${ExThumb} ex=${ex} size=${36} />
       <div class="grow">
         <div class="title">${ex.name}${exPr.length ? html`<span class="pill accent pr-flag">PR</span>` : null}</div>
         <div class="sub" style="white-space:normal">${en.sets.map(s => (s.t !== 'n' ? s.t.toUpperCase() + ' ' : '') + prevText(s, ex, state.settings)).join('  ·  ')}</div>

@@ -88,7 +88,7 @@ export function Me({ state }) {
         <${Row} title="Erase everything" sub="Deletes all workouts, routines and settings on this phone"><button class="btn sm danger" onClick=${eraseAll}>Erase</button><//>
       </div>
       ${store.isMemoryOnly() ? html`<div class="banner"><span class="grow">This browser isn't allowing storage, so nothing will be kept after you close it. Open Tally from your home screen or a normal browser window.</span></div>` : null}
-      <p class="tiny muted" style="text-align:center;margin:8px 0 0">Tally · Gym Macro Tracker · food data from Open Food Facts</p>
+      <p class="tiny muted" style="text-align:center;margin:8px 0 0">Tally · Gym Macro Tracker · food data from Open Food Facts · exercise photos from Free Exercise DB</p>
     </div>`;
 }
 

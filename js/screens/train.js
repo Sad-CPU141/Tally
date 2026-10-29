@@ -5,10 +5,10 @@ import * as store from '../lib/store.js';
 import * as A from '../lib/analytics.js';
 import { MUSCLES } from '../lib/exercises.js';
 import { howtoFor } from '../lib/howto.js';
-import { MuscleMap } from '../lib/figure.js';
+import { ExPhoto, mediaFor, PHOTO_CREDIT } from '../lib/photo.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast } from '../lib/ui.js';
 import { fmtRel, fmtDate, fmtDateY, fmtMins, fmtBig, toUnit, fmtTime, fmtDur, fmtNum, w, toDist } from '../lib/util.js';
-import { MuscleFig } from '../lib/figure.js';
+import { ExThumb } from '../lib/photo.js';
 import { startWorkout, WorkoutSets, prevText } from './workout.js';
 import { pickExercise, editExercise, TYPE_LABEL } from './picker.js';
 import { Seg } from '../lib/ui.js';
@@ -74,7 +74,7 @@ export function RoutineEdit({ state, params }) {
           const ex = exm.get(it.exId) || { name: 'Unknown', type: 'weight' };
           const repsLabel = ex.type === 'time' ? 'sec' : ex.type === 'cardio' ? '' : ex.type === 'sprint' ? '' : 'reps';
           return html`<div class="row" style="flex-wrap:wrap;row-gap:8px">
-            <button class="ex-link" style="min-width:150px" onClick=${() => nav.go('exercise', { id: it.exId })}><${MuscleFig} ex=${ex} size=${36} /><div class="grow" style="min-width:0"><div class="title">${ex.name}</div><div class="sub">${ex.muscle} · rest ${fmtDur(it.rest ?? ex.rest ?? rest)}</div></div></button>
+            <button class="ex-link" style="min-width:150px" onClick=${() => nav.go('exercise', { id: it.exId })}><${ExThumb} ex=${ex} size=${36} /><div class="grow" style="min-width:0"><div class="title">${ex.name}</div><div class="sub">${ex.muscle} · rest ${fmtDur(it.rest ?? ex.rest ?? rest)}</div></div></button>
             <div class="hstack" style="gap:6px">
               <${Mini} label="sets" value=${it.sets} onChange=${v => edit(x => { x.items[i].sets = Math.max(1, Math.min(20, v)); })} />
               ${repsLabel ? html`<${Mini} label=${repsLabel} value=${it.reps} step=${ex.type === 'time' ? 15 : 1} onChange=${v => edit(x => { x.items[i].reps = Math.max(1, v); })} />` : null}
@@ -139,7 +139,8 @@ export function ExerciseScreen({ state, params }) {
   return html`
     <${TopBar} title=${ex.name} back=${true} right=${html`<button class="btn sm" onClick=${() => editExercise(ex)}>Edit</button>`} />
     <div class="page">
-      <div class="hstack wrap" style="gap:6px"><span class="pill accent">${ex.muscle}</span>${(ex.secondary || []).map(m => html`<span class="pill">${m}</span>`)}<span class="pill">${ex.equip}</span>${ex.custom ? html`<span class="pill">Custom</span>` : null}</div>
+      <${ExPhoto} ex=${ex} />
+      <div class="hstack wrap" style="gap:6px"><span class="pill accent">${ex.muscle}</span>${(ex.secondary || []).map(m => html`<span class="pill">${m}</span>`)}<span class="pill">${ex.equip}</span>${mediaFor(ex) && mediaFor(ex).level ? html`<span class="pill">${mediaFor(ex).level[0].toUpperCase() + mediaFor(ex).level.slice(1)}</span>` : null}${ex.custom ? html`<span class="pill">Custom</span>` : null}</div>
       <${Seg} label="Exercise sections" value=${tab} onChange=${setTab} options=${[['overview', 'Overview'], ['howto', 'How to'], ['history', `History (${h.length})`]]} />
       ${tab === 'overview' ? html`<${ExOverview} state=${state} ex=${ex} params=${params} />`
         : tab === 'howto' ? html`<${ExHowTo} state=${state} ex=${ex} />`
@@ -199,18 +200,24 @@ function MyNotes({ ex }) {
 }
 
 function ExHowTo({ state, ex }) {
-  const g = howtoFor(ex);
+  const m = mediaFor(ex);
+  const mine = howtoFor(ex);
+  const steps = m && m.steps && m.steps.length ? m.steps : mine ? mine.steps : null;
+  const tips = mine && !mine.custom ? mine.tips : [];
   return html`
-    <div class="card"><${MuscleMap} ex=${ex} height=${150} />
-      <div class="hstack wrap" style="justify-content:center;gap:14px;margin-top:10px">
-        <span class="hstack tiny" style="gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:var(--accent)"></span>Main</span>
-        <span class="hstack tiny" style="gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:var(--fig-sec)"></span>Also works</span>
-      </div></div>
-    ${g ? html`
-      <div class="card stack"><span class="eyebrow">Steps</span><ol class="steps">${g.steps.map(t => html`<li>${t}</li>`)}</ol></div>
-      ${g.tips.length ? html`<div class="card stack"><span class="eyebrow">Tips</span>${g.tips.map(t => html`<div class="hstack small" style="align-items:flex-start;gap:10px"><span style="color:var(--accent);margin-top:1px"><${Icon} name="bolt" size=${16} /></span><span class="text-2">${t}</span></div>`)}</div>` : null}`
-      : html`<div class="card empty small"><span class="h-md">No guide for this exercise yet</span>Add your own steps with Edit, one step per line.<button class="btn sm" onClick=${() => editExercise(ex)}>Write a guide</button></div>`}
-    ${g && g.custom ? null : g ? html`<p class="tiny muted" style="margin:0">General guidance. If something hurts, stop and get it checked.</p>` : null}`;
+    <div class="card stack">
+      <span class="eyebrow">Muscles worked</span>
+      <div class="kv small">
+        <span class="text-2">Main</span><span>${ex.muscle === 'Cardio' ? 'Heart and lungs, legs' : ex.muscle}</span>
+        ${(ex.secondary || []).length ? html`<span class="text-2">Also works</span><span>${ex.secondary.join(', ')}</span>` : null}
+        ${m && m.mechanic ? html`<span class="text-2">Type</span><span>${m.mechanic === 'compound' ? 'Compound (several joints)' : 'Isolation (one joint)'}</span>` : null}
+        ${m && m.force ? html`<span class="text-2">Movement</span><span>${m.force[0].toUpperCase() + m.force.slice(1)}</span>` : null}
+      </div>
+    </div>
+    ${steps ? html`<div class="card stack"><span class="eyebrow">Steps</span><ol class="steps">${steps.map(t => html`<li>${t}</li>`)}</ol></div>` : null}
+    ${tips.length ? html`<div class="card stack"><span class="eyebrow">Quick tips</span>${tips.map(t => html`<div class="hstack small" style="align-items:flex-start;gap:10px"><span style="color:var(--accent);margin-top:1px"><${Icon} name="bolt" size=${16} /></span><span class="text-2">${t}</span></div>`)}</div>` : null}
+    ${!steps ? html`<div class="card empty small"><span class="h-md">No guide for this exercise yet</span>Add your own steps with Edit, one step per line.<button class="btn sm" onClick=${() => editExercise(ex)}>Write a guide</button></div>` : null}
+    ${m ? html`<p class="tiny muted" style="margin:0">${PHOTO_CREDIT} General guidance. If something hurts, stop and get it checked.</p>` : null}`;
 }
 
 function ExHistory({ state, ex }) {
@@ -246,7 +253,7 @@ export function Library({ state }) {
       <input id="lib-search" class="input" placeholder="Search ${state.exercises.length} exercises" value=${q} onInput=${e => setQ(e.target.value)} />
       <div class="chips">${['All', ...MUSCLES].map(x => html`<button class="chip" aria-pressed=${m === x} onClick=${() => setM(x)}>${x}</button>`)}</div>
       <div class="list">${list.map(e => html`<button class="row" onClick=${() => nav.go('exercise', { id: e.id })}>
-        <${MuscleFig} ex=${e} size=${36} />
+        <${ExThumb} ex=${e} size=${36} />
         <div class="grow"><div class="title">${e.name}</div><div class="sub">${e.muscle} · ${e.equip}${e.custom ? ' · custom' : ''}</div></div>
         ${counts.get(e.id) ? html`<span class="small muted num">${counts.get(e.id)}×</span>` : null}
         <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`)}</div>

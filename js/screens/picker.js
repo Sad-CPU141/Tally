@@ -4,7 +4,7 @@ import { html, useState } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
 import { MUSCLES, EQUIPMENT } from '../lib/exercises.js';
 import { Icon, openSheet, closeSheet, SheetHead, toast } from '../lib/ui.js';
-import { MuscleFig } from '../lib/figure.js';
+import { ExThumb } from '../lib/photo.js';
 
 export const TYPE_LABEL = { weight: 'Weight × reps', bw: 'Bodyweight reps', time: 'Timed hold', cardio: 'Distance + time', sprint: 'Sprints (each set one sprint)' };
 
@@ -25,7 +25,7 @@ export function pickExercise(onPick, { title = 'Add exercise' } = {}) {
       <div class="chips">${['All', ...MUSCLES].map(x => html`<button class="chip" aria-pressed=${m === x} onClick=${() => setM(x)}>${x}</button>`)}</div>
       <div class="list">
         ${list.map(e => html`<button class="row" onClick=${() => { closeSheet(); onPick(e.id); }}>
-          <${MuscleFig} ex=${e} size=${36} />
+          <${ExThumb} ex=${e} size=${36} />
           <div class="grow"><div class="title">${e.name}</div><div class="sub">${e.muscle} · ${e.equip}${e.custom ? ' · custom' : ''}</div></div>
           <span class="chev"><${Icon} name="plus" size=${18} /></span>
         </button>`)}

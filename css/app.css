@@ -389,7 +389,14 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 .tgt .input { padding: 0 8px; text-align: center; font-family: var(--font-num); }
 
 /* Muscle picture */
-.fig { flex: none; display: grid; place-items: center; border-radius: 11px; background: var(--surface-2); }
+.fig { flex: none; display: grid; place-items: center; border-radius: 11px; background: var(--surface-2); overflow: hidden; }
+.fig img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fig-none { color: var(--muted); font-weight: 700; letter-spacing: .02em; font-family: var(--font-display); }
+.exphoto-frame { position: relative; display: block; width: 100%; padding: 0; border: 0; border-radius: var(--r-card); overflow: hidden; background: var(--surface-2); aspect-ratio: 3 / 2; max-width: 100%; cursor: pointer; }
+.exphoto-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.exphoto-b { opacity: 0; transition: opacity .35s ease; }
+.exphoto-b.on { opacity: 1; }
+.exphoto-tag { position: absolute; left: 10px; bottom: 10px; padding: 4px 9px; border-radius: 999px; background: rgba(8, 12, 16, .72); color: #fff; font-size: 12px; font-weight: 650; }
 .row .fig { margin-left: -4px; }
 .ex-top .fig { margin-right: 2px; }
 .ex-link { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; background: none; border: 0; padding: 0; text-align: left; color: inherit; }
