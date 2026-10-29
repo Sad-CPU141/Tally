@@ -11,7 +11,8 @@ import { fromUnit, toUnit, round, todayKey, download, KM_PER_MI } from './util.j
 export function parseCSV(text) {
   text = text.replace(/^﻿/, '');
   const first = text.split(/\r?\n/, 1)[0];
-  const delim = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
+  const cnt = c => (first.split(c).length - 1);
+  const delim = cnt('\t') > cnt(',') && cnt('\t') > cnt(';') ? '\t' : cnt(';') > cnt(',') ? ';' : ',';
   const rows = []; let row = [], cell = '', q = false;
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
@@ -52,12 +53,12 @@ function durSec(s) { // "1h 5m", "45m", "3600", "01:05:00"
 
 // ---------- detect the app and turn rows into sets ----------
 // Each row -> { start, end?, name, ex, t, kgRaw (in file unit or kg), unit, reps, km, sec, note }
-function detect(rows) {
+export function detectApp(rows) {
   const h = Object.keys(rows[0] || {});
   const has = k => h.includes(k);
   if (has('exercise_title') && has('start_time')) return 'Hevy';
   if (has('Exercise Name') && has('Set Order')) return 'Strong';
-  if (has('Exercise') && (has('Weight Unit') || h.some(k => /^Weight \((kgs|lbs)\)$/.test(k)))) return 'FitNotes';
+  if (has('Exercise') && has('Category') && (has('Weight Unit') || h.some(k => /^Weight \((kgs|lbs)\)$/.test(k)))) return 'FitNotes';
   return null;
 }
 
@@ -77,7 +78,7 @@ function rowsToSets(rows, app, fileUnit) {
       const start = parseDate(r.Date);
       const d = durSec(r.Duration);
       out.push({ start, end: start && d ? start + d * 1000 : null, name: r['Workout Name'] || 'Workout', ex: r['Exercise Name'], t: so === 'W' ? 'w' : so === 'D' ? 'd' : so === 'F' ? 'f' : 'n',
-        kg: w == null ? null : fromUnit(w, fileUnit), reps: num(r.Reps), km: dist ? (r['Distance Unit'] === 'mi' || fileUnit === 'lb' ? dist * KM_PER_MI : dist) : null, sec, rpe: num(r.RPE), note: r.Notes, wnote: r['Workout Notes'] });
+        kg: w == null ? null : fromUnit(w, fileUnit), reps: num(r.Reps), km: dist ? ((r['Distance Unit'] ? r['Distance Unit'] === 'mi' : fileUnit === 'lb') ? dist * KM_PER_MI : dist) : null, sec, rpe: num(r.RPE), note: r.Notes, wnote: r['Workout Notes'] });
     } else if (app === 'FitNotes') {
       let w = num(r.Weight), u = (r['Weight Unit'] || '').toLowerCase().startsWith('lb') ? 'lb' : (r['Weight Unit'] ? 'kg' : fileUnit);
       if (w == null && r['Weight (kgs)'] != null) { w = num(r['Weight (kgs)']); u = 'kg'; }
@@ -150,7 +151,7 @@ export async function importCSV(file, input) {
   if (!file) return;
   let rows;
   try { rows = parseCSV(await file.text()); } catch (e) { toast('Couldn\'t read that file'); return; }
-  const app = detect(rows);
+  const app = detectApp(rows);
   if (!app) { toast('Not a Strong, Hevy or FitNotes CSV export'); return; }
   function Body() {
     const st = store.get();

@@ -8,7 +8,7 @@ import { logBodyweight } from '../lib/actions.js';
 import { makeSample } from '../lib/sample.js';
 import { plateCalc } from '../lib/plates.js';
 import { clearPhotos } from '../lib/photos.js';
-import { importCSV, exportCSV } from '../lib/importer.js';
+import { importFile, importHelp, exportMenu } from '../lib/datafiles.js';
 
 const ACCENTS = [['ice', 'Ice', '#6cb8ff'], ['iris', 'Iris', '#a597ff'], ['ember', 'Ember', '#ffad5c'], ['mint', 'Mint', '#5fd4a8'], ['rose', 'Rose', '#ff86ad']];
 
@@ -84,15 +84,10 @@ export function Me({ state }) {
 
       <div class="section-head"><span class="h-md">Your data</span></div>
       <div class="list">
-        <${Row} title="Export backup" sub=${counts}>
-          <button class="btn sm" onClick=${() => { download(`tally-backup-${todayKey()}.json`, JSON.stringify({ app: 'tally', exported: Date.now(), data: store.get() })); toast('Backup saved'); }}><${Icon} name="download" size=${16} /> Export</button><//>
-        <${Row} title="Import from another app" sub="Strong, Hevy or FitNotes CSV export. Adds to what's here">
-          <label class="btn sm" style="position:relative"><${Icon} name="upload" size=${16} /> CSV
-            <input type="file" accept=".csv,text/csv,text/comma-separated-values,text/plain" style="position:absolute;inset:0;opacity:0" onChange=${e => importCSV(e.target.files[0], e.target)} /></label><//>
-        <${Row} title="Export workouts as CSV" sub="Opens in Excel or Sheets; Hevy and Strong can import it"><button class="btn sm" onClick=${exportCSV}><${Icon} name="download" size=${16} /> CSV</button><//>
-        <${Row} title="Restore from backup" sub="Replaces everything on this phone">
+        <${Row} title="Import" sub=${html`Excel, CSV, Strong, Hevy, FitNotes, MyFitnessPal, Cronometer or a Tally backup. <button class="link-btn tiny" style="padding:0" onClick=${importHelp}>What can I import?</button>`}>
           <label class="btn sm" style="position:relative"><${Icon} name="upload" size=${16} /> Import
-            <input type="file" accept="application/json,.json" style="position:absolute;inset:0;opacity:0" onChange=${e => importFile(e.target.files[0], e.target)} /></label><//>
+            <input type="file" accept=".xlsx,.xls,.xlsm,.ods,.csv,.tsv,.txt,.json,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" aria-label="Choose a file to import" style="position:absolute;inset:0;opacity:0" onChange=${e => importFile(e.target.files[0], e.target)} /></label><//>
+        <${Row} title="Export" sub=${counts}><button class="btn sm" onClick=${exportMenu}><${Icon} name="download" size=${16} /> Export</button><//>
         ${s.sample
           ? html`<${Row} title="Sample data is loaded" sub="Clear it to start logging your own training"><button class="btn sm danger" onClick=${clearSample}>Clear</button><//>`
           : html`<${Row} title="Explore with sample data" sub="8 weeks of example training, replaces current data"><button class="btn sm" onClick=${loadSample}>Load</button><//>`}
@@ -103,20 +98,6 @@ export function Me({ state }) {
     </div>`;
 }
 
-function importFile(file, input) {
-  if (!file) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try {
-      const j = JSON.parse(r.result);
-      const data = j && j.app === 'tally' ? j.data : j;
-      if (!data || !Array.isArray(data.workouts)) throw new Error('bad');
-      confirmSheet({ title: 'Restore this backup?', body: `It has ${data.workouts.length} workouts and ${(data.bodyweight || []).length} weigh-ins. Everything currently on this phone will be replaced.`, confirm: 'Restore', onConfirm: () => { store.replaceAll(data); toast('Backup restored'); } });
-    } catch (e) { toast("That file isn't a Tally backup"); }
-    input.value = '';
-  };
-  r.readAsText(file);
-}
 
 function loadSample() {
   confirmSheet({ title: 'Load sample data?', body: 'This replaces everything on this phone with 8 weeks of example training. Export a backup first if you have real data.', confirm: 'Load sample', danger: false, onConfirm: () => {

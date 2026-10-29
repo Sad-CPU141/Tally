@@ -55,6 +55,8 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 
 ## Credits
 
+- Excel import/export: SheetJS Community Edition 0.18.5 (Apache-2.0), `js/vendor/xlsx.full.min.js`, loaded only when needed.
+
 - Everyday foods: USDA FoodData Central (SR Legacy + Foundation Foods), public domain, via [UntrustedTech/health-foods](https://github.com/UntrustedTech/health-foods) (CC0). Bundled in `data/foods.json` (+ `data/food-micros.json`); 141 everyday foods with variants in `data/generic.json`.
 - Restaurant menus from each chain's official nutrition guide (`data/src/`, built by `data/src/build-restaurants.py` into `data/restaurants.json`): Tim Hortons Canada (July 2026), Raising Cane's (August 2026).
 
