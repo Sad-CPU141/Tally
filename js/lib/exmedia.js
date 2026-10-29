@@ -1,5 +1,5 @@
-// Photos and instructions from Free Exercise DB (public domain, github.com/yuhonas/free-exercise-db),
-// matched to Tally's built-in exercises. Photos live in media/ex/<id>-0.jpg (start) and -1.jpg (end).
+// Step-by-step instructions and exercise details from Free Exercise DB
+// (public domain, github.com/yuhonas/free-exercise-db), matched to Tally's built-in exercises.
 
 export const MEDIA = {
  "bench": {
