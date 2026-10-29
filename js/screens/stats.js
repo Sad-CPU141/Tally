@@ -3,7 +3,7 @@
 import { html } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
 import * as A from '../lib/analytics.js';
-import { CARDS } from '../lib/cards.js';
+import { CARDS, CAT_LABEL } from '../lib/cards.js';
 import { FOOD_CATS } from '../lib/dash-defaults.js';
 import { Icon, nav, TopBar, toast } from '../lib/ui.js';
 import { Card, pack } from './today.js';
@@ -33,7 +33,7 @@ function layout(cat) {
 
 function Library({ state, cats, dash }) {
   return cats.map(cat => html`
-    <div class="section-head"><span class="h-md">${cat}</span></div>
+    <div class="section-head"><span class="h-md">${CAT_LABEL[cat] || cat}</span></div>
     <div class="dash">${layout(cat).map(({ c, wide }) => html`<${Card} key=${c.type} wide=${wide} inst=${{ id: 'lib-' + c.type, type: c.type, opts: {} }} state=${state} onOpen=${() => nav.go('card', { type: c.type, dash })} />`)}</div>`);
 }
 
@@ -47,7 +47,7 @@ export function Stats({ state }) {
         ${pack(list).map(({ inst, wide }) => html`<${Card} key=${inst.id} inst=${inst} wide=${wide} state=${state} onOpen=${() => nav.go('card', { id: inst.id, type: inst.type, dash: 'gym' })} />`)}
       </div>` : html`<div class="card empty"><span class="h-md">No stats pinned</span><button class="btn" onClick=${() => nav.go('editDash', { dash: 'gym' })}>Add stats</button></div>`}
       <div class="section-head"><span class="h-md">All stats</span><button class="link-btn" onClick=${() => nav.go('library')}>By exercise</button></div>
-      <p class="small muted" style="margin:0">Tap any card for the full breakdown and to pin or unpin it. Food insights live in Food mode.</p>
+      <p class="small muted" style="margin:0">Tap any card to see more and to pin it to Today. Food charts are in Food mode under Insights.</p>
       <${Library} state=${state} cats=${GYM_CATS} dash="gym" />
     </div>`;
 }
@@ -120,7 +120,7 @@ export function EditDash({ state, params }) {
         ${!board.length ? html`<div class="empty small">Nothing pinned. Add cards below.</div>` : null}
       </div>
       ${cats.map(cat => html`
-        <div class="section-head"><span class="h-md">${cat}</span></div>
+        <div class="section-head"><span class="h-md">${CAT_LABEL[cat] || cat}</span></div>
         <div class="list">${Object.values(CARDS).filter(c => c.cat === cat).map(c => {
           const on = c.type !== 'lift' && board.some(d => d.type === c.type);
           return html`<div class="row">

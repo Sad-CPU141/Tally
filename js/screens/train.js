@@ -243,7 +243,7 @@ function ExOverview({ state, ex, params }) {
     ${!h.length ? html`<div class="card empty"><span class="h-md">No history yet</span><span class="small">Records and charts appear after your first session with this exercise. Check How to for form tips.</span></div>` : html`
       <div class="section-head" style="margin-top:0"><span class="h-md">Personal records</span><${Icon} name="trophy" size=${18} /></div>
       ${isW ? html`<div class="rec">
-          ${ex.type === 'weight' ? html`<${Rec} label="Best est. 1RM" value=${r.e1rm ? `${w(r.e1rm.value, unit, 0)} ${unit}` : '–'} sub=${r.e1rm ? `${w(r.e1rm.kg, unit)} × ${r.e1rm.reps} · ${fmtDate(r.e1rm.date)}` : ''} at=${r.e1rm} />` : null}
+          ${ex.type === 'weight' ? html`<${Rec} label="Best est. max (1 rep)" value=${r.e1rm ? `${w(r.e1rm.value, unit, 0)} ${unit}` : '–'} sub=${r.e1rm ? `${w(r.e1rm.kg, unit)} × ${r.e1rm.reps} · ${fmtDate(r.e1rm.date)}` : ''} at=${r.e1rm} />` : null}
           <${Rec} label=${ex.type === 'bw' ? 'Most added weight' : 'Heaviest'} value=${r.heaviest ? `${w(r.heaviest.value, unit)} ${unit}` : '–'} sub=${r.heaviest ? `× ${r.heaviest.reps} · ${fmtDate(r.heaviest.date)}` : ''} at=${r.heaviest} />
           <${Rec} label="Most reps" value=${r.mostReps ? `${r.mostReps.value}` : '–'} sub=${r.mostReps ? `${r.mostReps.kg ? '@ ' + w(r.mostReps.kg, unit) + ' ' + unit + ' · ' : ''}${fmtDate(r.mostReps.date)}` : ''} at=${r.mostReps} />
           ${ex.type === 'weight' ? html`<${Rec} label="Best set" value=${r.bestSet ? `${fmtBig(toUnit(r.bestSet.value, unit))} ${unit}` : '–'} sub=${r.bestSet ? `${w(r.bestSet.kg, unit)} × ${r.bestSet.reps}` : ''} at=${r.bestSet} />` : null}

@@ -582,7 +582,7 @@ export function Targets({ state }) {
               <span>Rest day</span><span class="num">${kc(calc.rest.kcal)} kcal · ${calc.rest.p}p ${calc.rest.c}c ${calc.rest.f}f</span>
             </div>
             <button class="btn primary block" onClick=${() => { editF(f => { f.train = calc.train; f.rest = calc.rest; f.split = true; f.setup = true; }); toast('Targets updated'); }}>Use these targets</button>
-            <span class="tiny muted">Formulas are a starting point. Once you've logged food and weight for a couple of weeks, the Adaptive burn card on Stats shows what your body is really using.</span>
+            <span class="tiny muted">Formulas are a starting point. Once you've logged food and weight for a couple of weeks, the Calorie burn card in Insights shows what your body really burns.</span>
           </div>` : html`<div class="small muted">Fill in sex, age, height and weight to get an estimate.</div>`}
       </div>
 

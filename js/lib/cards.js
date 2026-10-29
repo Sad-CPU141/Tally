@@ -26,7 +26,7 @@ const rangeDays = r => r === 'all' ? Infinity : parseInt(r) * 7;
 // ---------------------------------------------------------------- week
 const week = {
   type: 'week', title: 'This week', cat: 'Training', wide: true,
-  blurb: 'Sessions against your weekly goal, with sets, volume and time.',
+  blurb: 'Workouts this week compared to your goal, plus sets, weight lifted and time spent.',
   compact({ state }) {
     const b = A.weeks(state, 2);
     const cur = b[1], prev = b[0];
@@ -35,7 +35,7 @@ const week = {
     return html`
       <${Head} title="This week" right=${html`<span class=${'pill ' + (cur.sessions >= goal ? 'good' : 'accent')}>${cur.sessions >= goal ? 'Goal hit' : `${left} to go`}</span>`} />
       <div class="hstack" style="justify-content:space-between;align-items:flex-end">
-        <div class="big">${cur.sessions}<small>/ ${goal} sessions</small></div>
+        <div class="big">${cur.sessions}<small>/ ${goal} workouts</small></div>
         <${Tally} count=${cur.sessions} goal=${goal} />
       </div>
       <div class="grid3 small">
@@ -49,9 +49,9 @@ const week = {
     const goal = state.settings.weeklyGoal;
     return html`
       <div class="card stack">
-        <span class="eyebrow">Sessions per week</span>
+        <span class="eyebrow">Workouts per week</span>
         <${BarChart} goal=${goal} unit="sessions" bars=${b.map((x, i) => ({ x: x.start, week: true, value: x.sessions, dim: x.sessions < goal, tip: 'Week of ' + fmtDate(x.start) + (i === b.length - 1 ? ' (this week)' : '') }))} />
-        <span class="tiny muted">Dashed line is your goal of ${goal}. Weeks start ${['Sunday', 'Monday'][state.settings.weekStart]}. * this week.</span>
+        <span class="tiny muted">The dashed line is your goal of ${goal} a week. The last bar is this week so far. Weeks start on ${['Sunday', 'Monday'][state.settings.weekStart]}.</span>
       </div>
       <div class="list">
         ${b.slice().reverse().map(x => html`<div class="row">
@@ -115,7 +115,7 @@ const bodyweight = {
       ${last ? html`<div class="summary-grid">
         <div class="stat"><span class="eyebrow">${trendView(state) ? 'Trend' : '7-day avg'}</span><span class="mid">${w(trendView(state) ? last.trend : last.avg7, unit)}</span></div>
         <div class="stat"><span class="eyebrow">Per week</span><span class="mid">${rate == null ? '–' : signed(toUnit(rate, unit), 1)}</span></div>
-        <div class="stat"><span class="eyebrow">In range</span><span class="mid">${first ? signed(toUnit(trendView(state) ? last.trend - first.trend : last.avg7 - first.avg7, unit), 1) : '–'}</span></div>
+        <div class="stat"><span class="eyebrow">Change</span><span class="mid">${first ? signed(toUnit(trendView(state) ? last.trend - first.trend : last.avg7 - first.avg7, unit), 1) : '–'}</span></div>
       </div>` : null}
       ${rate != null && last ? html`<div class="card small text-2">
         ${rate < 0
@@ -136,8 +136,8 @@ const bodyweight = {
 
 // ---------------------------------------------------------------- streak
 const streak = {
-  type: 'streak', title: 'Weekly streak', cat: 'Training',
-  blurb: 'Weeks in a row you hit your session goal.',
+  type: 'streak', title: 'Streak', cat: 'Training',
+  blurb: 'How many weeks in a row you have hit your workout goal.',
   compact({ state }) {
     const n = A.streak(state);
     const goal = state.settings.weeklyGoal;
@@ -150,9 +150,9 @@ const streak = {
   detail({ state }) {
     const b = A.weeks(state, 26), goal = state.settings.weeklyGoal;
     return html`<div class="card stack">
-      <span class="eyebrow">Last 26 weeks</span>
+      <span class="eyebrow">Workouts per week, last 6 months</span>
       <${BarChart} goal=${goal} unit="sessions" bars=${b.map(x => ({ x: x.start, week: true, value: x.sessions, dim: x.sessions < goal }))} />
-      <span class="tiny muted">Highlighted weeks hit your goal of ${goal} sessions. Change the goal in Me → Training.</span>
+      <span class="tiny muted">Bright bars are weeks you hit your goal of ${goal} workouts. You can change the goal in Me → Training.</span>
     </div>`;
   },
 };
@@ -162,12 +162,12 @@ function liftList(state, opts) { return (opts.lifts && opts.lifts.length ? opts.
 
 const strength = {
   type: 'strength', title: 'Strength', cat: 'Strength', wide: true,
-  blurb: 'Estimated one-rep max for your main lifts and the change over 4 weeks.',
+  blurb: 'Roughly the most you could lift once on your main lifts, and how that changed in the last 4 weeks.',
   compact({ state, opts }) {
     const unit = unitOf(state);
     const lifts = liftList(state, opts);
     return html`
-      <${Head} title="Est. 1RM · 4 weeks" />
+      <${Head} title="Strength · last 4 weeks" />
       ${!lifts.length ? html`<div class="text-2 small">Finish a workout with weighted lifts to see strength trends.</div>` : html`
       <div class="kv">
         ${lifts.map(id => {
@@ -200,15 +200,15 @@ export function LiftDetail({ state, exId, chartOnly }) {
   const prs = A.prEvents(state).filter(e => e.exId === exId).slice(-6).reverse();
   return html`
     <div class="card stack">
-      <div class="hstack" style="justify-content:space-between"><span class="eyebrow">Estimated 1RM</span><${RangePick} value=${range} onChange=${setRange} /></div>
-      <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit + ' e1RM'} points=${pts.filter(p => p.e1rm).map(p => ({ x: p.date, y: toUnit(p.e1rm, unit) }))} />
-      <span class="tiny muted">Estimated from your best set each session (Epley formula). Sets over 12 reps are capped since estimates get unreliable.</span>
+      <div class="hstack" style="justify-content:space-between"><span class="eyebrow">Estimated max (1 rep)</span><${RangePick} value=${range} onChange=${setRange} /></div>
+      <${LineChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 1)} unit=${unit + ' est. max'} points=${pts.filter(p => p.e1rm).map(p => ({ x: p.date, y: toUnit(p.e1rm, unit) }))} />
+      <span class="tiny muted">Worked out from your best set each workout: roughly the most you could lift for a single rep. Sets over 12 reps aren't used because the estimate gets unreliable.</span>
     </div>
     ${chartOnly ? null : html`
     <div class="summary-grid">
-      <div class="stat"><span class="eyebrow">Best e1RM</span><span class="mid">${w(best.e1rm, unit, 0)}</span><span class="tiny muted">${best.date ? fmtDate(best.date) : ''}</span></div>
+      <div class="stat"><span class="eyebrow">Best max</span><span class="mid">${w(best.e1rm, unit, 0)}</span><span class="tiny muted">${best.date ? fmtDate(best.date) : ''}</span></div>
       <div class="stat"><span class="eyebrow">Heaviest</span><span class="mid">${w(heaviest.top, unit)}</span><span class="tiny muted">${heaviest.date ? `× ${heaviest.topReps}` : ''}</span></div>
-      <div class="stat"><span class="eyebrow">Sessions</span><span class="mid">${h.length}</span><span class="tiny muted">all time</span></div>
+      <div class="stat"><span class="eyebrow">Workouts</span><span class="mid">${h.length}</span><span class="tiny muted">all time</span></div>
     </div>
     ${prs.length ? html`<div class="section-head"><span class="h-md">Recent PRs</span></div>
     <div class="list">${prs.map(p => html`<div class="row"><span class="pill accent">${A.PR_LABEL[p.kind]}</span><div class="grow small text-2">${fmtDate(p.date)}</div><span class="num">${prValue(p, state)}</span></div>`)}</div>` : null}
@@ -235,8 +235,8 @@ export function prValue(p, state) {
 
 // ---------------------------------------------------------------- single lift
 const lift = {
-  type: 'lift', title: 'Single lift', cat: 'Strength', configurable: true,
-  blurb: 'One lift of your choice with its e1RM trend. Add as many as you like.',
+  type: 'lift', title: 'One lift', cat: 'Strength', configurable: true,
+  blurb: 'Pick any exercise and follow its strength over time. Add as many as you like.',
   compact({ state, opts }) {
     const unit = unitOf(state);
     const id = opts.exId || A.topLifts(state, 1)[0];
@@ -246,7 +246,7 @@ const lift = {
     return html`
       <${Head} title=${exName(state, id)} />
       <div class="big">${c ? w(c.current, unit, 0) : '–'}<small>${unit}</small></div>
-      <div class="tiny muted">e1RM · <span class=${c && c.change > 0 ? 'good' : 'text-2'}>${c ? signed(toUnit(c.change, unit), 0) + ' in 4 wk' : 'no data'}</span></div>
+      <div class="tiny muted">est. max · <span class=${c && c.change > 0 ? 'good' : 'text-2'}>${c ? signed(toUnit(c.change, unit), 0) + ' in 4 weeks' : 'no data'}</span></div>
       <div class="tile-foot" style="display:block"><${Sparkline} values=${h.slice(-12).map(p => p.e1rm)} /></div>`;
   },
   detail({ state, opts }) {
@@ -258,7 +258,7 @@ const lift = {
 // ---------------------------------------------------------------- muscles
 const muscles = {
   type: 'muscles', title: 'Sets per muscle', cat: 'Training', wide: true,
-  blurb: 'Hard sets per muscle this week against a 10–20 set range.',
+  blurb: 'How many hard sets each muscle got this week. 10 to 20 a week is a good range for growth.',
   compact({ state }) { return html`<${Head} title="Sets per muscle · this week" /><${MuscleBars} state=${state} idx=${0} limit=${6} />`; },
   detail({ state }) {
     const [wk, setWk] = useState(0);
@@ -294,64 +294,64 @@ function MuscleBars({ state, idx, limit }) {
 // ---------------------------------------------------------------- PRs
 const prs = {
   type: 'prs', title: 'Personal records', cat: 'Strength',
-  blurb: 'PRs set in the last 30 days and the latest one.',
+  blurb: 'New personal bests from the last 30 days.',
   compact({ state }) {
     const ev = A.prEvents(state);
     const month = ev.filter(e => e.date >= Date.now() - 30 * DAY && e.kind !== 'vol');
     const latest = ev.filter(e => e.kind !== 'vol').slice(-1)[0];
     return html`
-      <${Head} title="PRs · 30 days" right=${html`<span class="muted"><${Icon} name="trophy" size=${18} /></span>`} />
+      <${Head} title="Records · 30 days" right=${html`<span class="muted"><${Icon} name="trophy" size=${18} /></span>`} />
       <div class="big">${month.length}</div>
-      <div class="tiny muted tile-foot" style="display:block">${latest ? html`Latest: <span class="text-2">${exName(state, latest.exId)}</span> · ${prValue(latest, state)}` : 'No PRs yet. They appear after your second session of a lift.'}</div>`;
+      <div class="tiny muted tile-foot" style="display:block">${latest ? html`Latest: <span class="text-2">${exName(state, latest.exId)}</span> · ${prValue(latest, state)}` : 'No records yet. They show up after you do a lift a second time.'}</div>`;
   },
   detail({ state }) {
     const [kind, setKind] = useState('all');
     let ev = A.prEvents(state).slice().reverse();
     if (kind !== 'all') ev = ev.filter(e => e.kind === kind);
     return html`
-      <div class="chips">${[['all', 'All'], ['kg', 'Heaviest'], ['e1rm', 'Est. 1RM'], ['vol', 'Best set'], ['reps', 'Reps'], ['sprint', 'Sprints'], ['km', 'Distance']].map(([k, l]) => html`<button class="chip" aria-pressed=${kind === k} onClick=${() => setKind(k)}>${l}</button>`)}</div>
+      <div class="chips">${[['all', 'All'], ['kg', 'Heaviest'], ['e1rm', 'Est. max'], ['vol', 'Best set'], ['reps', 'Reps'], ['sprint', 'Sprints'], ['km', 'Distance']].map(([k, l]) => html`<button class="chip" aria-pressed=${kind === k} onClick=${() => setKind(k)}>${l}</button>`)}</div>
       <div class="list">
         ${ev.slice(0, 80).map(p => html`<button class="row" onClick=${() => nav.go('workoutView', { id: p.workoutId })}>
           <div class="grow"><div class="title">${exName(state, p.exId)}</div><div class="sub">${A.PR_LABEL[p.kind]} · ${fmtDate(p.date)}</div></div>
           <span class="num small">${prValue(p, state)}</span>
         </button>`)}
-        ${!ev.length ? html`<div class="empty">No PRs yet.</div>` : null}
+        ${!ev.length ? html`<div class="empty">No records yet.</div>` : null}
       </div>`;
   },
 };
 
 // ---------------------------------------------------------------- plateau watch
 const plateau = {
-  type: 'plateau', title: 'Plateau watch', cat: 'Strength',
-  blurb: 'Lifts with no new best estimated 1RM in their last 4 sessions.',
+  type: 'plateau', title: 'Stalled lifts', cat: 'Strength',
+  blurb: "Lifts that haven't beaten their best in the last 4 workouts.",
   compact({ state }) {
     const p = A.plateaus(state, 4);
     return html`
-      <${Head} title="Plateau watch" />
+      <${Head} title="Stalled lifts" />
       ${p.length ? html`<div class="big warn">${p.length}</div><div class="tiny muted tile-foot" style="display:block">${p.slice(0, 2).map(x => exName(state, x.exId)).join(', ')} stalled</div>`
-        : html`<div class="big good" style="font-size:22px">All moving</div><div class="tiny muted tile-foot" style="display:block">Every main lift set a best in its last 4 sessions.</div>`}`;
+        : html`<div class="big good" style="font-size:22px">All improving</div><div class="tiny muted tile-foot" style="display:block">Every main lift beat its best in the last 4 workouts.</div>`}`;
   },
   detail({ state }) {
     const p = A.plateaus(state, 4), unit = unitOf(state);
     return html`
-      <div class="card small text-2">A lift shows up here when its last 4 sessions didn't beat its earlier best e1RM. Common fixes: change the rep range, add a set, take a deload week, or check that you're eating enough.</div>
+      <div class="card small text-2">A lift shows up here when its last 4 workouts didn't beat its earlier best. Common fixes: change the rep range, add a set, take a deload week, or check that you're eating enough.</div>
       <div class="list">${p.map(x => html`<button class="row" onClick=${() => nav.go('exercise', { id: x.exId })}>
-        <div class="grow"><div class="title">${exName(state, x.exId)}</div><div class="sub">best ${w(x.best, unit, 0)} ${unit} e1RM</div></div><span class="pill warn">Stalled</span>
+        <div class="grow"><div class="title">${exName(state, x.exId)}</div><div class="sub">best est. max ${w(x.best, unit, 0)} ${unit}</div></div><span class="pill warn">Stalled</span>
       </button>`)}${!p.length ? html`<div class="empty">Nothing stalled.</div>` : null}</div>`;
   },
 };
 
 // ---------------------------------------------------------------- volume
 const volume = {
-  type: 'volume', title: 'Weekly volume', cat: 'Training',
-  blurb: 'Total weight lifted (weight × reps) per week.',
+  type: 'volume', title: 'Weight lifted', cat: 'Training',
+  blurb: 'Everything you lifted each week added up (weight × reps of every working set).',
   compact({ state }) {
     const unit = unitOf(state);
     const b = A.weeks(state, 8);
     const cur = b[b.length - 1], prev = b[b.length - 2];
     const pct = prev.td.volume ? (cur.volume - prev.td.volume) / prev.td.volume * 100 : null;
     return html`
-      <${Head} title="Volume" />
+      <${Head} title="Weight lifted" />
       <div class="big">${fmtBig(toUnit(cur.volume, unit))}<small>${unit}</small></div>
       <div class="tiny muted">this week${pct != null ? html` · <span class=${pct >= 0 ? 'good' : 'text-2'}>${signed(pct, 0)}%</span> vs last` : null}</div>
       <div class="tile-foot" style="display:block"><${Sparkline} values=${b.map(x => x.volume)} /></div>`;
@@ -362,16 +362,16 @@ const volume = {
     return html`<div class="card stack">
       <span class="eyebrow">Weight lifted per week (${unit})</span>
       <${BarChart} fmtY=${v => fmtBig(v)} fmtV=${v => Math.round(v).toLocaleString()} unit=${unit} bars=${b.map(x => ({ x: x.start, week: true, value: toUnit(x.volume, unit) }))} />
-      <span class="tiny muted">Counts working sets only, not warm-ups. Bodyweight exercises count only added weight.</span>
+      <span class="tiny muted">Warm-ups aren't counted. For bodyweight moves like pull-ups, only extra weight counts.</span>
     </div>`;
   },
 };
 
 // ---------------------------------------------------------------- calendar
 const calendar = {
-  type: 'calendar', title: 'Training calendar', cat: 'Training', wide: true,
-  blurb: 'Every day you trained over the last few months.',
-  compact({ state }) { return html`<${Head} title="Training calendar" /><${Heat} state=${state} weeksBack=${18} />`; },
+  type: 'calendar', title: 'Workout calendar', cat: 'Training', wide: true,
+  blurb: 'Every day you trained, at a glance.',
+  compact({ state }) { return html`<${Head} title="Workout calendar" /><${Heat} state=${state} weeksBack=${18} />`; },
   detail({ state }) {
     const m = A.dayMap(state);
     const days = [...m.keys()].filter(k => k >= dayKey(Date.now() - 365 * DAY)).length;
@@ -418,26 +418,26 @@ const cardio = {
         <${BarChart} fmtY=${v => fmtNum(v, 0)} fmtV=${v => fmtNum(v, 2)} unit=${du} bars=${b.map(x => ({ x: x.start, week: true, value: toDist(x.km, du) }))} /></div>
       <div class="card stack"><span class="eyebrow">Minutes per week</span>
         <${BarChart} unit="min" bars=${b.map(x => ({ x: x.start, week: true, value: Math.round(x.cardioSec / 60) }))} /></div>
-      ${sprintHist.length > 1 ? html`<div class="card stack"><span class="eyebrow">Fastest sprint per session (s)</span>
+      ${sprintHist.length > 1 ? html`<div class="card stack"><span class="eyebrow">Fastest sprint each workout (seconds)</span>
         <${LineChart} area=${false} fmtY=${v => fmtNum(v, 1)} fmtV=${v => fmtNum(v, 2)} unit="s" points=${sprintHist.map(p => ({ x: p.date, y: p.sprint }))} />
-        <span class="tiny muted">Lower is faster. Compare sprints over the same distance.</span></div>` : null}`;
+        <span class="tiny muted">Lower is faster. Only compare sprints of the same distance.</span></div>` : null}`;
   },
 };
 
 // ---------------------------------------------------------------- session length
 const sessionLength = {
-  type: 'sessionLength', title: 'Session length', cat: 'Training',
-  blurb: 'Average workout duration over the last 4 weeks.',
+  type: 'sessionLength', title: 'Workout length', cat: 'Training',
+  blurb: 'How long your workouts take on average.',
   compact({ state }) {
     const list = A.finished(state).filter(x => x.start >= Date.now() - 28 * DAY);
     const avg = list.length ? list.reduce((a, x) => a + (x.end - x.start) / 1000, 0) / list.length : 0;
-    return html`<${Head} title="Avg session" right=${html`<span class="muted"><${Icon} name="timer" size=${18} /></span>`} />
+    return html`<${Head} title="Workout length" right=${html`<span class="muted"><${Icon} name="timer" size=${18} /></span>`} />
       <div class="big">${Math.round(avg / 60)}<small>min</small></div>
-      <div class="tiny muted tile-foot" style="display:block">${list.length} sessions in 4 weeks</div>`;
+      <div class="tiny muted tile-foot" style="display:block">average of ${list.length} workouts, last 4 weeks</div>`;
   },
   detail({ state }) {
     const b = A.weeks(state, 12);
-    return html`<div class="card stack"><span class="eyebrow">Average minutes per session</span>
+    return html`<div class="card stack"><span class="eyebrow">Average workout length per week (minutes)</span>
       <${BarChart} unit="min" bars=${b.map(x => ({ x: x.start, week: true, value: x.sessions ? Math.round(x.duration / x.sessions / 60) : 0 }))} /></div>`;
   },
 };
@@ -454,7 +454,7 @@ function DayDots({ days, test }) {
 
 const calories = {
   type: 'calories', title: 'Calories', cat: 'Food',
-  blurb: "Today's intake against your target, and your recent average.",
+  blurb: "What you've eaten today compared to your target, and your recent days.",
   compact({ state }) {
     const ds = F.days(state, 8);
     const t = ds[ds.length - 1];
@@ -471,9 +471,9 @@ const calories = {
     const logged = ds.filter(d => d.logged);
     const within = logged.filter(d => Math.abs(d.totals.kcal - d.target.kcal) <= d.target.kcal * 0.1).length;
     return html`
-      <div class="card stack"><span class="eyebrow">Last 14 days (kcal)</span>
+      <div class="card stack"><span class="eyebrow">Calories, last 14 days</span>
         <${BarChart} goal=${Math.round(avg(ds.map(d => d.target.kcal)))} fmtY=${v => fmtBig(v)} fmtV=${v => v.toLocaleString()} unit="kcal" bars=${ds.map(d => ({ x: d.date, label: shortDay(d.date), value: Math.round(d.totals.kcal), dim: !d.logged, tip: fmtWeekday(d.date) + ', ' + fmtDate(d.date) + (d.logged ? '' : ' · not logged') }))} />
-        <span class="tiny muted">Dashed line is your average target. ${within} of ${logged.length} logged days landed within 10% of target.</span></div>
+        <span class="tiny muted">The dashed line is your target. ${within} of ${logged.length} logged days were within 10% of it.</span></div>
       <div class="list">${ds.slice().reverse().filter(d => d.logged).map(d => html`<div class="row">
         <div class="grow"><div class="title">${fmtRel(d.date)}</div><div class="sub">${d.train ? 'Training day' : 'Rest day'} · target ${kc(d.target.kcal)}</div></div>
         <span class="num">${kc(d.totals.kcal)}</span>
@@ -483,8 +483,8 @@ const calories = {
 };
 
 const protein = {
-  type: 'protein', title: 'Protein consistency', cat: 'Food',
-  blurb: 'How many days you hit your protein target. The most important number for keeping muscle on a cut.',
+  type: 'protein', title: 'Protein', cat: 'Food',
+  blurb: 'How often you hit your protein target. It matters most for keeping muscle while dieting.',
   compact({ state }) {
     const r = F.proteinHits(state, 14);
     const ds = F.days(state, 15).slice(0, -1);
@@ -500,12 +500,12 @@ const protein = {
     const unitKg = A.weightTrend(state).slice(-1)[0];
     const avgP = avg(logged.map(d => d.totals.p));
     return html`
-      <div class="card stack"><span class="eyebrow">Protein per day (g), last 28 days</span>
+      <div class="card stack"><span class="eyebrow">Protein per day (g), last 4 weeks</span>
         <${BarChart} goal=${Math.round(avg(ds.map(d => d.target.p)))} unit="g protein" bars=${ds.map(d => ({ x: d.date, value: Math.round(d.totals.p), dim: !d.logged || d.totals.p < d.target.p * 0.95, tip: fmtWeekday(d.date) + ', ' + fmtDate(d.date) }))} />
-        <span class="tiny muted">Highlighted bars hit the target (within 5%).</span></div>
+        <span class="tiny muted">Bright bars are days you hit your target. The dashed line is the target.</span></div>
       <div class="summary-grid">
         <div class="stat"><span class="eyebrow">Average</span><span class="mid">${Math.round(avgP)} g</span></div>
-        <div class="stat"><span class="eyebrow">Per ${bwUnit(state)}</span><span class="mid">${unitKg ? fmtNum(avgP / toUnit(unitKg.trend, bwUnit(state)), 2) : '–'}</span></div>
+        <div class="stat"><span class="eyebrow">g per ${bwUnit(state)} body</span><span class="mid">${unitKg ? fmtNum(avgP / toUnit(unitKg.trend, bwUnit(state)), 2) : '–'}</span></div>
         <div class="stat"><span class="eyebrow">Days hit</span><span class="mid">${logged.filter(d => d.totals.p >= d.target.p * 0.95).length}/${logged.length}</span></div>
       </div>
       <div class="card small text-2">A common evidence-based range when cutting is 1.6–2.2 g of protein per kg of bodyweight (about 0.7–1 g per lb).</div>`;
@@ -513,9 +513,9 @@ const protein = {
 };
 
 const macroSplit = {
-  type: 'macroSplit', title: 'Macro split', cat: 'Food', wide: true,
-  blurb: 'Where your calories come from on average.',
-  compact({ state }) { return html`<${Head} title="Macro split · 7 days" /><${SplitBar} state=${state} n=${7} />`; },
+  type: 'macroSplit', title: 'Macros', cat: 'Food', wide: true,
+  blurb: 'Where your calories come from: protein, carbs and fat.',
+  compact({ state }) { return html`<${Head} title="Macros · last 7 days" /><${SplitBar} state=${state} n=${7} />`; },
   detail({ state }) {
     const [n, setN] = useState(7);
     return html`
@@ -545,17 +545,17 @@ function SplitBar({ state, n, detail }) {
 }
 
 const trainRest = {
-  type: 'trainRest', title: 'Training vs rest days', cat: 'Food',
-  blurb: 'Average intake on days you trained compared to rest days, last 4 weeks.',
+  type: 'trainRest', title: 'Workout vs rest days', cat: 'Food',
+  blurb: "How much you eat on days you train compared to days you don't (last 4 weeks).",
   compact({ state }) {
     const ds = F.completeDays(state, 28);
     const tr = ds.filter(d => d.train), rs = ds.filter(d => !d.train);
-    return html`<${Head} title="Train vs rest" />
+    return html`<${Head} title="Workout vs rest" />
       <div class="kv small" style="margin-top:4px">
-        <span class="text-2">Training</span><span class="num" style="font-weight:600">${tr.length ? kc(avg(tr.map(d => d.totals.kcal))) : '–'}</span>
-        <span class="text-2">Rest</span><span class="num" style="font-weight:600">${rs.length ? kc(avg(rs.map(d => d.totals.kcal))) : '–'}</span>
+        <span class="text-2">Workout days</span><span class="num" style="font-weight:600">${tr.length ? kc(avg(tr.map(d => d.totals.kcal))) : '–'}</span>
+        <span class="text-2">Rest days</span><span class="num" style="font-weight:600">${rs.length ? kc(avg(rs.map(d => d.totals.kcal))) : '–'}</span>
       </div>
-      <div class="tiny muted tile-foot" style="display:block">kcal avg · ${tr.length} training, ${rs.length} rest days</div>`;
+      <div class="tiny muted tile-foot" style="display:block">average kcal · ${tr.length} workout, ${rs.length} rest days</div>`;
   },
   detail({ state }) {
     const ds = F.completeDays(state, 28);
@@ -566,7 +566,7 @@ const trainRest = {
         <div><b>${g.length ? kc(avg(g.map(d => d.totals.kcal))) : '–'}</b> kcal <span class="muted">/ ${g.length ? kc(avg(g.map(d => d.target.kcal))) : '–'}</span></div>
         <div class="muted">${g.length ? `${Math.round(avg(g.map(d => d.totals.p)))}p ${Math.round(avg(g.map(d => d.totals.c)))}c ${Math.round(avg(g.map(d => d.totals.f)))}f` : ''}</div>
       </div></div>`)}</div>
-      <div class="card small text-2">Eating more carbs around training days fuels sessions and sprints, while lower rest days keep the weekly deficit on track.</div>`;
+      <div class="card small text-2">Eating more carbs on workout days gives you energy to train, and eating a bit less on rest days keeps your weekly calories on track.</div>`;
   },
 };
 
@@ -595,15 +595,15 @@ function weeklyStrength(state, weeksBack) {
 }
 
 const tdee = {
-  type: 'tdee', title: 'Adaptive burn', cat: 'Combined',
-  blurb: 'What your body actually burns, worked out from what you ate and how your trend weight moved.',
+  type: 'tdee', title: 'Calorie burn', cat: 'Combined',
+  blurb: 'How many calories you really burn a day, worked out from what you ate and how your weight changed.',
   compact({ state }) {
     const r = F.adaptiveTDEE(state);
-    if (!r.ready) return html`<${Head} title="Adaptive burn" />
+    if (!r.ready) return html`<${Head} title="Calorie burn" />
       <div class="small text-2">Needs about 2 weeks of food and weight logs.</div>
       <div class="tiny muted tile-foot" style="display:block">${r.logged} of ${r.need} food days so far</div>`;
     const deficit = r.tdee - r.avgIntake;
-    return html`<${Head} title="Adaptive burn" />
+    return html`<${Head} title="Calorie burn" />
       <div class="big">${kc(r.tdee)}<small>kcal</small></div>
       <div class="tiny muted tile-foot" style="display:block">eating ${kc(Math.abs(deficit))} ${deficit >= 0 ? 'under' : 'over'} it on average</div>`;
   },
@@ -618,10 +618,10 @@ const tdee = {
       <div class="summary-grid">
         <div class="stat"><span class="eyebrow">Burn</span><span class="mid">${kc(r.tdee)}</span><span class="tiny muted">kcal/day</span></div>
         <div class="stat"><span class="eyebrow">Eating</span><span class="mid">${kc(r.avgIntake)}</span><span class="tiny muted">avg/day</span></div>
-        <div class="stat"><span class="eyebrow">Trend</span><span class="mid">${signed(toUnit(r.dKgPerWeek, unit), 1)}</span><span class="tiny muted">${unit}/wk</span></div>
+        <div class="stat"><span class="eyebrow">Weight</span><span class="mid">${signed(toUnit(r.dKgPerWeek, unit), 1)}</span><span class="tiny muted">${unit}/wk</span></div>
       </div>
       <div class="card small text-2 stack">
-        <span>Based on ${r.logged} logged days over the last ${r.window} days. Your trend weight moved ${signed(toUnit(r.dKgPerWeek, unit), 2)} ${unit} a week, and each kg of change is about 7,700 kcal.</span>
+        <span>Based on ${r.logged} logged days over the last ${r.window} days. Your weight moved ${signed(toUnit(r.dKgPerWeek, unit), 2)} ${unit} a week. Each kg of body weight is about 7,700 kcal, so Tally works out your burn from how much you ate and how much you lost or gained.</span>
         <span>If you eat your current targets (about <b class="num">${kc(avgTarget)}</b> a day on average), expect roughly <b class="num">${signed(toUnit(predicted, unit), 1)} ${unit}</b> a week.</span>
         <span class="tiny muted">Days you forget to log make this look higher than it is, so log complete days.</span>
       </div>
@@ -630,17 +630,17 @@ const tdee = {
 };
 
 const deficit = {
-  type: 'deficit', title: 'Strength vs deficit', cat: 'Combined', wide: true,
-  blurb: 'Are you keeping your strength while eating in a deficit? The early warning sign for muscle loss.',
+  type: 'deficit', title: 'Strength while dieting', cat: 'Combined', wide: true,
+  blurb: 'Are you keeping your strength while eating less? If it keeps dropping, you may be losing muscle.',
   compact({ state }) {
     const r = F.adaptiveTDEE(state);
     const ws = weeklyStrength(state, 4).filter(x => x.change != null);
     const sc = ws.length ? avg(ws.map(x => x.change)) : null;
     const status = sc == null ? null : sc >= -0.005 ? ['good', 'Strength holding'] : sc > -0.02 ? ['warn', 'Slight dip'] : ['bad', 'Strength dropping'];
-    return html`<${Head} title="Strength vs deficit · 4 weeks" right=${status ? html`<span class=${'pill ' + status[0]}>${status[1]}</span>` : null} />
+    return html`<${Head} title="Strength while dieting" right=${status ? html`<span class=${'pill ' + status[0]}>${status[1]}</span>` : null} />
       <div class="grid2">
-        <div><div class="mid">${r.ready ? kc(r.tdee - r.avgIntake) : '–'}</div><div class="tiny muted">avg daily deficit (kcal)</div></div>
-        <div><div class=${'mid ' + (sc == null ? '' : sc >= -0.005 ? 'good' : 'warn')}>${sc == null ? '–' : signed(sc * 100, 1) + '%'}</div><div class="tiny muted">main lifts, est. 1RM per week</div></div>
+        <div><div class="mid">${r.ready ? kc(r.tdee - r.avgIntake) : '–'}</div><div class="tiny muted">kcal a day below your burn</div></div>
+        <div><div class=${'mid ' + (sc == null ? '' : sc >= -0.005 ? 'good' : 'warn')}>${sc == null ? '–' : signed(sc * 100, 1) + '%'}</div><div class="tiny muted">strength change a week, main lifts, last 4 weeks</div></div>
       </div>`;
   },
   detail({ state }) {
@@ -649,14 +649,14 @@ const deficit = {
     const weeksIntake = ws.map(w => { const d = fd.filter(x => x.date >= w.start && x.date < w.start + 7 * DAY && x.logged && x.key !== dayKey(new Date())); return { ...w, kcal: d.length ? avg(d.map(x => x.totals.kcal)) : 0, n: d.length }; });
     const r = F.adaptiveTDEE(state);
     return html`
-      <div class="card stack"><span class="eyebrow">Average intake per week (kcal)</span>
+      <div class="card stack"><span class="eyebrow">Average calories a day, by week</span>
         <${BarChart} goal=${r.ready ? Math.round(r.tdee) : undefined} fmtY=${v => fmtBig(v)} fmtV=${v => v.toLocaleString()} unit="kcal/day" bars=${weeksIntake.map(w => ({ x: w.start, week: true, value: Math.round(w.kcal), dim: !w.n }))} />
-        <span class="tiny muted">${r.ready ? 'Dashed line is your adaptive burn. Bars under it are deficit weeks.' : 'Your burn line appears once Adaptive burn has enough data.'}</span></div>
+        <span class="tiny muted">${r.ready ? 'The dashed line is your calorie burn. Bars below it are weeks you ate less than you burned.' : 'Your burn line shows up once Calorie burn has about two weeks of data.'}</span></div>
       <div class="list">${weeksIntake.slice().reverse().map(w => html`<div class="row">
         <div class="grow"><div class="title">Week of ${fmtDate(w.start)}</div><div class="sub">${w.n ? `${kc(w.kcal)} kcal avg over ${w.n} days` : 'no food logged'}</div></div>
         <span class=${'pill ' + (w.change == null ? '' : w.change >= 0 ? 'good' : w.change > -0.02 ? 'warn' : 'bad')}>${w.change == null ? 'no lifts' : signed(w.change * 100, 1) + '%'}</span>
       </div>`)}</div>
-      <div class="card small text-2">Strength change compares your best estimated 1RM each week with your recent best on your main lifts. Small dips happen. Several weeks in a row going down while in a big deficit is the cue to eat a bit more, especially protein.</div>`;
+      <div class="card small text-2">The percentage is how your main lifts changed that week compared with your recent best. Small dips are normal. If it drops several weeks in a row while you're eating a lot less, eat a bit more, especially protein.</div>`;
   },
 };
 
@@ -682,7 +682,7 @@ function weekScore(state, offset = 0) {
 
 const score = {
   type: 'score', title: 'Weekly score', cat: 'Combined',
-  blurb: 'One number for how the week is going: training, protein, calories and weigh-ins.',
+  blurb: 'One score out of 100 for your week: workouts, protein, calories and weigh-ins.',
   compact({ state }) {
     const r = weekScore(state, 0);
     const col = r.total >= 80 ? 'good' : r.total >= 55 ? '' : 'warn';
@@ -698,25 +698,25 @@ const score = {
         ${r.parts.map(([l, v, m]) => html`<div class="stack" style="gap:6px">
           <div class="hstack" style="justify-content:space-between"><span class="small">${l}</span><span class="num small">${Math.round(v * m)} / ${m}</span></div>
           <div class="meter thin"><i class=${v >= 0.95 ? 'good' : ''} style=${`width:${v * 100}%`}></i></div></div>`)}
-        <span class="tiny muted">Training: sessions vs your weekly goal, scaled to how far into the week you are. Protein and calories: days on target (calories within 10%). Weigh-ins: up to 4 a week. Today isn't counted for food until it's over.</span>
+        <span class="tiny muted">Workouts: how close you are to your weekly goal for this point in the week. Protein and calories: days you hit your target (calories within 10%). Weigh-ins: up to 4 a week. Today's food counts once the day is over.</span>
       </div>
-      <div class="card stack"><span class="eyebrow">Last 8 weeks</span>
+      <div class="card stack"><span class="eyebrow">Score, last 8 weeks</span>
         <${BarChart} goal=${80} unit="/ 100" bars=${hist.map(h => ({ x: h.start, week: true, value: h.total, dim: h.total < 80 }))} /></div>`;
   },
 };
 
 const proteinProgress = {
-  type: 'proteinProgress', title: 'Protein vs progress', cat: 'Combined',
-  blurb: 'How your strength moved in weeks you hit protein compared to weeks you missed.',
+  type: 'proteinProgress', title: 'Protein and strength', cat: 'Combined',
+  blurb: 'Do you get stronger in weeks you hit your protein? This compares those weeks with the ones you missed.',
   compact({ state }) {
     const rows = ppRows(state);
     const good = rows.filter(r => r.hitRate >= 0.8 && r.change != null), bad = rows.filter(r => r.hitRate < 0.8 && r.change != null);
-    return html`<${Head} title="Protein vs progress" />
+    return html`<${Head} title="Protein and strength" />
       <div class="kv small" style="margin-top:4px">
-        <span class="text-2">Weeks on target</span><span class="num good" style="font-weight:600">${good.length ? signed(avg(good.map(r => r.change)) * 100, 1) + '%' : '–'}</span>
-        <span class="text-2">Weeks missed</span><span class="num" style="font-weight:600">${bad.length ? signed(avg(bad.map(r => r.change)) * 100, 1) + '%' : '–'}</span>
+        <span class="text-2">Hit protein</span><span class="num good" style="font-weight:600">${good.length ? signed(avg(good.map(r => r.change)) * 100, 1) + '%' : '–'}</span>
+        <span class="text-2">Missed it</span><span class="num" style="font-weight:600">${bad.length ? signed(avg(bad.map(r => r.change)) * 100, 1) + '%' : '–'}</span>
       </div>
-      <div class="tiny muted tile-foot" style="display:block">strength change per week, last 8 weeks</div>`;
+      <div class="tiny muted tile-foot" style="display:block">strength change a week, by week type (last 8 weeks)</div>`;
   },
   detail({ state }) {
     const rows = ppRows(state);
@@ -724,7 +724,7 @@ const proteinProgress = {
         <div class="grow"><div class="title">Week of ${fmtDate(r.start)}</div><div class="sub">protein hit ${r.hit} of ${r.n} logged days</div></div>
         <span class=${'pill ' + (r.change == null ? '' : r.change >= 0 ? 'good' : 'warn')}>${r.change == null ? '–' : signed(r.change * 100, 1) + '%'}</span>
       </div>`)}</div>
-      <div class="card small text-2">"On target" means protein hit on at least 80% of logged days that week. With more weeks of data the comparison gets more meaningful.</div>`;
+      <div class="card small text-2">A week counts as hitting protein when you reached your target on at least 80% of the days you logged. The more weeks you log, the more this means.</div>`;
   },
 };
 
@@ -742,7 +742,7 @@ function ppRows(state) {
 // ================================================================ BODY: measurements
 const measure = {
   type: 'measure', title: 'Measurements', cat: 'Body',
-  blurb: 'Your latest body measurements and how they changed. Waist first, since it tracks fat loss best.',
+  blurb: 'Your latest body measurements and how they changed. Waist comes first because it tracks fat loss best.',
   compact({ state }) {
     const keys = MEASURES.map(m => m[0]).filter(k => series(state, k).length);
     if (!keys.length) return html`<${Head} title="Measurements" />
@@ -769,6 +769,8 @@ const measure = {
   },
 };
 
-export const CARDS = { week, bodyweight, streak, strength, lift, muscles, prs, plateau, volume, calendar, cardio, sessionLength, calories, protein, macroSplit, trainRest, score, tdee, deficit, proteinProgress, measure };
+// Order here is the order cards appear in each section of Stats and Insights.
+export const CARDS = { week, streak, calendar, muscles, volume, sessionLength, strength, prs, lift, plateau, cardio, bodyweight, measure, calories, protein, macroSplit, trainRest, tdee, score, deficit, proteinProgress };
+export const CAT_LABEL = { Combined: 'Food and training' };
 export const CATEGORIES = ['Combined', 'Training', 'Strength', 'Food', 'Body', 'Cardio'];
 export const COMING = [];

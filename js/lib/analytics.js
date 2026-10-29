@@ -145,7 +145,7 @@ export function prEvents(state) {
   });
 }
 
-export const PR_LABEL = { kg: 'Heaviest', e1rm: 'Est. 1RM', vol: 'Best set', reps: 'Most reps', sprint: 'Fastest', km: 'Longest', hold: 'Longest hold' };
+export const PR_LABEL = { kg: 'Heaviest', e1rm: 'Est. max', vol: 'Best set', reps: 'Most reps', sprint: 'Fastest', km: 'Longest', hold: 'Longest hold' };
 
 // Weekly buckets going back n weeks (oldest first). Includes current week.
 export function weeks(state, n) {
