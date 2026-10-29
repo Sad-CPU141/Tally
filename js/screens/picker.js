@@ -2,6 +2,7 @@
 
 import { html, useState } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
+import { allExercises } from '../lib/analytics.js';
 import { MUSCLES, EQUIPMENT } from '../lib/exercises.js';
 import { Icon, openSheet, closeSheet, SheetHead, toast } from '../lib/ui.js';
 import { ExThumb } from '../lib/photo.js';
@@ -12,25 +13,30 @@ export function pickExercise(onPick, { title = 'Add exercise' } = {}) {
   function Body() {
     const [q, setQ] = useState('');
     const [m, setM] = useState('All');
-    const ex = store.get().exercises;
+    const [eq, setEq] = useState('All');
+    const [limit, setLimit] = useState(60);
+    const ex = allExercises(store.get());
     const ql = q.trim().toLowerCase();
-    const list = ex.filter(e => (m === 'All' || e.muscle === m) && (!ql || e.name.toLowerCase().includes(ql) || e.equip.toLowerCase().includes(ql)))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const words = ql.split(/\s+/).filter(Boolean);
+    const list = ex.filter(e => (m === 'All' || e.muscle === m) && (eq === 'All' || e.equip === eq) && words.every(w => (e.name + ' ' + e.equip + ' ' + e.muscle).toLowerCase().includes(w)));
     return html`
       <${SheetHead} title=${title} />
       <div class="hstack" style="position:relative">
         <span style="position:absolute;left:12px;color:var(--muted)"><${Icon} name="search" size=${18} /></span>
         <input id="ex-search" class="input" style="padding-left:38px" placeholder="Search exercises" value=${q} onInput=${e => setQ(e.target.value)} />
       </div>
-      <div class="chips">${['All', ...MUSCLES].map(x => html`<button class="chip" aria-pressed=${m === x} onClick=${() => setM(x)}>${x}</button>`)}</div>
+      <div class="chips">${['All', ...MUSCLES].map(x => html`<button class="chip" aria-pressed=${m === x} onClick=${() => { setM(x); setLimit(60); }}>${x}</button>`)}</div>
+      <div class="chips">${['All', ...EQUIPMENT].map(x => html`<button class="chip" aria-pressed=${eq === x} onClick=${() => { setEq(x); setLimit(60); }}>${x === 'All' ? 'Any equipment' : x}</button>`)}</div>
+      <div class="small muted">${list.length} exercises</div>
       <div class="list">
-        ${list.map(e => html`<button class="row" onClick=${() => { closeSheet(); onPick(e.id); }}>
+        ${list.slice(0, limit).map(e => html`<button class="row" onClick=${() => { closeSheet(); onPick(e.id); }}>
           <${ExThumb} ex=${e} size=${36} />
           <div class="grow"><div class="title">${e.name}</div><div class="sub">${e.muscle} · ${e.equip}${e.custom ? ' · custom' : ''}</div></div>
           <span class="chev"><${Icon} name="plus" size=${18} /></span>
         </button>`)}
         ${!list.length ? html`<div class="empty small">No match for "${q}".</div>` : null}
       </div>
+      ${list.length > limit ? html`<button class="btn ghost block" onClick=${() => setLimit(l => l + 100)}>Show more (${list.length - limit} left)</button>` : null}
       <button class="btn block" onClick=${() => editExercise(null, id => onPick(id), q)}><${Icon} name="plus" size=${18} /> Create "${q || 'new exercise'}"</button>`;
   }
   openSheet(() => html`<${Body} />`);
@@ -44,14 +50,19 @@ export function editExercise(existing, onSaved, prefillName = '') {
     const [type, setType] = useState(existing ? existing.type : 'weight');
     const [rest, setRest] = useState(existing && existing.rest != null ? String(existing.rest) : '');
     const [howto, setHowto] = useState(existing && existing.howto ? existing.howto : '');
-    const builtIn = existing && !existing.custom;
+    const builtIn = existing && !existing.custom && !existing.rd;
+    const fromCatalog = existing && existing.rd;
     const save = () => {
       const n = name.trim();
       if (!n) { toast('Give the exercise a name'); return; }
       let id = existing ? existing.id : 'c-' + store.uid();
       store.update(st => {
         const r = rest === '' ? undefined : Math.max(0, parseInt(rest) || 0);
-        if (existing) Object.assign(st.exercises.find(e => e.id === id), { name: n, muscle, equip, type, rest: r, ...(builtIn ? {} : { howto }) });
+        if (existing) {
+          let mine = st.exercises.find(e => e.id === id);
+          if (!mine) { mine = { ...existing }; st.exercises.push(mine); } // a catalog exercise: save your own copy
+          Object.assign(mine, { name: n, muscle, equip, type, rest: r, ...(builtIn ? {} : { howto }) });
+        }
         else st.exercises.push({ id, name: n, muscle, equip, type, secondary: [], custom: true, howto, ...(r != null ? { rest: r } : {}) });
       });
       closeSheet();

@@ -1,5 +1,6 @@
 import { html, render, useState, useEffect } from './vendor/preact-htm.js';
 import * as store from './lib/store.js';
+import { loadCatalog } from './lib/catalog.js';
 import { Icon, nav, useRoute, SheetHost, ToastHost, TABS } from './lib/ui.js';
 import { Today } from './screens/today.js';
 import { Train, RoutineEdit, WorkoutView, ExerciseScreen, Library } from './screens/train.js';
@@ -46,7 +47,7 @@ function App() {
     <${ToastHost} />`;
 }
 
-store.load().then(() => {
+Promise.all([store.load(), loadCatalog()]).then(() => {
   const app = document.getElementById('app');
   app.innerHTML = '';
   render(html`<${App} />`, app);

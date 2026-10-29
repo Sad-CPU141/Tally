@@ -21,7 +21,8 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 1. **Core gym** ✓
    - Your own routines (no templates), 58 built-in exercises plus custom ones
    - Starting a workout while one is open asks to save it, discard it, or go back
-   - Start/end images for 55 of the 58 exercises from RepDB, flipping to show the movement, offline; tap the name for its page: overview (this workout, records, rep maxes, e1RM chart), how-to steps, and full history
+   - 700 exercises: the 58 built-ins plus 642 from RepDB's free tier (`data/catalog.json`, images in `media/rd/`), searchable by name, muscle and equipment
+   - Start/end images flipping to show the movement; built-in images work offline from install, catalog images once viewed; tap the name for its page: overview (this workout, records, rep maxes, e1RM chart), how-to steps, and full history
    - Workout logging: previous numbers per set (matched by set type), tick an empty set to accept the suggested numbers, warm-ups carried over
    - Set types (warm-up, working, drop, failure), per-exercise notes and rest times
    - Rest timer that starts on its own, with ±15s and a sound/vibration at the end

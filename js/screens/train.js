@@ -3,7 +3,7 @@
 import { html, useState } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
 import * as A from '../lib/analytics.js';
-import { MUSCLES } from '../lib/exercises.js';
+import { MUSCLES, EQUIPMENT } from '../lib/exercises.js';
 import { howtoFor } from '../lib/howto.js';
 import { ExPhoto, mediaFor, PHOTO_CREDIT } from '../lib/photo.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast } from '../lib/ui.js';
@@ -195,15 +195,15 @@ function MyNotes({ ex }) {
   const [v, setV] = useState(ex.notes || '');
   return html`<div class="field"><label for="ex-notes">My notes</label>
     <textarea id="ex-notes" class="input" placeholder="Seat height, grip, cues that work for you…" value=${v} onInput=${e => setV(e.target.value)}
-      onBlur=${() => store.update(st => { const x = st.exercises.find(y => y.id === ex.id); if (x) x.notes = v; })}></textarea>
+      onBlur=${() => store.update(st => { let x = st.exercises.find(y => y.id === ex.id); if (!x) { x = { ...ex }; st.exercises.push(x); } x.notes = v; })}></textarea>
     <span class="tiny muted">Saved on this phone, shown whenever you open this exercise.</span></div>`;
 }
 
 function ExHowTo({ state, ex }) {
-  const m = mediaFor(ex);
-  const mine = howtoFor(ex);
-  const steps = m && m.steps && m.steps.length ? m.steps : mine ? mine.steps : null;
-  const tips = mine && !mine.custom ? mine.tips : [];
+  const m = ex.rd ? ex : mediaFor(ex);
+  const mine = ex.rd ? null : howtoFor(ex);
+  const steps = ex.rd && ex.steps && ex.steps.length ? ex.steps : m && m.steps && m.steps.length ? m.steps : mine ? mine.steps : null;
+  const tips = ex.rd ? (ex.tips || []) : mine && !mine.custom ? mine.tips : [];
   return html`
     <div class="card stack">
       <span class="eyebrow">Muscles worked</span>
@@ -214,10 +214,11 @@ function ExHowTo({ state, ex }) {
         ${m && m.force ? html`<span class="text-2">Movement</span><span>${m.force[0].toUpperCase() + m.force.slice(1)}</span>` : null}
       </div>
     </div>
+    ${ex.rd && ex.desc ? html`<div class="card small text-2">${ex.desc}</div>` : null}
     ${steps ? html`<div class="card stack"><span class="eyebrow">Steps</span><ol class="steps">${steps.map(t => html`<li>${t}</li>`)}</ol></div>` : null}
     ${tips.length ? html`<div class="card stack"><span class="eyebrow">Quick tips</span>${tips.map(t => html`<div class="hstack small" style="align-items:flex-start;gap:10px"><span style="color:var(--accent);margin-top:1px"><${Icon} name="bolt" size=${16} /></span><span class="text-2">${t}</span></div>`)}</div>` : null}
     ${!steps ? html`<div class="card empty small"><span class="h-md">No guide for this exercise yet</span>Add your own steps with Edit, one step per line.<button class="btn sm" onClick=${() => editExercise(ex)}>Write a guide</button></div>` : null}
-    <p class="tiny muted credit" style="margin:0">Images: <a href="https://repdb.co" target="_blank" rel="noopener">Exercise data by RepDB (repdb.co)</a>. Steps from Free Exercise DB. General guidance; if something hurts, stop and get it checked.</p>`;
+    <p class="tiny muted credit" style="margin:0">Images: <a href="https://repdb.co" target="_blank" rel="noopener">Exercise data by RepDB (repdb.co)</a>.${ex.rd ? '' : ' Steps from Free Exercise DB.'} General guidance; if something hurts, stop and get it checked.</p>`;
 }
 
 function ExHistory({ state, ex }) {
@@ -246,16 +247,24 @@ export function Library({ state }) {
   const ql = q.trim().toLowerCase();
   const counts = new Map();
   for (const w of A.finished(state)) for (const e of w.entries) counts.set(e.exId, (counts.get(e.exId) || 0) + 1);
-  const list = state.exercises.filter(e => (m === 'All' || e.muscle === m) && (!ql || e.name.toLowerCase().includes(ql))).sort((a, b) => a.name.localeCompare(b.name));
+  const [eq, setEq] = useState('All');
+  const [limit, setLimit] = useState(80);
+  const all = A.allExercises(state);
+  const words = ql.split(/\s+/).filter(Boolean);
+  const list = all.filter(e => (m === 'All' || e.muscle === m) && (eq === 'All' || e.equip === eq) && words.every(w => (e.name + ' ' + e.equip + ' ' + e.muscle).toLowerCase().includes(w)));
   return html`
     <${TopBar} title="Exercises" back=${true} right=${html`<button class="btn sm primary" onClick=${() => editExercise(null)}>New</button>`} />
     <div class="page">
-      <input id="lib-search" class="input" placeholder="Search ${state.exercises.length} exercises" value=${q} onInput=${e => setQ(e.target.value)} />
-      <div class="chips">${['All', ...MUSCLES].map(x => html`<button class="chip" aria-pressed=${m === x} onClick=${() => setM(x)}>${x}</button>`)}</div>
-      <div class="list">${list.map(e => html`<button class="row" onClick=${() => nav.go('exercise', { id: e.id })}>
+      <input id="lib-search" class="input" placeholder="Search ${all.length} exercises" value=${q} onInput=${e => setQ(e.target.value)} />
+      <div class="chips">${['All', ...MUSCLES].map(x => html`<button class="chip" aria-pressed=${m === x} onClick=${() => { setM(x); setLimit(80); }}>${x}</button>`)}</div>
+      <div class="chips">${['All', ...EQUIPMENT].map(x => html`<button class="chip" aria-pressed=${eq === x} onClick=${() => { setEq(x); setLimit(80); }}>${x === 'All' ? 'Any equipment' : x}</button>`)}</div>
+      <div class="small muted">${list.length} exercises${counts.size ? ` · ${counts.size} you've done` : ''}</div>
+      <div class="list">${list.slice(0, limit).map(e => html`<button class="row" onClick=${() => nav.go('exercise', { id: e.id })}>
         <${ExThumb} ex=${e} size=${36} />
         <div class="grow"><div class="title">${e.name}</div><div class="sub">${e.muscle} · ${e.equip}${e.custom ? ' · custom' : ''}</div></div>
         ${counts.get(e.id) ? html`<span class="small muted num">${counts.get(e.id)}×</span>` : null}
         <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`)}</div>
+      ${list.length > limit ? html`<button class="btn ghost block" onClick=${() => setLimit(l => l + 120)}>Show more (${list.length - limit} left)</button>` : null}
+      <p class="tiny muted credit" style="margin:0;text-align:center"><a href="https://repdb.co" target="_blank" rel="noopener">Exercise data by RepDB (repdb.co)</a></p>
     </div>`;
 }

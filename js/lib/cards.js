@@ -266,7 +266,7 @@ const muscles = {
 function MuscleBars({ state, idx, limit }) {
   const b = A.weeks(state, 8);
   const wk = b[b.length - 1 - idx];
-  const order = ['Chest', 'Back', 'Shoulders', 'Quads', 'Hamstrings', 'Glutes', 'Biceps', 'Triceps', 'Calves', 'Core'];
+  const order = ['Chest', 'Back', 'Shoulders', 'Quads', 'Hamstrings', 'Glutes', 'Biceps', 'Triceps', 'Forearms', 'Calves', 'Core'];
   let rows = order.map(m => [m, wk.muscles[m] || 0]);
   if (limit) rows = rows.slice().sort((a, b) => b[1] - a[1]).slice(0, limit);
   const max = Math.max(24, ...rows.map(r => r[1]));
@@ -401,7 +401,7 @@ const cardio = {
   detail({ state }) {
     const du = state.settings.distUnit;
     const b = A.weeks(state, 12);
-    const sprintIds = state.exercises.filter(e => e.type === 'sprint').map(e => e.id);
+    const sprintIds = A.allExercises(state).filter(e => e.type === 'sprint').map(e => e.id);
     const sprintHist = sprintIds.flatMap(id => A.exerciseHistory(state, id)).filter(p => p.sprint).sort((a, b) => a.date - b.date);
     return html`
       <div class="card stack"><span class="eyebrow">Distance per week (${du})</span>

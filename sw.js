@@ -1,12 +1,14 @@
 // Offline support.
 // - App code (HTML, JS, CSS) is network-first, so a new deploy shows up on the next open,
 //   with the cached copy used when there's no signal.
-// - Fonts and icons are cache-first since they rarely change.
+// - Fonts, icons and exercise images are cache-first. The 58 built-in exercise images are
+//   saved on install; the other ~640 are saved the first time you view them.
 // Bump VERSION whenever you deploy.
-const VERSION = 'tally-v11';
+const VERSION = 'tally-v12';
 const ASSETS = [
   './',
   './css/app.css',
+  './data/catalog.json',
   './fonts/archivo.woff2',
   './fonts/geist-mono.woff2',
   './fonts/geist.woff2',
@@ -19,6 +21,7 @@ const ASSETS = [
   './js/lib/actions.js',
   './js/lib/analytics.js',
   './js/lib/cards.js',
+  './js/lib/catalog.js',
   './js/lib/charts.js',
   './js/lib/dash-defaults.js',
   './js/lib/exercises.js',

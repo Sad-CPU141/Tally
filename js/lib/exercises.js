@@ -2,8 +2,8 @@
 // type: 'weight' (weight × reps) | 'bw' (reps, optional added weight) | 'time' (hold seconds)
 //       'cardio' (distance + duration) | 'sprint' (each set = one sprint: distance + time)
 
-export const MUSCLES = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core', 'Cardio'];
-export const EQUIPMENT = ['Barbell', 'Dumbbell', 'Cable', 'Machine', 'Bodyweight', 'Kettlebell', 'Smith', 'Other'];
+export const MUSCLES = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core', 'Cardio'];
+export const EQUIPMENT = ['Barbell', 'Dumbbell', 'Cable', 'Machine', 'Bodyweight', 'Kettlebell', 'Smith', 'Band', 'Ball', 'Other'];
 
 const x = (id, name, muscle, equip, type = 'weight', secondary = [], rest) => ({ id, name, muscle, equip, type, secondary, ...(rest ? { rest } : {}) });
 

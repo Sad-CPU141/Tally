@@ -1,6 +1,7 @@
 // All the number crunching. Pure functions over state, memoized per state revision.
 
 import { startOfWeek, addDays, dayKey, fromKey, DAY, startOfDay, daysBetween } from './util.js';
+import { catalog, catalogSize } from './catalog.js';
 
 export const e1rm = (kg, reps) => {
   if (!kg || !reps) return 0;
@@ -21,7 +22,9 @@ function memo(state, key, fn) {
   return v;
 }
 
-export const exMap = state => memo(state, 'exmap', () => new Map(state.exercises.map(e => [e.id, e])));
+// Built-ins and custom exercises (saved data) take priority over the catalog.
+export const exMap = state => memo(state, 'exmap:' + catalogSize(), () => new Map([...catalog().map(e => [e.id, e]), ...state.exercises.map(e => [e.id, e])]));
+export const allExercises = state => memo(state, 'exall:' + catalogSize(), () => [...exMap(state).values()].sort((a, b) => a.name.localeCompare(b.name)));
 
 export const finished = state => memo(state, 'finished', () =>
   state.workouts.filter(w => w.end).slice().sort((a, b) => a.start - b.start));

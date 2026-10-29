@@ -5,11 +5,14 @@
 import { html, useState, useEffect } from '../vendor/preact-htm.js';
 import { MEDIA } from './exmedia.js';
 import { RD } from './rdmedia.js';
+import { catalogGet } from './catalog.js';
 
 const base = new URL('../../media/rd/', import.meta.url).href;
 export const imgUrl = (id, i = 0) => `${base}${id}-${i}.webp`;
-export const hasPhoto = ex => !!(ex && RD[ex.id]);
-export const mediaFor = ex => (ex && MEDIA[ex.id]) || null;
+// Frames available for an exercise: built-ins via RD, catalog exercises via their own entry.
+const framesOf = ex => !ex ? 0 : RD[ex.id] ? RD[ex.id].frames : (catalogGet(ex.id) || {}).frames || 0;
+export const hasPhoto = ex => framesOf(ex) > 0;
+export const mediaFor = ex => (ex && (MEDIA[ex.id] || (ex.rd ? ex : null))) || null;
 
 function initials(name = '') {
   return name.replace(/[^A-Za-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
@@ -31,8 +34,8 @@ const reduced = () => { try { return matchMedia('(prefers-reduced-motion: reduce
 
 // Start and end positions. Flips every 1.1 s; tap to pause. Reduced motion shows buttons only.
 export function ExPhoto({ ex }) {
-  const r = ex && RD[ex.id];
-  const two = r && r.frames > 1;
+  const n = framesOf(ex);
+  const two = n > 1;
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(!!two && !reduced());
   useEffect(() => {
@@ -40,7 +43,7 @@ export function ExPhoto({ ex }) {
     const t = setInterval(() => setFrame(f => 1 - f), 1100);
     return () => clearInterval(t);
   }, [playing]);
-  if (!r) return null;
+  if (!n) return null;
   return html`<div class="rdphoto">
     <button class="rdphoto-frame" aria-label=${two ? (playing ? 'Pause' : 'Play') : ex.name} onClick=${() => two && setPlaying(p => !p)}>
       <img src=${imgUrl(ex.id, 0)} alt=${`${ex.name}${two ? ', start position' : ''}`} decoding="async" />
