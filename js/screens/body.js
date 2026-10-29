@@ -7,6 +7,7 @@ import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, toast, confirmShee
 import { Sparkline, LineChart } from '../lib/charts.js';
 import { logBodyweight } from '../lib/actions.js';
 import { PhotoStrip } from './photos.js';
+import { trendView } from '../lib/cards.js';
 import { bwUnit, w, fmtNum, signed, toUnit, todayKey, fmtRel, fmtDate, fromKey, DAY, round } from '../lib/util.js';
 
 // key, label, kind ('len' in cm, 'pct'), a hint shown when logging
@@ -103,9 +104,9 @@ export function Body({ state }) {
         <div class="tile-head"><span class="eyebrow">Bodyweight</span><span class="chev"><${Icon} name="chev" size=${18} /></span></div>
         ${last ? html`
           <div class="hstack" style="justify-content:space-between;align-items:flex-end">
-            <div><div class="big">${w(last.raw, unit)}<small>${unit}</small></div>
-              <div class="tiny muted">7-day avg ${w(last.avg7, unit)} · <span class=${rate != null && rate < 0 ? 'good' : 'text-2'}>${rate == null ? 'need 3+ weigh-ins' : signed(toUnit(rate, unit), 1) + ' ' + unit + '/wk'}</span></div></div>
-            <div style="width:45%"><${Sparkline} values=${tr.slice(-30).map(p => p.raw)} /></div>
+            <div><div class="big">${w(trendView(state) ? last.trend : last.raw, unit)}<small>${unit}</small></div>
+              <div class="tiny muted">${trendView(state) ? 'trend' : `7-day avg ${w(last.avg7, unit)}`} · <span class=${rate != null && rate < 0 ? 'good' : 'text-2'}>${rate == null ? 'need 3+ weigh-ins' : signed(toUnit(rate, unit), 1) + ' ' + unit + '/wk'}</span></div></div>
+            <div style="width:45%"><${Sparkline} values=${tr.slice(-30).map(p => trendView(state) ? p.trend : p.raw)} /></div>
           </div>` : html`<div class="small text-2">No weigh-ins yet.</div>`}
       </button>
       <div class="grid2">
