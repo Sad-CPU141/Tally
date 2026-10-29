@@ -393,8 +393,8 @@ textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: ver
 .fig img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fig-anim { background: #fff; }
 .fig-anim img { object-fit: contain; }
-.exanim { border-radius: var(--r-card); overflow: hidden; background: #fff; display: grid; place-items: center; aspect-ratio: 16 / 10; max-width: 100%; border: 1px solid var(--line); }
-.exanim img { height: 100%; width: auto; max-width: 100%; object-fit: contain; image-rendering: auto; }
+.exanim { width: 100%; max-width: 100%; border-radius: var(--r-card); overflow: hidden; background: #fff; border: 1px solid var(--line); display: flex; justify-content: center; }
+.exanim img { display: block; width: min(100%, 360px); aspect-ratio: 1; object-fit: contain; }
 .fig-none { color: var(--muted); font-weight: 700; letter-spacing: .02em; font-family: var(--font-display); }
 .row .fig { margin-left: -4px; }
 .ex-top .fig { margin-right: 2px; }
