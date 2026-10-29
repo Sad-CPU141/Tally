@@ -55,6 +55,8 @@ A combined gym and food tracker for Xrazt and 8 friends. Installs to the home sc
 
 ## Credits
 
+- Everyday foods: USDA FoodData Central (SR Legacy + Foundation Foods), public domain, via [UntrustedTech/health-foods](https://github.com/UntrustedTech/health-foods) (CC0). Bundled in `data/foods.json`.
+
 - Exercise images: [Exercise data by RepDB (repdb.co)](https://repdb.co), free tier, resized in `media/rd/` (map in `js/lib/rdmedia.js`). In-app use only; not to be redistributed as a dataset.
 - Exercise steps and details: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain), in `js/lib/exmedia.js`.
 - Food data: [Open Food Facts](https://world.openfoodfacts.org).

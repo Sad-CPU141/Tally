@@ -27,6 +27,7 @@ export function entryFrom(food, qty, unit, meal, date) {
   const n = nutritionFor(food, qty, unit);
   const e = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), date, meal, foodId: food.id || null, name: food.name, brand: food.brand || '', qty, unit };
   for (const k of NUTRIENTS) e[k] = round(n[k], 2);
+  if (unit === 'serving' && food.serving && food.serving.label) e.sl = food.serving.label; // keep the portion name with the entry
   return e;
 }
 
@@ -41,7 +42,7 @@ export const dayTotals = (state, key) => sum(dayEntries(state, key));
 
 export function qtyLabel(e, food) {
   if (e.unit === 'g') return `${round(e.qty, 1)} g`;
-  const label = food && food.serving && food.serving.label ? food.serving.label : 'serving';
+  const label = e.sl || (food && food.serving && food.serving.label ? food.serving.label : 'serving');
   return e.qty === 1 ? label : `${round(e.qty, 2)} × ${label}`;
 }
 

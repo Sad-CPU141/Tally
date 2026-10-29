@@ -7,6 +7,7 @@ import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toas
 import { bwUnit, todayKey, dayKey, fromKey, addDays, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
 import { isRecipe, addIngredient, addEntryAsIngredient, newRecipe } from '../lib/recipes.js';
+import { loadFoodDB, searchFoodDB, foodDBReady } from '../lib/fooddb.js';
 
 // When Add Food is opened from a recipe, picked foods become ingredients instead of log entries.
 let intoRecipe = null;
@@ -151,18 +152,25 @@ function defaultPortion(food) {
   return ['100', 'g'];
 }
 
-export function foodSheet(food, date, meal, onDone) {
+// USDA foods come with common portions ("1 cup, chopped", "1 large egg"); picking one sets the serving.
+const withPortion = (food, pi) => pi >= 0 && food.portions && food.portions[pi] ? { ...food, serving: { label: food.portions[pi][0], g: food.portions[pi][1] } } : food.portions && food.portions.length ? { ...food, serving: null } : food;
+
+export function foodSheet(food0, date, meal, onDone) {
   function Body() {
+    const hasP = !!(food0.portions && food0.portions.length);
+    const [pi, setPi] = useState(hasP && food0.lastPortion != null ? food0.lastPortion : -1);
+    let food = withPortion(food0, pi);
     const [d0, u0] = defaultPortion(food);
-    const [qty, setQty] = useState(food.lastQty ? String(food.lastQty) : d0);
-    const [unit, setUnit] = useState(food.lastUnit || u0);
+    const [qty, setQty] = useState(food0.lastQty ? String(food0.lastQty) : d0);
+    const [unit, setUnit] = useState(food0.lastUnit || u0);
+    const pick = i => { setPi(i); setUnit(i < 0 ? 'g' : 'serving'); setQty(i < 0 ? '100' : '1'); };
     const add = () => {
       const q = parseFloat(qty);
       if (!q || q <= 0) { toast('Enter an amount'); return; }
       if (intoRecipe) {
         if (food.id === intoRecipe) { toast('A recipe can\'t contain itself'); return; }
         const rid = intoRecipe;
-        store.update(st => { let saved = st.foods.find(f => f.id === food.id); if (!saved) { saved = { ...food, id: food.id || 'f-' + store.uid() }; st.foods.push(saved); } saved.lastQty = q; saved.lastUnit = unit; food = saved; });
+        store.update(st => { let saved = st.foods.find(f => f.id === food.id); if (!saved) { saved = { ...food, id: food.id || 'f-' + store.uid() }; st.foods.push(saved); } if (hasP) { saved.serving = food.serving; saved.lastPortion = pi; } saved.lastQty = q; saved.lastUnit = unit; food = saved; });
         addIngredient(rid, food, q, unit);
         closeSheet(); toast('Added to recipe'); onDone && onDone();
         return;
@@ -170,6 +178,7 @@ export function foodSheet(food, date, meal, onDone) {
       store.update(st => {
         let saved = st.foods.find(f => f.id === food.id);
         if (!saved) { saved = { ...food, id: food.id || 'f-' + store.uid() }; st.foods.push(saved); }
+        if (hasP) { saved.serving = food.serving; saved.lastPortion = pi; }
         saved.used = Date.now(); saved.uses = (saved.uses || 0) + 1; saved.lastQty = q; saved.lastUnit = unit;
         st.foodLog.push(F.entryFrom(saved, q, unit, meal, date));
       });
@@ -180,7 +189,12 @@ export function foodSheet(food, date, meal, onDone) {
     return html`
       <${SheetHead} title=${food.name} />
       ${food.brand ? html`<div class="small muted" style="margin-top:-8px">${food.brand}</div>` : null}
-      <${Portion} food=${food} qty=${qty} unit=${unit} setQty=${setQty} setUnit=${setUnit} />
+      ${food.source === 'usda' ? html`<div class="tiny muted" style="margin-top:-8px">${food.cat ? food.cat + ' · ' : ''}USDA FoodData Central</div>` : null}
+      ${hasP ? html`<div class="chips wrap" role="group" aria-label="Portion">
+        <button class="chip" aria-pressed=${pi < 0} onClick=${() => pick(-1)}>Grams</button>
+        ${food0.portions.map((p, i) => html`<button class="chip" aria-pressed=${pi === i} onClick=${() => pick(i)}>${p[0]} (${Math.round(p[1])} g)</button>`)}
+      </div>` : null}
+      <${Portion} key=${pi} food=${food} qty=${qty} unit=${unit} setQty=${setQty} setUnit=${setUnit} />
       <button class="btn primary block" onClick=${add}>${intoRecipe ? 'Add to recipe' : `Add to ${meal}`}</button>`;
   }
   openSheet(() => html`<${Body} />`);
@@ -227,8 +241,12 @@ export function AddFood({ state, params }) {
   const [tab, setTab] = useState('recent');
   const [online, setOnline] = useState({ status: 'idle', items: [], q: '' });
   const [retry, setRetry] = useState(0);
+  const [dbOk, setDbOk] = useState(foodDBReady());
+  const [more, setMore] = useState(false);
   const timer = useRef(null);
+  useEffect(() => { if (!dbOk) loadFoodDB().then(() => setDbOk(true)).catch(() => {}); }, []);
   const ql = q.trim().toLowerCase();
+  useEffect(() => { setMore(false); }, [ql]);
 
   useEffect(() => {
     clearTimeout(timer.current);
@@ -248,7 +266,7 @@ export function AddFood({ state, params }) {
   const meals = ql ? state.meals.filter(m => m.name.toLowerCase().includes(ql)) : state.meals;
 
   const FoodRow = ({ f }) => html`<button class="row" onClick=${() => foodSheet(f, date, meal)}>
-    <div class="grow"><div class="title">${f.name}</div><div class="sub">${[f.brand, f.serving ? f.serving.label : f.per100 ? 'per 100 g' : ''].filter(Boolean).join(' · ')}</div></div>
+    <div class="grow" style="min-width:0"><div class=${'title' + (f.source === 'usda' ? ' wrap2' : '')}>${f.name}</div><div class="sub">${[f.brand, f.serving ? f.serving.label : f.per100 ? 'per 100 g' : '', f.source === 'usda' ? `${g(f.per100.p)} g protein` : ''].filter(Boolean).join(' · ')}</div></div>
     <span class="num small muted">${f.serving && f.per100 && f.serving.g ? kc(f.per100.kcal * f.serving.g / 100) : f.perServing ? kc(f.perServing.kcal) : f.per100 ? kc(f.per100.kcal) : ''} kcal</span>
   </button>`;
 
@@ -278,7 +296,16 @@ export function AddFood({ state, params }) {
             ${meals.map(m => html`<button class="row" onClick=${() => logMeal(m)}><span style="color:var(--accent)"><${Icon} name="bookmark" size=${18} /></span><div class="grow"><div class="title">${m.name}</div><div class="sub">Saved meal · ${m.items.length} foods</div></div><span class="num small muted">${kc(F.sum(m.items).kcal)} kcal</span></button>`)}
             ${local.slice(0, 12).map(f => html`<${FoodRow} f=${f} />`)}
           </div>` : null}
-        <div class="section-head"><span class="h-md">Online</span><span class="tiny muted">Open Food Facts</span></div>
+        ${(() => {
+          const mineIds = new Set(foods.map(f => f.id));
+          const common = dbOk && ql.length >= 2 ? searchFoodDB(ql, more ? 60 : 14).filter(f => !mineIds.has(f.id)).slice(0, more ? 60 : 12) : [];
+          return html`<div class="section-head"><span class="h-md">Common foods</span><span class="tiny muted">USDA · 8,000+ foods</span></div>
+            ${!dbOk ? html`<div class="card empty small">Loading foods…</div>`
+              : common.length ? html`<div class="list">${common.map(f => html`<${FoodRow} f=${f} />`)}</div>
+                ${!more && common.length >= 12 ? html`<button class="btn ghost block" onClick=${() => setMore(true)}>Show more</button>` : null}`
+              : html`<div class="small muted">No everyday food matches. Try fewer words, like "chicken breast" or "rice".</div>`}`;
+        })()}
+        <div class="section-head"><span class="h-md">Packaged and branded</span><span class="tiny muted">Open Food Facts</span></div>
         ${ql.length < 3 ? html`<div class="small muted">Type at least 3 letters to search online.</div>`
           : online.status === 'loading' || (online.q !== ql) ? html`<div class="card empty small">Searching…</div>`
           : online.status === 'error' ? html`<div class="card empty small">The food database didn't answer. It allows about 10 searches a minute, so wait a few seconds, or check your connection.

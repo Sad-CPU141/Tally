@@ -4,11 +4,12 @@
 // - Fonts, icons and exercise images are cache-first. The 58 built-in exercise images are
 //   saved on install; the other ~640 are saved the first time you view them.
 // Bump VERSION whenever you deploy.
-const VERSION = 'tally-v17';
+const VERSION = 'tally-v18';
 const ASSETS = [
   './',
   './css/app.css',
   './data/catalog.json',
+  './data/foods.json',
   './fonts/archivo.woff2',
   './fonts/geist-mono.woff2',
   './fonts/geist.woff2',
@@ -28,6 +29,7 @@ const ASSETS = [
   './js/lib/exmedia.js',
   './js/lib/firebase-config.js',
   './js/lib/food.js',
+  './js/lib/fooddb.js',
   './js/lib/howto.js',
   './js/lib/importer.js',
   './js/lib/photo.js',
