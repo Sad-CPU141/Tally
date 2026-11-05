@@ -15,6 +15,7 @@ import { Seg } from '../lib/ui.js';
 import { LiftDetail } from '../lib/cards.js';
 
 export function Train({ state }) {
+  const [histN, setHistN] = useState(15);
   const exm = A.exMap(state);
   const hist = A.finished(state).slice().reverse();
   const next = A.nextRoutine(state);
@@ -29,10 +30,10 @@ export function Train({ state }) {
         <span style="color:var(--accent)"><${Icon} name="play" /></span>
         <div class="grow"><div class="h-md">Resume ${state.active.name}</div><div class="small muted">Started ${fmtTime(state.active.start)}</div></div>
         <span class="chev"><${Icon} name="chev" /></span></button>` : null}
-      <div class="grid2">
-        <button class="btn primary" onClick=${() => startWorkout(up)} disabled=${!up}><${Icon} name="play" size=${18} /> ${up ? up.name : 'No routine'}</button>
+      ${up ? html`<div class="grid2">
+        <button class="btn primary" onClick=${() => startWorkout(up)}><${Icon} name="play" size=${18} /> ${up.name}</button>
         <button class="btn" onClick=${() => startWorkout(null)}>Empty workout</button>
-      </div>
+      </div>` : html`<button class="btn block" onClick=${() => startWorkout(null)}><${Icon} name="play" size=${18} /> Start an empty workout</button>`}
 
       ${state.routines.length ? html`<${WeekPlan} state=${state} />` : null}
 
@@ -48,12 +49,22 @@ export function Train({ state }) {
       ${state.routines.length ? html`<p class="tiny muted" style="margin:0">${sched ? 'Tap a routine to edit it, or ▶ to start. Tap a day above to change your week.' : 'Tap a routine to edit it, or ▶ to start. "Up next" goes through your routines in order until you set a weekly schedule.'}</p>` : null}
 
       <div class="section-head"><span class="h-md">History</span><span class="small muted">${hist.length} workouts</span></div>
-      ${hist.length ? html`<div class="list">${hist.slice(0, 40).map(wo => {
-        const st = A.workoutStats(wo, exm);
-        return html`<button class="row" onClick=${() => nav.go('workoutView', { id: wo.id })}>
-          <div class="grow"><div class="title">${wo.name}</div><div class="sub">${fmtRel(wo.start)} · ${fmtMins(st.duration)} · ${st.sets} sets${st.volume ? ` · ${fmtBig(toUnit(st.volume, unit))} ${unit}` : ''}</div></div>
-          <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`;
-      })}</div>` : html`<div class="card empty small">Finished workouts show up here.</div>`}
+      ${hist.length ? (() => {
+        // Grouped by month, 15 at a time, so long histories stay quick to scroll.
+        const groups = [];
+        for (const wo of hist.slice(0, histN)) {
+          const d = new Date(wo.start), k = d.getFullYear() * 12 + d.getMonth();
+          const g = groups[groups.length - 1];
+          if (g && g.k === k) g.items.push(wo); else groups.push({ k, label: d.toLocaleDateString(undefined, { month: 'long', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }), items: [wo] });
+        }
+        return html`${groups.map(g => html`<div class="tiny muted hist-month">${g.label}</div><div class="list">${g.items.map(wo => {
+          const st = A.workoutStats(wo, exm);
+          return html`<button class="row" onClick=${() => nav.go('workoutView', { id: wo.id })}>
+            <div class="grow"><div class="title">${wo.name}</div><div class="sub">${fmtRel(wo.start)} · ${fmtMins(st.duration)} · ${st.sets} ${st.sets === 1 ? 'set' : 'sets'}${st.volume ? ` · ${fmtBig(toUnit(st.volume, unit))} ${unit}` : ''}</div></div>
+            <span class="chev"><${Icon} name="chev" size=${18} /></span></button>`;
+        })}</div>`)}
+        ${hist.length > histN ? html`<button class="btn ghost block" onClick=${() => setHistN(n => n + 30)}>Show older workouts (${hist.length - histN} more)</button>` : null}`;
+      })() : html`<div class="card empty small">Finished workouts show up here.</div>`}
     </div>`;
 }
 
@@ -251,14 +262,14 @@ function ExOverview({ state, ex, params }) {
         </div>
         ${ex.type === 'weight' && Object.keys(r.repMax).length ? html`<div class="card stack"><span class="eyebrow">Best weight for at least N reps (${unit})</span>
           <div class="reps-table">${A.REP_MAX.map(n => html`<div><span class="tiny muted">${n} RM</span><span class="num" style="font-weight:600">${r.repMax[n] ? w(r.repMax[n].value, unit) : '–'}</span></div>`)}</div></div>` : null}`
-      : ex.type === 'time' ? html`<div class="rec"><${Rec} label="Longest hold" value=${r.hold ? fmtDur(r.hold.value) : '–'} at=${r.hold} /><${Rec} label="Sessions" value=${h.length} sub="all time" /></div>`
+      : ex.type === 'time' ? html`<div class="rec"><${Rec} label="Longest hold" value=${r.hold ? fmtDur(r.hold.value) : '–'} at=${r.hold} /><${Rec} label="Workouts" value=${h.length} sub="all time" /></div>`
       : ex.type === 'cardio' ? html`<div class="rec">
           <${Rec} label="Longest" value=${r.longest ? `${fmtNum(toDist(r.longest.value, du), 2)} ${du}` : '–'} at=${r.longest} />
           <${Rec} label="Best pace" value=${r.pace ? `${fmtDur(r.pace.value * (du === 'mi' ? 1.609344 : 1))}/${du}` : '–'} at=${r.pace} />
           <${Rec} label="Longest time" value=${r.longestTime ? fmtDur(r.longestTime.value) : '–'} at=${r.longestTime} />
-          <${Rec} label="Sessions" value=${h.length} sub="all time" />
+          <${Rec} label="Workouts" value=${h.length} sub="all time" />
         </div>`
-      : html`<div class="rec">${Object.entries(r.sprints).sort((x, y) => +x[0] - +y[0]).map(([m, v]) => html`<${Rec} label=${`Fastest ${m} m`} value=${`${fmtNum(v.value, 2)} s`} at=${v} />`)}<${Rec} label="Sessions" value=${h.length} sub="all time" /></div>`}
+      : html`<div class="rec">${Object.entries(r.sprints).sort((x, y) => +x[0] - +y[0]).map(([m, v]) => html`<${Rec} label=${`Fastest ${m} m`} value=${`${fmtNum(v.value, 2)} s`} at=${v} />`)}<${Rec} label="Workouts" value=${h.length} sub="all time" /></div>`}
 
       ${ex.type === 'weight' ? html`<${LiftDetail} state=${state} exId=${ex.id} chartOnly=${true} />` : null}
     `}
@@ -325,7 +336,7 @@ export function Library({ state }) {
   const [limit, setLimit] = useState(80);
   const all = A.allExercises(state);
   const words = ql.split(/\s+/).filter(Boolean);
-  const list = all.filter(e => (m === 'All' || e.muscle === m) && (eq === 'All' || e.equip === eq) && words.every(w => (e.name + ' ' + e.equip + ' ' + e.muscle).toLowerCase().includes(w)));
+  const list = A.searchExercises(state, all.filter(e => (m === 'All' || e.muscle === m) && (eq === 'All' || e.equip === eq)), ql);
   return html`
     <${TopBar} title="Exercises" back=${true} right=${html`<button class="btn sm primary" onClick=${() => editExercise(null)}>New</button>`} />
     <div class="page">

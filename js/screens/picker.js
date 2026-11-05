@@ -2,7 +2,7 @@
 
 import { html, useState } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
-import { allExercises } from '../lib/analytics.js';
+import { allExercises, searchExercises } from '../lib/analytics.js';
 import { MUSCLES, EQUIPMENT } from '../lib/exercises.js';
 import { Icon, openSheet, closeSheet, SheetHead, toast } from '../lib/ui.js';
 import { ExThumb } from '../lib/photo.js';
@@ -18,7 +18,7 @@ export function pickExercise(onPick, { title = 'Add exercise' } = {}) {
     const ex = allExercises(store.get());
     const ql = q.trim().toLowerCase();
     const words = ql.split(/\s+/).filter(Boolean);
-    const list = ex.filter(e => (m === 'All' || e.muscle === m) && (eq === 'All' || e.equip === eq) && words.every(w => (e.name + ' ' + e.equip + ' ' + e.muscle).toLowerCase().includes(w)));
+    const list = searchExercises(store.get(), ex.filter(e => (m === 'All' || e.muscle === m) && (eq === 'All' || e.equip === eq)), ql);
     return html`
       <${SheetHead} title=${title} />
       <div class="hstack" style="position:relative">

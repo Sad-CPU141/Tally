@@ -121,6 +121,13 @@ export const genericByName = n => generic && generic.find(g => g.n === n);
 export const genericFor = id => generic && generic.find(g => g.v.some(v => v[1] === +id));
 export const brandById = id => rest && rest.brands.find(b => b.id === id);
 export const brands = () => (rest ? rest.brands : []);
+// Menus get updated, so find a saved restaurant item by its name rather than its position.
+export function itemIndexFor(brandId, name, fallback) {
+  const b = brandById(brandId);
+  if (!b || !name) return fallback;
+  const i = b.items.findIndex(it => it.n === name);
+  return i >= 0 ? i : fallback;
+}
 
 // A USDA row as a loggable food, named the friendly way when it's one of the everyday foods.
 export function usdaFood(id, label) {
@@ -145,7 +152,7 @@ export function restFood(brandId, itemIndex, sizeIndex = 0) {
   const [label, kcal, fat, sat, sodium, carbs, fiber, sugar, p] = s;
   const sized = it.s.length > 1 ? `${it.n} (${label})` : it.n;
   return {
-    id: `r-${b.id}-${norm(sized).replace(/ /g, '-')}`, name: sized, brand: b.name, source: 'restaurant', brandId: b.id, item: itemIndex, size: sizeIndex,
+    id: `r-${b.id}-${norm(sized).replace(/ /g, '-')}`, name: sized, brand: b.name, source: 'restaurant', brandId: b.id, item: itemIndex, itemName: it.n, size: sizeIndex,
     serving: { label: it.s.length > 1 ? label : (label === '1 item' ? '1 serving' : label), g: null },
     perServing: { kcal, p, c: carbs, f: fat, fiber, sugar, sodium, satfat: sat }, per100: null,
   };

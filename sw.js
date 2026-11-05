@@ -4,7 +4,7 @@
 // - Fonts, icons and exercise images are cache-first. The 58 built-in exercise images are
 //   saved on install; the other ~640 are saved the first time you view them.
 // Bump VERSION whenever you deploy.
-const VERSION = 'tally-v25';
+const VERSION = 'tally-v26';
 const ASSETS = [
   './',
   './css/app.css',
@@ -191,8 +191,17 @@ self.addEventListener('fetch', e => {
     })));
     return;
   }
-  e.respondWith(fetch(new Request(req, { cache: 'no-cache' })).then(res => {
+  // Network first so updates arrive right away, but on slow gym Wi-Fi fall back to the saved copy
+  // after 3 seconds (the download keeps going in the background and refreshes the saved copy).
+  const net = fetch(new Request(req, { cache: 'no-cache' })).then(res => {
     if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
     return res;
-  }).catch(() => caches.match(req, { ignoreSearch: true }).then(hit => hit || caches.match('./index.html'))));
+  });
+  e.respondWith(new Promise(resolve => {
+    let done = false;
+    const finish = r => { if (!done && r) { done = true; resolve(r); } };
+    const t = setTimeout(() => caches.match(req, { ignoreSearch: true }).then(finish), 3000);
+    net.then(res => { clearTimeout(t); finish(res); })
+      .catch(() => { clearTimeout(t); caches.match(req, { ignoreSearch: true }).then(hit => hit || caches.match('./index.html')).then(r => finish(r || Response.error())); });
+  }));
 });

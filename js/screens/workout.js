@@ -194,7 +194,7 @@ export function Workout({ state }) {
       <div class="wo-head">
         <div><div class="eyebrow">Elapsed</div><div class="wo-clock num">${fmtDur((Date.now() - a.start) / 1000)}</div></div>
         <div><div class="eyebrow">Sets</div><div class="num" style="font-weight:600">${doneSets}</div></div>
-        <div><div class="eyebrow">Volume</div><div class="num" style="font-weight:600">${fmtBig(toUnit(vol, state.settings.unit))} ${state.settings.unit}</div></div>
+        <div><div class="eyebrow">Lifted</div><div class="num" style="font-weight:600">${fmtBig(toUnit(vol, state.settings.unit))} ${state.settings.unit}</div></div>
         <div class="spacer"></div>
         <button class="icon-btn" aria-label="Workout options" onClick=${() => workoutMenu(state)}><${Icon} name="more" /></button>
       </div>
@@ -492,12 +492,12 @@ export function Summary({ state, params }) {
       <div class="stack" style="gap:6px">
         <span class="eyebrow">Workout complete</span>
         <h1 class="h-xl">${wo.name}</h1>
-        <span class="muted">Session ${wk.sessions} of ${state.settings.weeklyGoal} this week</span>
+        <span class="muted">Workout ${wk.sessions} of ${state.settings.weeklyGoal} this week</span>
       </div>
       <div class="summary-grid">
         <div class="stat"><span class="eyebrow">Time</span><span class="mid">${fmtMins(st.duration)}</span></div>
         <div class="stat"><span class="eyebrow">Sets</span><span class="mid">${st.sets}</span></div>
-        <div class="stat"><span class="eyebrow">Volume</span><span class="mid">${fmtBig(toUnit(st.volume, unit))}</span></div>
+        <div class="stat"><span class="eyebrow">Lifted</span><span class="mid">${fmtBig(toUnit(st.volume, unit))} <small>${unit}</small></span></div>
       </div>
       ${prs.length ? html`
         <div class="card stack" style="border-color:color-mix(in srgb,var(--accent) 40%,var(--line))">

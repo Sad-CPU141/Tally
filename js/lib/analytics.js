@@ -379,3 +379,39 @@ export function exerciseRecords(state, exId) {
     return r;
   });
 }
+
+// How many workouts each exercise appears in, for ranking search results.
+export function exerciseUse(state) {
+  return memo(state, 'exuse', () => {
+    const m = new Map();
+    for (const w of state.workouts) for (const e of w.entries) m.set(e.exId, (m.get(e.exId) || 0) + 1);
+    for (const r of state.routines) for (const it of r.items) m.set(it.exId, (m.get(it.exId) || 0) + 0.5);
+    return m;
+  });
+}
+
+// Search exercises: every word must appear; exact and "starts with" matches, the 58 core exercises
+// and ones you've used come first, so "lat pulldown" finds Lat Pulldown before Behind-the-Neck Lat Pulldown.
+export function searchExercises(state, list, q) {
+  const ql = q.trim().toLowerCase();
+  const words = ql.split(/\s+/).filter(Boolean);
+  const use = exerciseUse(state);
+  const scored = [];
+  for (const e of list) {
+    const name = e.name.toLowerCase();
+    const hay = name + ' ' + (e.equip || '').toLowerCase() + ' ' + (e.muscle || '').toLowerCase();
+    if (!words.every(w => hay.includes(w))) continue;
+    let s = Math.min(20, (use.get(e.id) || 0) * 4);
+    if (!e.rd) s += 40; // the 58 core exercises are the ones most people mean
+    if (ql) {
+      if (name === ql) s += 100;
+      else if (name.startsWith(ql)) s += 50;
+      else if (name.includes(ql)) s += 30;
+      if (words.every(w => name.split(/[^a-z0-9]+/).includes(w))) s += 10;
+      s -= name.length * 0.3;
+    }
+    scored.push([s, e]);
+  }
+  if (!ql) return scored.sort((a, b) => b[0] - a[0] || a[1].name.localeCompare(b[1].name)).map(x => x[1]);
+  return scored.sort((a, b) => b[0] - a[0]).map(x => x[1]);
+}

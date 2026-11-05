@@ -62,7 +62,7 @@ export function Me({ state }) {
 
       <div class="section-head"><span class="h-md">Training</span></div>
       <div class="list">
-        <${Row} title="Weekly goal" sub="Sessions per week, used for your streak">
+        <${Row} title="Weekly goal" sub="Workouts per week, used for your streak and weekly score">
           <div class="hstack" style="gap:2px">
             <button class="icon-btn" aria-label="Lower goal" onClick=${() => setS('weeklyGoal', Math.max(1, s.weeklyGoal - 1))}><${Icon} name="minus" size=${18} /></button>
             <span class="num" style="min-width:22px;text-align:center;font-weight:600">${s.weeklyGoal}</span>
@@ -94,7 +94,7 @@ export function Me({ state }) {
         <${Row} title="Erase everything" sub="Deletes all workouts, routines and settings on this phone"><button class="btn sm danger" onClick=${eraseAll}>Erase</button><//>
       </div>
       ${store.isMemoryOnly() ? html`<div class="banner"><span class="grow">This browser isn't allowing storage, so nothing will be kept after you close it. Open Tally from your home screen or a normal browser window.</span></div>` : null}
-      <p class="tiny muted credit" style="text-align:center;margin:8px 0 0">Tally · Gym Macro Tracker<br />Food data from Open Food Facts · Exercise steps from Free Exercise DB<br /><a href="https://repdb.co" target="_blank" rel="noopener">Exercise data by RepDB (repdb.co)</a></p>
+      <p class="tiny muted credit" style="text-align:center;margin:8px 0 0">Tally · Gym Macro Tracker<br />Foods from USDA FoodData Central and Open Food Facts · Restaurant menus from each chain's published nutrition guide · Exercise steps from Free Exercise DB<br /><a href="https://repdb.co" target="_blank" rel="noopener" style="display:inline-block;padding:8px 0">Exercise data by RepDB (repdb.co)</a></p>
     </div>`;
 }
 
@@ -144,6 +144,8 @@ export function Onboarding() {
     <div class="field"><label>How do you want to start?</label>
       <div class="stack" style="gap:8px">
         <button class="opt" aria-pressed=${mode === 'fresh'} onClick=${() => setMode('fresh')}><div class="grow"><div class="h-md">Start fresh</div><div class="small muted">Build your own routines, one for each day of your split.</div></div></button>
+        <label class="opt" style="position:relative"><div class="grow"><div class="h-md">Bring my history</div><div class="small muted">Import from Strong, Hevy, FitNotes, MyFitnessPal or an Excel sheet.</div></div>
+          <input type="file" aria-label="Choose a file to import" accept=".xlsx,.xls,.xlsm,.ods,.csv,.tsv,.txt,.json,text/csv,application/json" style="position:absolute;inset:0;opacity:0" onChange=${e => { const f = e.target.files[0]; if (!f) return; store.update(st => { st.settings.name = name.trim(); st.settings.unit = unit; st.settings.onboarded = true; }); nav.tab('train'); setTimeout(() => importFile(f), 50); }} /></label>
         <button class="opt" aria-pressed=${mode === 'sample'} onClick=${() => setMode('sample')}><div class="grow"><div class="h-md">Explore with sample data</div><div class="small muted">8 weeks of example training so you can see every chart. Clear it later in Me.</div></div></button>
       </div></div>
     <button class="btn primary block" style="height:52px" onClick=${go}>Get started</button>

@@ -1,7 +1,7 @@
 // The analytics card library. Each card has a compact tile for Today
 // and a detail view with the full chart and breakdown.
 
-import { html, useState } from '../vendor/preact-htm.js';
+import { html, useState, useEffect, useRef } from '../vendor/preact-htm.js';
 import * as store from './store.js';
 import * as A from './analytics.js';
 import { Sparkline, LineChart, BarChart } from './charts.js';
@@ -300,8 +300,8 @@ const prs = {
     const month = ev.filter(e => e.date >= Date.now() - 30 * DAY && e.kind !== 'vol');
     const latest = ev.filter(e => e.kind !== 'vol').slice(-1)[0];
     return html`
-      <${Head} title="Records · 30 days" right=${html`<span class="muted"><${Icon} name="trophy" size=${18} /></span>`} />
-      <div class="big">${month.length}</div>
+      <${Head} title="Records" right=${html`<span class="muted"><${Icon} name="trophy" size=${18} /></span>`} />
+      <div class="big">${month.length}<small>last 30 days</small></div>
       <div class="tiny muted tile-foot" style="display:block">${latest ? html`Latest: <span class="text-2">${exName(state, latest.exId)}</span> · ${prValue(latest, state)}` : 'No records yet. They show up after you do a lift a second time.'}</div>`;
   },
   detail({ state }) {
@@ -375,9 +375,25 @@ const calendar = {
   detail({ state }) {
     const m = A.dayMap(state);
     const days = [...m.keys()].filter(k => k >= dayKey(Date.now() - 365 * DAY)).length;
-    return html`<div class="card stack"><span class="eyebrow">Last 12 months</span><div style="overflow-x:auto"><div style="min-width:640px"><${Heat} state=${state} weeksBack=${52} /></div></div><span class="tiny muted">${days} training days in the last year. Darker means more sets.</span></div>`;
+    return html`<div class="card stack"><span class="eyebrow">Last 12 months</span><${YearHeat} state=${state} /><span class="tiny muted">${days} training days in the last year. Swipe right for earlier months. Stronger colour means more sets.</span></div>`;
   },
 };
+
+// A year of weeks, opened at the most recent week, with month names along the top.
+function YearHeat({ state }) {
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current) ref.current.scrollLeft = ref.current.scrollWidth; }, []);
+  const start = addDays(startOfWeek(new Date(), state.settings.weekStart), -7 * 51);
+  const months = [];
+  for (let w = 0; w < 52; w++) {
+    const d = addDays(start, w * 7);
+    const prev = w ? addDays(start, (w - 1) * 7) : null;
+    months.push(!prev || prev.getMonth() !== d.getMonth() ? d.toLocaleDateString(undefined, { month: 'short' }) : '');
+  }
+  return html`<div ref=${ref} class="scroll-x" style="overflow-x:auto"><div style="min-width:640px">
+    <div class="heat-months" style="grid-template-columns:repeat(52,1fr)">${months.map(m => html`<span>${m}</span>`)}</div>
+    <${Heat} state=${state} weeksBack=${52} /></div></div>`;
+}
 
 function Heat({ state, weeksBack }) {
   const m = A.dayMap(state);

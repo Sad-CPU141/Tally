@@ -7,7 +7,7 @@ import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toas
 import { bwUnit, todayKey, dayKey, fromKey, addDays, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
 import { isRecipe, addIngredient, addEntryAsIngredient, newRecipe } from '../lib/recipes.js';
-import { loadAll, allReady, searchAll, genericSummary, brands as allBrands } from '../lib/fooddb.js';
+import { loadAll, allReady, searchAll, genericSummary, brands as allBrands, itemIndexFor } from '../lib/fooddb.js';
 
 // When Add Food is opened from a recipe, picked foods become ingredients instead of log entries.
 let intoRecipe = null;
@@ -19,8 +19,9 @@ const g = n => fmtNum(n || 0, 0);
 let lastDay = null; // remember the day the user was looking at while the app is open
 
 export function Food({ state }) {
-  const [key, setKey] = useState(lastDay || todayKey());
-  useEffect(() => { lastDay = key; }, [key]);
+  // Come back to the day you were looking at, unless that was "today" and the date has since changed.
+  const [key, setKey] = useState(() => lastDay && !(lastDay.wasToday && lastDay.key !== todayKey()) && Date.now() - lastDay.at < 3 * 3600e3 ? lastDay.key : todayKey());
+  useEffect(() => { lastDay = { key, wasToday: key === todayKey(), at: Date.now() }; }, [key]);
   const isToday = key === todayKey();
   const shift = n => setKey(dayKey(addDays(fromKey(key), n)));
   const tgt = F.targetFor(state, key);
@@ -63,7 +64,11 @@ export function Food({ state }) {
             </div>`;
           })}
         </div>
-        ${fs.fiber ? html`<div class="hstack small"><span class="muted">Fiber</span><span class="num">${g(tot.fiber)} / ${fs.fiber} g</span><span class="spacer"></span><span class="muted">Sugar</span><span class="num">${g(tot.sugar)} g</span><span class="muted">Sodium</span><span class="num">${kc(tot.sodium)} mg</span></div>` : null}
+        <div class="day-extra small">
+          <div><span class="muted">Fiber</span><b class="num">${g(tot.fiber)}${fs.fiber ? html`<small> / ${fs.fiber}</small>` : null} g</b></div>
+          <div><span class="muted">Sugar</span><b class="num">${g(tot.sugar)} g</b></div>
+          <div><span class="muted">Sodium</span><b class="num">${kc(tot.sodium)} mg</b></div>
+        </div>
       </div>
 
       ${!ent.length && yEnt.length ? html`<button class="btn block" onClick=${() => copyDay(yKey, key)}><${Icon} name="copy" size=${18} /> Copy ${fmtRel(fromKey(yKey)).toLowerCase()}'s food (${kc(F.sum(yEnt).kcal)} kcal)</button>` : null}
@@ -267,7 +272,7 @@ export function AddFood({ state, params }) {
   const meals = ql ? state.meals.filter(m => m.name.toLowerCase().includes(ql)) : state.meals;
 
   const openFood = f => f.id && f.id.startsWith('usda-') ? nav.go('foodItem', { date, meal, recipe: params.recipe, usda: +f.id.slice(5) })
-    : f.source === 'restaurant' && f.brandId ? nav.go('foodItem', { date, meal, recipe: params.recipe, brand: f.brandId, item: f.item, size: f.size || 0 })
+    : f.source === 'restaurant' && f.brandId ? nav.go('foodItem', { date, meal, recipe: params.recipe, brand: f.brandId, item: itemIndexFor(f.brandId, f.itemName, f.item), size: f.size || 0 })
     : foodSheet(f, date, meal);
   const FoodRow = ({ f }) => html`<button class="row" onClick=${() => openFood(f)}>
     <div class="grow" style="min-width:0"><div class=${'title' + (f.source === 'usda' ? ' wrap2' : '')}>${f.name}</div><div class="sub">${[f.brand, f.serving ? f.serving.label : f.per100 ? 'per 100 g' : '', f.source === 'usda' ? `${g(f.per100.p)} g protein` : ''].filter(Boolean).join(' · ')}</div></div>

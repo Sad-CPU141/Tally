@@ -21,8 +21,21 @@ const SCREENS = {
 };
 const NO_TABS = new Set(['workout', 'summary']);
 
+// When a new version of Tally has been downloaded, offer a one-tap refresh.
+let updateReady = false;
+const updateListeners = new Set();
+if ('serviceWorker' in navigator) {
+  let had = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) { updateReady = true; updateListeners.forEach(f => f(true)); } had = true; });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {});
+  });
+}
+
 function App() {
   const [state, setState] = useState(store.get());
+  const [upd, setUpd] = useState(updateReady);
+  useEffect(() => { updateListeners.add(setUpd); return () => updateListeners.delete(setUpd); }, []);
   const route = useRoute();
   useEffect(() => store.subscribe(setState), []);
   useEffect(() => {
@@ -42,6 +55,7 @@ function App() {
   const hasRest = !!(state.active && state.active.rest);
   return html`
     <div class=${'shell mode-' + mode + (hideTabs ? ' no-tabs' : '') + (hasRest ? ' has-rest' : '')}>
+      ${upd && !state.active ? html`<button class="update-bar" onClick=${() => location.reload()}><${Icon} name="bolt" size=${16} /> Tally was updated. Tap to load the new version.</button>` : null}
       <${Screen} key=${route.name + JSON.stringify(route.params)} state=${state} params=${route.params} />
       ${state.active ? html`<${RestBar} state=${state} />` : null}
       ${!hideTabs ? html`<nav class="tabbar" aria-label="Main"><div class="tabbar-in">
@@ -68,7 +82,13 @@ onModeSwitch(() => {
 Promise.all([store.load(), loadCatalog()]).then(() => {
   // Open in the mode you were last in.
   const m = store.get().settings.mode === 'food' ? 'food' : 'gym';
-  if (store.get().settings.onboarded) nav.tab(MODES[m][0][0]);
+  if (store.get().settings.onboarded) {
+    if (store.get().active) {
+      // A workout was in progress when the app closed: go straight back to it.
+      store.update(st => { st.settings.mode = 'gym'; });
+      nav.tab('today'); nav.go('workout');
+    } else nav.tab(MODES[m][0][0]);
+  }
   const app = document.getElementById('app');
   app.innerHTML = '';
   render(html`<${App} />`, app);
