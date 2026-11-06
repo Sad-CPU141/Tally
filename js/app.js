@@ -12,12 +12,14 @@ import { Recipe } from './screens/recipe.js';
 import { FoodPage, BrandPage } from './screens/foodpage.js';
 import { Me, Onboarding } from './screens/me.js';
 import { Food, AddFood, Targets } from './screens/food.js';
+import { Leaderboard } from './screens/friends.js';
+import { startCloud } from './lib/cloud.js';
 
 const SCREENS = {
   today: Today, train: Train, food: Food, stats: Stats, me: Me,
   addFood: AddFood, targets: Targets, insights: Insights, body: Body, measure: MeasureDetail, photos: Photos, recipe: Recipe, foodItem: FoodPage, brand: BrandPage,
   routine: RoutineEdit, workoutView: WorkoutView, exercise: ExerciseScreen, library: Library,
-  workout: Workout, summary: Summary, card: CardDetail, editDash: EditDash,
+  workout: Workout, summary: Summary, card: CardDetail, editDash: EditDash, friends: Leaderboard,
 };
 const NO_TABS = new Set(['workout', 'summary']);
 
@@ -89,6 +91,7 @@ Promise.all([store.load(), loadCatalog()]).then(() => {
       nav.tab('today'); nav.go('workout');
     } else nav.tab(MODES[m][0][0]);
   }
+  startCloud();
   const app = document.getElementById('app');
   app.innerHTML = '';
   render(html`<${App} />`, app);

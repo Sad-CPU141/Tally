@@ -1,0 +1,38 @@
+rules_version = '2';
+// Tally security rules.
+// - users/{uid}: your public profile (name, friend code, weekly stats, friend list).
+//   Anyone signed in can open a profile by its id (friends know yours from your code),
+//   but can only search for profiles that list them as a friend. Only you can write yours.
+// - codes/{code}: friend code -> user id. Anyone signed in can look a code up; only you can claim yours.
+// - backups/{uid}/...: your private backup. Only you can read or write it.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.auth.uid in resource.data.friends;
+      allow create, update: if isMe(uid)
+        && request.resource.data.keys().hasOnly(['name', 'code', 'stats', 'friends', 'updatedAt'])
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 40))
+        && (!('friends' in request.resource.data) || (request.resource.data.friends is list && request.resource.data.friends.size() <= 50));
+      allow delete: if isMe(uid);
+    }
+
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && code.size() == 6
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /backups/{uid} {
+      allow read, write: if isMe(uid);
+      match /parts/{part} {
+        allow read, write: if isMe(uid);
+      }
+    }
+  }
+}

@@ -40,7 +40,7 @@ function Library({ state, cats, dash }) {
 export function Stats({ state }) {
   const list = state.dashboard || [];
   return html`
-    <${TopBar} mode=${state.settings.mode} title="Stats" right=${html`<button class="btn sm" onClick=${() => nav.go('editDash', { dash: 'gym' })}>Customize</button>`} />
+    <${TopBar} mode=${state.settings.mode} title="Stats" right=${html`<div class="hstack" style="gap:4px"><button class="icon-btn" aria-label="Leaderboard" onClick=${() => nav.go('friends')}><${Icon} name="trophy" size=${20} /></button><button class="btn sm" onClick=${() => nav.go('editDash', { dash: 'gym' })}>Customize</button></div>`} />
     <div class="page">
       <div class="section-head"><span class="h-md">Pinned</span><span class="small muted">also on Today</span></div>
       ${list.length ? html`<div class="dash">
@@ -55,7 +55,7 @@ export function Stats({ state }) {
 export function Insights({ state }) {
   const list = state.foodDashboard || [];
   return html`
-    <${TopBar} mode=${state.settings.mode} title="Insights" right=${html`<button class="btn sm" onClick=${() => nav.go('editDash', { dash: 'food' })}>Customize</button>`} />
+    <${TopBar} mode=${state.settings.mode} title="Insights" right=${html`<div class="hstack" style="gap:4px"><button class="icon-btn" aria-label="Leaderboard" onClick=${() => nav.go('friends')}><${Icon} name="trophy" size=${20} /></button><button class="btn sm" onClick=${() => nav.go('editDash', { dash: 'food' })}>Customize</button></div>`} />
     <div class="page">
       ${list.length ? html`<div class="dash">
         ${pack(list).map(({ inst, wide }) => html`<${Card} key=${inst.id} inst=${inst} wide=${wide} state=${state} onOpen=${() => nav.go('card', { id: inst.id, type: inst.type, dash: 'food' })} />`)}

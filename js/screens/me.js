@@ -9,6 +9,7 @@ import { makeSample } from '../lib/sample.js';
 import { plateCalc } from '../lib/plates.js';
 import { clearPhotos } from '../lib/photos.js';
 import { importFile, importHelp, exportMenu } from '../lib/datafiles.js';
+import { AccountCard, signInSheet } from './friends.js';
 
 const ACCENTS = [['ice', 'Ice', '#6cb8ff'], ['iris', 'Iris', '#a597ff'], ['ember', 'Ember', '#ffad5c'], ['mint', 'Mint', '#5fd4a8'], ['rose', 'Rose', '#ff86ad']];
 
@@ -27,18 +28,7 @@ export function Me({ state }) {
       <div class="field"><label for="me-name">Your name</label>
         <input id="me-name" class="input" placeholder="What should Tally call you?" value=${s.name} onInput=${e => setS('name', e.target.value)} /></div>
 
-      <div class="list">
-        <div class="row" style="opacity:.75">
-          <span style="color:var(--accent)"><${Icon} name="cloud" /></span>
-          <div class="grow"><div class="title">Account and backup</div><div class="sub" style="white-space:normal">Google sign-in with automatic backup is next. Until then, everything is saved on this phone, so export a backup now and then.</div></div>
-          <span class="pill">Soon</span>
-        </div>
-        <div class="row" style="opacity:.75">
-          <span style="color:var(--accent)"><${Icon} name="users" /></span>
-          <div class="grow"><div class="title">Friends and leaderboards</div><div class="sub" style="white-space:normal">Arrives with accounts.</div></div>
-          <span class="pill">Soon</span>
-        </div>
-      </div>
+      <${AccountCard} />
 
       <div class="grid2">
         <button class="btn" onClick=${() => logBodyweight()}><${Icon} name="scale" size=${18} /> Log weight</button>
@@ -149,6 +139,7 @@ export function Onboarding() {
         <button class="opt" aria-pressed=${mode === 'sample'} onClick=${() => setMode('sample')}><div class="grow"><div class="h-md">Explore with sample data</div><div class="small muted">8 weeks of example training so you can see every chart. Clear it later in Me.</div></div></button>
       </div></div>
     <button class="btn primary block" style="height:52px" onClick=${go}>Get started</button>
+    <button class="link-btn onb-restore" onClick=${() => { store.update(st => { st.settings.name = name.trim(); st.settings.unit = unit; st.settings.onboarded = true; }); nav.tab('me'); setTimeout(signInSheet, 80); }}>Already use Tally? Sign in to restore your data</button>
   </div>`;
 }
 
