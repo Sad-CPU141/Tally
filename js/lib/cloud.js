@@ -330,7 +330,7 @@ async function restore(uid, meta) {
   const chunks = [];
   for (let i = 0; i < meta.parts; i++) { const p = await B.get(`backups/${uid}/parts/${i}`); if (!p) throw new Error('Backup is incomplete'); chunks.push(p.d); }
   const data = await unpack(meta.enc, chunks.join(''));
-  data.settings = { ...data.settings, onboarded: true };
+  data.settings = { ...data.settings, onboarded: true, tour: true };
   await store.replaceAll(data);
   ls.set('tally.syncedAt', String(meta.savedAt));
   toastFn && toastFn('Backup restored');
@@ -352,7 +352,7 @@ window.addEventListener('online', () => { if (dirty && status.ready) backupNow()
 export const weekKey = (d = new Date()) => dayKey(startOfWeek(d, 1));
 export const monthKey = (d = new Date()) => dayKey(d).slice(0, 7);
 
-function weekTotals(st, start) {
+export function weekTotals(st, start) {
   const end = addDays(start, 7);
   const exm = exMap(st);
   let n = 0, sets = 0, vol = 0, sec = 0;

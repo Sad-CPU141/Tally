@@ -1,6 +1,7 @@
 // Today: what to train next, and the user's chosen analytics cards.
 
 import { html } from '../vendor/preact-htm.js';
+import { WeekRecap } from './recap.js';
 import * as store from '../lib/store.js';
 import * as A from '../lib/analytics.js';
 import { CARDS } from '../lib/cards.js';
@@ -47,6 +48,7 @@ export function Today({ state }) {
     <${TopBar} mode=${state.settings.mode} title="" right=${html`<span class="small muted">${fmtWeekdayLong(new Date()).slice(0, 3)}, ${fmtDate(new Date())}</span>`} />
     <div class="page">
       ${s.sample ? html`<div class="banner"><span class="grow">You're looking at sample data. Clear it in Me whenever you're ready to start.</span><button class="btn sm" onClick=${() => nav.tab('me')}>Me</button></div>` : null}
+      <${WeekRecap} state=${state} />
 
       ${state.active ? html`
         <div class="hero">

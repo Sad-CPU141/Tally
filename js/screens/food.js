@@ -6,6 +6,7 @@ import * as F from '../lib/food.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast, Seg, Switch } from '../lib/ui.js';
 import { bwUnit, todayKey, dayKey, fromKey, addDays, startOfWeek, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
+import { WeekRecap } from './recap.js';
 import { isRecipe, addIngredient, addEntryAsIngredient, newRecipe } from '../lib/recipes.js';
 import { loadAll, allReady, searchAll, genericSummary, brands as allBrands, itemIndexFor } from '../lib/fooddb.js';
 
@@ -69,6 +70,9 @@ export function Food({ state }) {
         </div>
       </section>
 
+      <${WeekRecap} state=${state} />
+      <${QuickLog} state=${state} dkey=${key} />
+
       ${!ent.length && yEnt.length ? html`<button class="btn block" onClick=${() => copyDay(yKey, key)}><${Icon} name="copy" size=${18} /> Copy ${fmtRel(fromKey(yKey)).toLowerCase()}'s food (${kc(F.sum(yEnt).kcal)} kcal)</button>` : null}
 
       ${fs.mealNames.map((meal, mi) => {
@@ -96,6 +100,49 @@ export function Food({ state }) {
 
       ${fs.water ? html`<${Water} state=${state} dkey=${key} />` : null}
     </div>`;
+}
+
+// Quick log: the foods you log most often (same food, same amount), one tap to add.
+// They go into the meal that fits the time of day.
+function frequentFoods(state, n = 8) {
+  const since = dayKey(addDays(new Date(), -60));
+  const groups = new Map();
+  for (const e of state.foodLog) {
+    if (e.date < since || !e.kcal) continue;
+    const k = [e.name, e.brand || '', e.qty, e.unit].join('|');
+    const g = groups.get(k) || { e, n: 0, last: '' };
+    g.n++;
+    if (e.date >= g.last) { g.last = e.date; g.e = e; }
+    groups.set(k, g);
+  }
+  return [...groups.values()].filter(g => g.n >= 2).sort((a, b) => b.n - a.n || (b.last > a.last ? 1 : -1)).slice(0, n);
+}
+export function mealForNow(names, d = new Date()) {
+  const h = d.getHours();
+  const want = h < 11 ? 'breakfast' : h < 16 ? 'lunch' : h < 21 ? 'dinner' : 'snack';
+  const hit = names.find(m => m.toLowerCase().startsWith(want));
+  if (hit) return hit;
+  const i = h < 11 ? 0 : h < 16 ? 1 : h < 21 ? 2 : 3;
+  return names[Math.min(i, names.length - 1)];
+}
+function QuickLog({ state, dkey }) {
+  const items = frequentFoods(state);
+  if (!items.length) return null;
+  const meal = mealForNow(state.food.mealNames);
+  const add = e => {
+    const id = store.uid();
+    store.update(st => { st.foodLog.push({ ...e, id, date: dkey, meal }); });
+    toast(`Added to ${meal.toLowerCase()}`, 4000, { label: 'Undo', fn: () => store.update(st => { st.foodLog = st.foodLog.filter(x => x.id !== id); }) });
+  };
+  return html`<section class="quick" aria-label="Quick log">
+    <div class="quick-head"><span class="h-md">Quick log</span><span class="small muted">Adds to ${meal.toLowerCase()}</span></div>
+    <div class="quick-chips">
+      ${items.map(({ e }) => html`<button class="qchip" onClick=${() => add(e)} aria-label=${`Add ${e.name}, ${F.qtyLabel(e, state.foods.find(f => f.id === e.foodId))}, ${Math.round(e.kcal)} kcal`}>
+        <div><div class="qn">${e.name}</div><div class="qs num">${F.qtyLabel(e, state.foods.find(f => f.id === e.foodId))} · ${kc(e.kcal)} kcal</div></div>
+        <span class="qplus"><${Icon} name="plus" size=${16} /></span>
+      </button>`)}
+    </div>
+  </section>`;
 }
 
 // The calorie ring: fills with protein, carbs and fat (as calories) in their own colours,

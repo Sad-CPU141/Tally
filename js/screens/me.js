@@ -81,6 +81,7 @@ export function Me({ state }) {
         ${s.sample
           ? html`<${Row} title="Sample data is loaded" sub="Clear it to start logging your own training"><button class="btn sm danger" onClick=${clearSample}>Clear</button><//>`
           : html`<${Row} title="Explore with sample data" sub="8 weeks of example training, replaces current data"><button class="btn sm" onClick=${loadSample}>Load</button><//>`}
+        <${Row} title="Walkthrough" sub="The quick tour of Tally from when you first opened it"><button class="btn sm" onClick=${() => store.update(st => { st.settings.tour = false; })}>Show</button><//>
         <${Row} title="Erase everything" sub="Deletes all workouts, routines and settings on this phone"><button class="btn sm danger" onClick=${eraseAll}>Erase</button><//>
       </div>
       ${store.isMemoryOnly() ? html`<div class="banner"><span class="grow">This browser isn't allowing storage, so nothing will be kept after you close it. Open Tally from your home screen or a normal browser window.</span></div>` : null}
@@ -139,7 +140,7 @@ export function Onboarding() {
         <button class="opt" aria-pressed=${mode === 'sample'} onClick=${() => setMode('sample')}><div class="grow"><div class="h-md">Explore with sample data</div><div class="small muted">8 weeks of example training so you can see every chart. Clear it later in Me.</div></div></button>
       </div></div>
     <button class="btn primary block" style="height:52px" onClick=${go}>Get started</button>
-    <button class="link-btn onb-restore" onClick=${() => { store.update(st => { st.settings.name = name.trim(); st.settings.unit = unit; st.settings.onboarded = true; }); nav.tab('me'); setTimeout(signInSheet, 80); }}>Already use Tally? Sign in to restore your data</button>
+    <button class="link-btn onb-restore" onClick=${() => { store.update(st => { st.settings.name = name.trim(); st.settings.unit = unit; st.settings.onboarded = true; st.settings.tour = true; }); nav.tab('me'); setTimeout(signInSheet, 80); }}>Already use Tally? Sign in to restore your data</button>
   </div>`;
 }
 

@@ -138,11 +138,14 @@ let toastSet = null, toastTimer = null;
 export function ToastHost() {
   const [t, setT] = useState(null);
   useEffect(() => { toastSet = setT; }, []);
-  return t ? html`<div class="toast" role="status">${t}</div>` : null;
+  if (!t) return null;
+  const { msg, action } = typeof t === 'object' && t.msg ? t : { msg: t };
+  return html`<div class=${'toast' + (action ? ' has-action' : '')} role="status"><span>${msg}</span>${action ? html`<button class="toast-act" onClick=${() => { action.fn(); toastSet(null); }}>${action.label}</button>` : null}</div>`;
 }
-export function toast(msg, ms = 2200) {
+// toast('Saved') or toast('Added', 4000, { label: 'Undo', fn })
+export function toast(msg, ms = 2200, action = null) {
   if (!toastSet) return;
-  toastSet(msg);
+  toastSet(action ? { msg, action } : msg);
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toastSet(null), ms);
 }

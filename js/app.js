@@ -13,6 +13,7 @@ import { FoodPage, BrandPage } from './screens/foodpage.js';
 import { Me, Onboarding } from './screens/me.js';
 import { Food, AddFood, Targets } from './screens/food.js';
 import { Leaderboard } from './screens/friends.js';
+import { Tour } from './screens/tour.js';
 import { startCloud } from './lib/cloud.js';
 
 const SCREENS = {
@@ -65,6 +66,7 @@ function App() {
           <${Icon} name=${icon} size=${24} /><span>${label}</span></button>`)}
       </div></nav>` : null}
     </div>
+    ${!state.settings.tour && !state.active ? html`<${Tour} />` : null}
     <${SheetHost} />
     <${ToastHost} />`;
 }

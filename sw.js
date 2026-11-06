@@ -4,7 +4,7 @@
 // - Fonts, icons and exercise images are cache-first. The 58 built-in exercise images are
 //   saved on install; the other ~640 are saved the first time you view them.
 // Bump VERSION whenever you deploy.
-const VERSION = 'tally-v28';
+const VERSION = 'tally-v29';
 const ASSETS = [
   './',
   './css/app.css',
@@ -17,6 +17,7 @@ const ASSETS = [
   './fonts/geist-mono.woff2',
   './fonts/geist.woff2',
   './icons/apple-touch-icon.png',
+  './icons/favicon-32.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
@@ -50,6 +51,8 @@ const ASSETS = [
   './js/screens/body.js',
   './js/screens/food.js',
   './js/screens/foodpage.js',
+  './js/screens/recap.js',
+  './js/screens/tour.js',
   './js/screens/friends.js',
   './js/screens/me.js',
   './js/screens/photos.js',
