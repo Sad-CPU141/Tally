@@ -3,7 +3,7 @@
 import { html, useState, useEffect, useRef } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
 import * as F from '../lib/food.js';
-import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast, Seg, Switch } from '../lib/ui.js';
+import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast, Seg, Switch, CountUp } from '../lib/ui.js';
 import { bwUnit, todayKey, dayKey, fromKey, addDays, startOfWeek, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
 import { WeekRecap } from './recap.js';
@@ -45,8 +45,8 @@ export function Food({ state }) {
         <div class="plate-top">
           <${PlateRing} tot=${tot} tgt=${tgt} />
           <div class="plate-side">
-            <div class="plate-big ${over ? 'over' : ''}"><span class="num">${kc(Math.abs(left))}</span><span>${over ? 'kcal over' : 'kcal left'}</span></div>
-            <div class="plate-line"><span>Eaten</span><b class="num">${kc(tot.kcal)}</b></div>
+            <div class="plate-big ${over ? 'over' : ''}"><span class="num"><${CountUp} value=${Math.abs(left)} /></span><span>${over ? 'kcal over' : 'kcal left'}</span></div>
+            <div class="plate-line"><span>Eaten</span><b class="num"><${CountUp} value=${tot.kcal} /></b></div>
             <div class="plate-line"><span>Target</span><b class="num">${kc(tgt.kcal)}</b></div>
             ${fs.split ? html`<span class=${'day-type ' + tgt.type}>${tgt.type === 'train' ? 'Workout day' : 'Rest day'}</span>` : null}
           </div>
@@ -57,7 +57,7 @@ export function Food({ state }) {
             const pct = Math.min(100, tot[m] / Math.max(1, tgt[m]) * 100);
             const note = m === 'p' ? (rem <= tgt[m] * 0.05 ? 'target hit' : `${g(rem)} g to go`) : rem >= 0 ? `${g(rem)} g left` : `${g(-rem)} g over`;
             return html`<div class=${'mac-row ' + m}>
-              <div class="mac-label"><span>${name}</span><span class="num"><b>${g(tot[m])}</b> / ${g(tgt[m])} g</span></div>
+              <div class="mac-label"><span>${name}</span><span class="num"><b><${CountUp} value=${tot[m]} fmt=${v => g(v)} /></b> / ${g(tgt[m])} g</span></div>
               <div class="mac-track"><i style=${`width:${pct}%`}></i></div>
               <div class=${'mac-note' + (m !== 'p' && rem < 0 ? ' over' : m === 'p' && rem <= tgt[m] * 0.05 ? ' hit' : '')}>${note}</div>
             </div>`;
@@ -167,7 +167,7 @@ function PlateRing({ tot, tgt }) {
       ${segs.filter(s => s.len > 0.5).map(s => html`<circle cx="66" cy="66" r=${R} class=${'seg ' + s.m} stroke-dasharray=${`${Math.max(0, s.len - 2)} ${C}`} stroke-dashoffset=${-s.off} />`)}
     </g>
     ${targetMark != null ? html`<line x1="66" y1="4" x2="66" y2="20" class="target-mark" transform=${`rotate(${targetMark} 66 66)`} />` : null}
-    <text x="66" y="62" text-anchor="middle" class="ring-pct">${Math.round(tot.kcal / Math.max(1, tgt.kcal) * 100)}%</text>
+    <text x="66" y="62" text-anchor="middle" class="ring-pct"><${CountUp} value=${Math.round(tot.kcal / Math.max(1, tgt.kcal) * 100)} />%</text>
     <text x="66" y="80" text-anchor="middle" class="ring-sub">of target</text>
   </svg>`;
 }

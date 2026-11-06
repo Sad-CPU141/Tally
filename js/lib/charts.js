@@ -48,7 +48,7 @@ export function Sparkline({ values, height = 38 }) {
   const last = pts[pts.length - 1];
   return html`<div ref=${ref}><svg class="spark" viewBox="0 0 ${wd} ${h}" width=${wd} height=${h} aria-hidden="true">
     <path class="area" d=${area} />
-    <path class="line" d=${path(pts)} />
+    <path class="line draw" pathLength="1" d=${path(pts)} />
     <circle class="dot" cx=${last[0]} cy=${last[1]} r="3" />
   </svg></div>`;
 }
@@ -129,7 +129,7 @@ export function LineChart({ points, raw, goal, height = 180, fmtY = v => String(
       ${goal != null ? html`<line class="goal" x1=${left} x2=${wd - right} y1=${Y(goal)} y2=${Y(goal)} />` : null}
       ${raw ? raw.map(p => html`<circle class="rawdot" cx=${X(p.x)} cy=${Y(p.y)} r="2.2" />`) : null}
       ${area ? html`<path class="area" d=${areaD} />` : null}
-      <path class="line" d=${path(pts)} />
+      <path class="line draw" pathLength="1" d=${path(pts)} />
       ${dots && pts.length <= 150 ? pts.map(p => html`<circle class="pdot" cx=${p[0]} cy=${p[1]} r="2.4" />`) : null}
       ${a ? html`<line class="cursor" x1=${pts[active][0]} x2=${pts[active][0]} y1=${top} y2=${height - bottom} /><circle class="dot" cx=${pts[active][0]} cy=${pts[active][1]} r="5" />`
         : html`<circle class="dot" cx=${last[0]} cy=${last[1]} r="4.5" />`}
@@ -168,7 +168,7 @@ export function BarChart({ bars, height = 160, fmtY = v => String(v), fmtV, unit
         const hgt = Math.max(b.value > 0 ? 2 : 0, Y(0) - Y(b.value));
         return html`<g>
           ${active === i ? html`<rect class="bar-hl" x=${left + slot * i} y=${top} width=${slot} height=${height - top - bottom} rx="4" />` : null}
-          <rect class=${'bar' + (b.dim ? ' dim' : '') + (active === i ? ' on' : '')} x=${cx - bw / 2} y=${Y(0) - hgt} width=${bw} height=${hgt} rx="3" />
+          <rect class=${'bar grow' + (b.dim ? ' dim' : '') + (active === i ? ' on' : '')} style=${`animation-delay:${Math.min(i, 30) * 18}ms`} x=${cx - bw / 2} y=${Y(0) - hgt} width=${bw} height=${hgt} rx="3" />
           ${shown(i) ? html`<text x=${Math.min(wd - right - 12, cx)} y=${height - 6} text-anchor="middle">${lab(b)}</text>` : null}
         </g>`;
       })}

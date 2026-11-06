@@ -1,6 +1,6 @@
 // Shared UI pieces: icons, router, sheets, toasts.
 
-import { html, useEffect, useState } from '../vendor/preact-htm.js';
+import { html, useEffect, useState, useRef } from '../vendor/preact-htm.js';
 
 // ---------- Icons (24px stroke) ----------
 const P = {
@@ -66,27 +66,31 @@ export const MODES = {
 export const TABS = [...new Set([...MODES.gym, ...MODES.food].map(t => t[0]))];
 export const isRootTab = name => TABS.includes(name);
 
+// Which way the last navigation went, so screens can slide the right way.
+let dir = 'tab';
+export const navDir = () => dir;
 function emit() { listeners.forEach(l => l(stack[stack.length - 1], stack.length)); }
 
 export const nav = {
   current: () => stack[stack.length - 1],
   depth: () => stack.length,
   root: () => stack[0],
-  tab(name) { stack = [{ name, params: {} }]; history.replaceState({ d: 0 }, ''); emit(); window.scrollTo(0, 0); },
+  tab(name) { dir = 'tab'; stack = [{ name, params: {} }]; history.replaceState({ d: 0 }, ''); emit(); window.scrollTo(0, 0); },
   go(name, params = {}) {
+    dir = 'push';
     stack.push({ name, params });
     try { history.pushState({ d: stack.length - 1 }, ''); } catch (e) {}
     emit(); window.scrollTo(0, 0);
   },
-  replace(name, params = {}) { stack[stack.length - 1] = { name, params }; emit(); window.scrollTo(0, 0); },
+  replace(name, params = {}) { dir = 'tab'; stack[stack.length - 1] = { name, params }; emit(); window.scrollTo(0, 0); },
   back() {
-    if (stack.length > 1) { try { history.back(); } catch (e) { stack.pop(); emit(); } }
+    if (stack.length > 1) { try { history.back(); } catch (e) { dir = 'pop'; stack.pop(); emit(); } }
   },
   subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 };
 
 window.addEventListener('popstate', () => {
-  if (stack.length > 1) { stack.pop(); emit(); }
+  if (stack.length > 1) { dir = 'pop'; stack.pop(); emit(); }
 });
 
 export function useRoute() {
@@ -155,11 +159,14 @@ let modeHandler = null;
 export function onModeSwitch(fn) { modeHandler = fn; }
 
 // Root screens show the Tally switch on the left; tap it to flip between Gym and Food.
+let lastMode = null;
 export function TopBar({ title, back, right, mode }) {
+  // The pill flips only when you actually switch between Gym and Food.
+  const [flip] = useState(() => { const f = !!(mode && lastMode && mode !== lastMode); if (mode) lastMode = mode; return f; });
   return html`<header class="topbar"><div class="topbar-in">
     ${back ? html`<button class="icon-btn" aria-label="Back" onClick=${() => nav.back()} style="margin-left:-8px"><${Icon} name="back" /></button>`
       : mode ? html`<button class="mode-switch" aria-label=${`Tally, ${mode} mode. Switch to ${mode === 'gym' ? 'food' : 'gym'}`} onClick=${() => modeHandler && modeHandler()}>
-          <span class="brand">Tally</span><span class=${'mode-pill ' + mode}><${Icon} name="swap" size=${13} sw=${2.4} />${mode === 'gym' ? 'Gym' : 'Food'}</span>
+          <span class="brand">Tally</span><span class=${'mode-pill ' + mode + (flip ? ' flip' : '')}><${Icon} name="swap" size=${13} sw=${2.4} />${mode === 'gym' ? 'Gym' : 'Food'}</span>
         </button>` : null}
     <h1 class=${mode && !back ? 'subtitle' : ''}>${title}</h1>
     ${right}
@@ -171,7 +178,8 @@ export function Switch({ id, checked, onChange, label }) {
 }
 
 export function Seg({ options, value, onChange, label }) {
-  return html`<div class="seg" role="group" aria-label=${label}>
+  const i = Math.max(0, options.findIndex(o => o[0] === value));
+  return html`<div class="seg" role="group" aria-label=${label} style=${`--n:${options.length};--i:${i}`}>
     ${options.map(([v, l]) => html`<button type="button" aria-pressed=${value === v} onClick=${() => onChange(v)}>${l}</button>`)}
   </div>`;
 }
@@ -190,4 +198,29 @@ export function Tally({ count, goal }) {
       ${inGroup === 5 ? (filled === 5 ? html`<b></b>` : html`<b style="background:var(--surface-3)"></b>`) : null}
     </div>`)}
   </div>`;
+}
+
+// Numbers that count from their last value to the new one (about half a second).
+export function CountUp({ value, fmt = v => Math.round(v).toLocaleString(), ms = 550 }) {
+  const [shown, setShown] = useState(value);
+  const from = useRef(value);
+  const first = useRef(true);
+  useEffect(() => {
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const start = first.current ? 0 : from.current;
+    first.current = false;
+    if (reduce || start === value || !isFinite(value)) { setShown(value); from.current = value; return; }
+    let raf, t0;
+    const step = t => {
+      if (t0 == null) t0 = t;
+      const k = Math.min(1, (t - t0) / ms);
+      const e = 1 - Math.pow(1 - k, 3);
+      const v = start + (value - start) * e;
+      setShown(v); from.current = v;
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return fmt(shown);
 }

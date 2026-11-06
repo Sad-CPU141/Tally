@@ -185,9 +185,10 @@ button.row:active { background: var(--surface-2); }
 textarea.input { height: auto; min-height: 72px; padding: 12px 14px; resize: vertical; }
 .input:focus { border-color: var(--accent); }
 
-.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
-.seg button { height: 36px; border: 0; border-radius: 10px; background: transparent; color: var(--text-2); font-weight: 600; font-size: 14px; }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 0 var(--line); }
+.seg { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); isolation: isolate; }
+.seg::before { content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px - (var(--n, 2) - 1) * 4px) / var(--n, 2)); border-radius: 10px; background: var(--surface); box-shadow: 0 1px 0 var(--line), 0 2px 8px rgba(0,0,0,.12); transform: translateX(calc(var(--i, 0) * (100% + 4px))); transition: transform .32s cubic-bezier(.3,1.25,.5,1); }
+.seg button { height: 36px; border: 0; border-radius: 10px; background: transparent; color: var(--text-2); font-weight: 600; font-size: 14px; transition: color .2s; }
+.seg button[aria-pressed="true"] { color: var(--text); }
 :root[data-theme="dark"] .seg button[aria-pressed="true"] { background: var(--surface-3); }
 
 .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); }
@@ -772,3 +773,106 @@ html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
 .art-row .v { color: var(--muted); font-size: 12px; }
 @media (max-height: 640px) { .tour-art { height: 170px; } .tour-body { gap: 10px; } }
 @media (prefers-reduced-motion: reduce) { .tour-body { animation: none; } .art-pill { transition: none; } }
+
+
+/* =========================================================
+   Motion. Everything here answers something you did:
+   moving between screens, tapping, adding, finishing.
+   Turned off entirely when the phone asks for reduced motion.
+   ========================================================= */
+:root { --ease-out: cubic-bezier(.2,.8,.2,1); --ease-spring: cubic-bezier(.3,1.35,.5,1); }
+.screen { display: contents; }
+
+/* Screens: forward slides in from the right, back from the left, tabs rise in piece by piece. */
+/* (Animating the page's children, not the page, keeps fixed bars like "Add to diary" pinned.) */
+.anim-push > .page > *:not(.fp-add) { animation: pushIn .3s var(--ease-out) both; }
+.anim-pop > .page > *:not(.fp-add) { animation: popIn .28s var(--ease-out) both; }
+.anim-push .fp-add { animation: up .3s var(--ease-out) both; }
+.anim-push > .topbar, .anim-pop > .topbar { animation: fade .25s ease-out; }
+.anim-tab > .page > * { animation: riseIn .42s var(--ease-out) both; }
+.anim-tab > .page > *:nth-child(2) { animation-delay: .04s; }
+.anim-tab > .page > *:nth-child(3) { animation-delay: .08s; }
+.anim-tab > .page > *:nth-child(4) { animation-delay: .12s; }
+.anim-tab > .page > *:nth-child(5) { animation-delay: .16s; }
+.anim-tab > .page > *:nth-child(6) { animation-delay: .2s; }
+.anim-tab > .page > *:nth-child(7) { animation-delay: .24s; }
+.anim-tab > .page > *:nth-child(n+8) { animation-delay: .28s; }
+@keyframes pushIn { from { opacity: 0; transform: translateX(28px); } }
+@keyframes popIn { from { opacity: 0; transform: translateX(-22px); } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(12px); } }
+
+/* Dashboards: cards cascade in. */
+.anim-tab .dash > * { animation: riseIn .45s var(--ease-out) both; }
+.anim-tab .dash > *:nth-child(2) { animation-delay: .1s; } .anim-tab .dash > *:nth-child(3) { animation-delay: .14s; }
+.anim-tab .dash > *:nth-child(4) { animation-delay: .18s; } .anim-tab .dash > *:nth-child(5) { animation-delay: .22s; }
+.anim-tab .dash > *:nth-child(n+6) { animation-delay: .26s; }
+
+/* Things you add slide into place. */
+.food-row2, .lb-row, .qchip, .set-row, .recap-notes li { animation: itemIn .32s var(--ease-out) both; }
+@keyframes itemIn { from { opacity: 0; transform: translateY(6px); } }
+.lb-row:nth-child(2) { animation-delay: .05s; } .lb-row:nth-child(3) { animation-delay: .1s; } .lb-row:nth-child(4) { animation-delay: .15s; } .lb-row:nth-child(n+5) { animation-delay: .2s; }
+
+/* Tap feedback: everything you can press gives a little. */
+.icon-btn, .chip, .qchip, .meal-add, .opt, .card.tap, .ws-day, .tab, .mode-switch, .link-btn, .check, .fab, .toast-act { transition: transform .12s ease, background .15s, color .15s, border-color .15s; }
+.icon-btn:active, .chip:active, .meal-add:active, .ws-day:active:not(:disabled), .mode-switch:active, .check:active { transform: scale(.9); }
+.qchip:active, .opt:active, .card.tap:active { transform: scale(.97); }
+.tab:active svg { transform: scale(.85); }
+.tab svg { transition: transform .15s ease; }
+.btn.primary:active { transform: scale(.97); }
+
+/* Tab bar: the tab you land on pops. */
+.tab[aria-current="page"] svg { animation: tabPop .4s var(--ease-spring); }
+@keyframes tabPop { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+/* Gym <-> Food: the pill flips over. */
+.mode-pill.flip { animation: pillFlip .45s var(--ease-spring); transform-origin: center; }
+@keyframes pillFlip { from { transform: rotateX(90deg) scale(.8); opacity: 0; } }
+
+/* Sets: ticking one off springs the check in (a transition, so it only plays when you tap). */
+.check svg { transition: transform .38s var(--ease-spring), opacity .2s; }
+.check[aria-pressed="false"] svg { transform: scale(.55); }
+.check[aria-pressed="true"] { transition: background .2s, border-color .2s, transform .12s; }
+.set-row { transition: background .35s ease; }
+
+/* Charts draw themselves; bars grow up from the axis. */
+svg .line.draw { stroke-dasharray: 1; stroke-dashoffset: 0; animation: drawLine .9s var(--ease-out) both; }
+@keyframes drawLine { from { stroke-dashoffset: 1; } }
+svg .area { animation: fade .9s ease-out both; }
+svg rect.bar.grow { transform-box: fill-box; transform-origin: 50% 100%; animation: barGrow .55s var(--ease-out) both; }
+@keyframes barGrow { from { transform: scaleY(0); } }
+
+/* Rings and bars fill from empty when they first appear. */
+.plate-ring .seg { animation: ringIn .9s var(--ease-out) both; }
+@keyframes ringIn { from { stroke-dasharray: 0 1000; } }
+.mac-track i, .w-track i, .meter i, .lb-bar i, .art-macros b { animation: barIn .8s var(--ease-out) both; }
+.mac-row.c .mac-track i { animation-delay: .08s; } .mac-row.f .mac-track i { animation-delay: .16s; }
+@keyframes barIn { from { width: 0; } }
+.ws-bar i { transition: height .4s var(--ease-out); animation: wsIn .6s var(--ease-out) both; }
+@keyframes wsIn { from { height: 0; } }
+.meal-mix i { transition: flex-grow .4s var(--ease-out); }
+
+/* Week strip: the selected day eases over. */
+.ws-day { transition: background .2s, border-color .2s, transform .12s; }
+
+/* Sheets and toasts already slide up; the toast's Undo slides in with it. */
+.toast { animation: toastIn .3s var(--ease-spring); }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 16px) scale(.96); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* Records and first place get a moment. */
+.art-pr, .pr-badge, .badge.pr { animation: prShine 1.2s ease-out .2s both; }
+@keyframes prShine { 0% { transform: scale(.8); opacity: 0; } 40% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+.lb-row.first .avatar { animation: crown .6s var(--ease-spring) .25s both; }
+@keyframes crown { from { transform: scale(.6); } }
+
+/* Recap card arrives with a gentle lift. */
+.recap { animation: riseIn .5s var(--ease-out) both; }
+
+/* Update bar slides down. */
+.update-bar { animation: dropIn .35s var(--ease-out); }
+@keyframes dropIn { from { transform: translateY(-100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+/* Slides never cause sideways scrolling. */
+html, body { overflow-x: clip; }

@@ -1,7 +1,7 @@
 import { html, render, useState, useEffect } from './vendor/preact-htm.js';
 import * as store from './lib/store.js';
 import { loadCatalog } from './lib/catalog.js';
-import { Icon, nav, useRoute, SheetHost, ToastHost, MODES, onModeSwitch, toast } from './lib/ui.js';
+import { Icon, nav, navDir, useRoute, SheetHost, ToastHost, MODES, onModeSwitch, toast } from './lib/ui.js';
 import { Today } from './screens/today.js';
 import { Train, RoutineEdit, WorkoutView, ExerciseScreen, Library } from './screens/train.js';
 import { Workout, RestBar, Summary } from './screens/workout.js';
@@ -59,7 +59,7 @@ function App() {
   return html`
     <div class=${'shell mode-' + mode + (hideTabs ? ' no-tabs' : '') + (hasRest ? ' has-rest' : '')}>
       ${upd && !state.active ? html`<button class="update-bar" onClick=${() => location.reload()}><${Icon} name="bolt" size=${16} /> Tally was updated. Tap to load the new version.</button>` : null}
-      <${Screen} key=${route.name + JSON.stringify(route.params)} state=${state} params=${route.params} />
+      <div class=${'screen anim-' + navDir()} key=${route.name + JSON.stringify(route.params) + nav.depth()}><${Screen} state=${state} params=${route.params} /></div>
       ${state.active ? html`<${RestBar} state=${state} />` : null}
       ${!hideTabs ? html`<nav class="tabbar" aria-label="Main"><div class="tabbar-in">
         ${TAB_META.map(([id, label, icon]) => html`<button class="tab" aria-current=${rootTab === id ? 'page' : null} onClick=${() => nav.tab(id)}>
