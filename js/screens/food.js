@@ -4,7 +4,7 @@ import { html, useState, useEffect, useRef } from '../vendor/preact-htm.js';
 import * as store from '../lib/store.js';
 import * as F from '../lib/food.js';
 import { Icon, nav, TopBar, openSheet, closeSheet, SheetHead, confirmSheet, toast, Seg, Switch } from '../lib/ui.js';
-import { bwUnit, todayKey, dayKey, fromKey, addDays, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
+import { bwUnit, todayKey, dayKey, fromKey, addDays, startOfWeek, fmtRel, fmtDate, fmtNum, round, toUnit, fromUnit, w } from '../lib/util.js';
 import { weightTrend } from '../lib/analytics.js';
 import { isRecipe, addIngredient, addEntryAsIngredient, newRecipe } from '../lib/recipes.js';
 import { loadAll, allReady, searchAll, genericSummary, brands as allBrands, itemIndexFor } from '../lib/fooddb.js';
@@ -32,81 +32,142 @@ export function Food({ state }) {
   const yKey = dayKey(addDays(fromKey(key), -1));
   const yEnt = F.dayEntries(state, yKey);
 
+  const over = left < 0;
+  const MAC = [['p', 'Protein'], ['c', 'Carbs'], ['f', 'Fat']];
   return html`
-    <${TopBar} mode=${state.settings.mode} title="" right=${html`<div class="daynav">
-      <button class="icon-btn" aria-label="Previous day" onClick=${() => shift(-1)}><${Icon} name="left" /></button>
-      <button class="lbl" onClick=${() => setKey(todayKey())}>${fmtRel(fromKey(key))}</button>
-      <button class="icon-btn" aria-label="Next day" disabled=${isToday} onClick=${() => shift(1)}><${Icon} name="right" /></button>
-    </div>`} />
-    <div class="page">
+    <${TopBar} mode=${state.settings.mode} title="" right=${isToday ? null : html`<button class="btn sm" onClick=${() => setKey(todayKey())}>Today</button>`} />
+    <div class="page diary">
+      <${WeekStrip} state=${state} dkey=${key} onPick=${setKey} />
       ${!fs.setup ? html`<div class="banner"><span class="grow">These are starter targets. Set your own in about a minute.</span><button class="btn sm" onClick=${() => nav.go('targets')}>Set targets</button></div>` : null}
 
-      <div class="card fuel">
-        <div class="fuel-top">
-          <div>
-            <div class="eyebrow">${left >= 0 ? 'Calories left' : 'Over target'}</div>
-            <div class="big" style=${left < 0 ? 'color:var(--warn)' : ''}>${kc(Math.abs(left))}</div>
-          </div>
-          <div style="text-align:right">
-            ${fs.split ? html`<span class=${'pill ' + (tgt.type === 'train' ? 'accent' : '')}>${tgt.type === 'train' ? 'Training day' : 'Rest day'}</span>` : null}
-            <div class="small muted num" style="margin-top:6px">${kc(tot.kcal)} / ${kc(tgt.kcal)} kcal</div>
+      <section class="card plate" aria-label="Today's calories and macros">
+        <div class="plate-top">
+          <${PlateRing} tot=${tot} tgt=${tgt} />
+          <div class="plate-side">
+            <div class="plate-big ${over ? 'over' : ''}"><span class="num">${kc(Math.abs(left))}</span><span>${over ? 'kcal over' : 'kcal left'}</span></div>
+            <div class="plate-line"><span>Eaten</span><b class="num">${kc(tot.kcal)}</b></div>
+            <div class="plate-line"><span>Target</span><b class="num">${kc(tgt.kcal)}</b></div>
+            ${fs.split ? html`<span class=${'day-type ' + tgt.type}>${tgt.type === 'train' ? 'Workout day' : 'Rest day'}</span>` : null}
           </div>
         </div>
-        <div class="meter"><i class=${tot.kcal > tgt.kcal * 1.03 ? 'over' : ''} style=${`width:${Math.min(100, tot.kcal / Math.max(1, tgt.kcal) * 100)}%`}></i></div>
-        <div class="macros">
-          ${['p', 'c', 'f'].map(m => {
-            const pct = tot[m] / Math.max(1, tgt[m]);
-            const cls = m === 'p' ? (pct >= 0.95 ? 'good' : '') : pct > 1.1 ? 'over' : '';
-            return html`<div class="macro">
-              <span class="eyebrow">${F.MACRO[m]}</span>
-              <span class="v">${g(tot[m])}<small> / ${g(tgt[m])} g</small></span>
-              <div class="meter thin"><i class=${cls} style=${`width:${Math.min(100, pct * 100)}%`}></i></div>
+        <div class="mac-rows">
+          ${MAC.map(([m, name]) => {
+            const rem = tgt[m] - tot[m];
+            const pct = Math.min(100, tot[m] / Math.max(1, tgt[m]) * 100);
+            const note = m === 'p' ? (rem <= tgt[m] * 0.05 ? 'target hit' : `${g(rem)} g to go`) : rem >= 0 ? `${g(rem)} g left` : `${g(-rem)} g over`;
+            return html`<div class=${'mac-row ' + m}>
+              <div class="mac-label"><span>${name}</span><span class="num"><b>${g(tot[m])}</b> / ${g(tgt[m])} g</span></div>
+              <div class="mac-track"><i style=${`width:${pct}%`}></i></div>
+              <div class=${'mac-note' + (m !== 'p' && rem < 0 ? ' over' : m === 'p' && rem <= tgt[m] * 0.05 ? ' hit' : '')}>${note}</div>
             </div>`;
           })}
         </div>
         <div class="day-extra small">
-          <div><span class="muted">Fiber</span><b class="num">${g(tot.fiber)}${fs.fiber ? html`<small> / ${fs.fiber}</small>` : null} g</b></div>
+          <div><span class="muted">Fibre</span><b class="num">${g(tot.fiber)}${fs.fiber ? html`<small> / ${fs.fiber}</small>` : null} g</b></div>
           <div><span class="muted">Sugar</span><b class="num">${g(tot.sugar)} g</b></div>
           <div><span class="muted">Sodium</span><b class="num">${kc(tot.sodium)} mg</b></div>
         </div>
-      </div>
+      </section>
 
       ${!ent.length && yEnt.length ? html`<button class="btn block" onClick=${() => copyDay(yKey, key)}><${Icon} name="copy" size=${18} /> Copy ${fmtRel(fromKey(yKey)).toLowerCase()}'s food (${kc(F.sum(yEnt).kcal)} kcal)</button>` : null}
 
       ${fs.mealNames.map((meal, mi) => {
         const items = ent.filter(e => e.meal === meal || (mi === fs.mealNames.length - 1 && !fs.mealNames.includes(e.meal)));
         const mt = F.sum(items);
-        return html`<div class="list">
-          <div class="meal-head">
-            <span class="h-md">${meal}</span>
-            ${items.length ? html`<span class="small muted num">${kc(mt.kcal)} kcal · ${g(mt.p)}p</span>` : null}
+        const mk = mt.p * 4 + mt.c * 4 + mt.f * 9 || 1;
+        const add = () => nav.go('addFood', { date: key, meal });
+        return html`<section class="meal" aria-label=${meal}>
+          <div class="meal-top">
+            <div class="grow" style="min-width:0">
+              <div class="meal-name">${meal}</div>
+              ${items.length ? html`<div class="meal-sum num">${kc(mt.kcal)} kcal <span class="mp">${g(mt.p)}P</span> <span class="mc">${g(mt.c)}C</span> <span class="mf">${g(mt.f)}F</span></div>` : null}
+            </div>
             ${items.length ? html`<button class="icon-btn" aria-label=${meal + ' options'} onClick=${() => mealMenu(meal, items, key)}><${Icon} name="more" /></button>` : null}
-            <button class="icon-btn" aria-label=${'Add to ' + meal} style="color:var(--accent)" onClick=${() => nav.go('addFood', { date: key, meal })}><${Icon} name="plus" /></button>
+            <button class="meal-add" aria-label=${'Add to ' + meal} onClick=${add}><${Icon} name="plus" size=${20} /></button>
           </div>
-          ${items.map(e => html`<button class="row food-row" onClick=${() => editEntry(e)}>
-            <div class="grow"><div class="title">${e.name}</div><div class="sub">${F.qtyLabel(e, state.foods.find(f => f.id === e.foodId))}${e.brand ? ' · ' + e.brand : ''}</div></div>
-            <div><div class="kc">${kc(e.kcal)}</div><div class="macs">${g(e.p)}p ${g(e.c)}c ${g(e.f)}f</div></div>
-          </button>`)}
-        </div>`;
+          ${items.length ? html`<div class="meal-mix" aria-hidden="true"><i class="p" style=${`flex:${mt.p * 4 / mk}`}></i><i class="c" style=${`flex:${mt.c * 4 / mk}`}></i><i class="f" style=${`flex:${mt.f * 9 / mk}`}></i></div>
+            ${items.map(e => html`<button class="food-row2" onClick=${() => editEntry(e)}>
+              <div class="grow" style="min-width:0"><div class="fr-name">${e.name}</div><div class="fr-sub">${F.qtyLabel(e, state.foods.find(f => f.id === e.foodId))}${e.brand ? ' · ' + e.brand : ''}</div></div>
+              <div class="fr-right"><div class="fr-kc num">${kc(e.kcal)}</div><div class="fr-mac num"><span class="mp">${g(e.p)}</span><span class="mc">${g(e.c)}</span><span class="mf">${g(e.f)}</span></div></div>
+            </button>`)}`
+          : html`<button class="meal-empty" onClick=${add}>Add ${meal.toLowerCase()}</button>`}
+        </section>`;
       })}
 
       ${fs.water ? html`<${Water} state=${state} dkey=${key} />` : null}
     </div>`;
 }
 
+// The calorie ring: fills with protein, carbs and fat (as calories) in their own colours,
+// so you see how much you've eaten and what it was made of in one shape.
+function PlateRing({ tot, tgt }) {
+  const R = 54, C = 2 * Math.PI * R;
+  const cap = Math.max(tgt.kcal, tot.kcal, 1);
+  const parts = [['p', tot.p * 4], ['c', tot.c * 4], ['f', tot.f * 9]];
+  const macroK = parts.reduce((s, x) => s + x[1], 0) || 1;
+  const eatenFrac = Math.min(1, tot.kcal / cap);
+  let off = 0;
+  const segs = parts.map(([m, k]) => {
+    const len = C * eatenFrac * (k / macroK);
+    const seg = { m, len, off };
+    off += len;
+    return seg;
+  });
+  const targetMark = tot.kcal > tgt.kcal ? (tgt.kcal / cap) * 360 : null;
+  return html`<svg class="plate-ring" viewBox="0 0 132 132" role="img" aria-label=${`${Math.round(tot.kcal)} of ${Math.round(tgt.kcal)} kcal eaten`}>
+    <circle cx="66" cy="66" r=${R} class="track" />
+    <g transform="rotate(-90 66 66)">
+      ${segs.filter(s => s.len > 0.5).map(s => html`<circle cx="66" cy="66" r=${R} class=${'seg ' + s.m} stroke-dasharray=${`${Math.max(0, s.len - 2)} ${C}`} stroke-dashoffset=${-s.off} />`)}
+    </g>
+    ${targetMark != null ? html`<line x1="66" y1="4" x2="66" y2="20" class="target-mark" transform=${`rotate(${targetMark} 66 66)`} />` : null}
+    <text x="66" y="62" text-anchor="middle" class="ring-pct">${Math.round(tot.kcal / Math.max(1, tgt.kcal) * 100)}%</text>
+    <text x="66" y="80" text-anchor="middle" class="ring-sub">of target</text>
+  </svg>`;
+}
+
+// This week at a glance: each day is a small column that fills toward its calorie target.
+function WeekStrip({ state, dkey, onPick }) {
+  const sel = fromKey(dkey);
+  const start = startOfWeek(sel, state.settings.weekStart);
+  const today = todayKey();
+  const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  const shift = n => onPick(dayKey(addDays(sel, n * 7)) > today ? today : dayKey(addDays(sel, n * 7)));
+  return html`<div class="week-strip">
+    <button class="icon-btn" aria-label="Previous week" onClick=${() => shift(-1)}><${Icon} name="left" size=${18} /></button>
+    <div class="ws-days">${days.map(d => {
+      const k = dayKey(d);
+      const future = k > today;
+      const t = F.targetFor(state, k).kcal || 1;
+      const e = F.sum(F.dayEntries(state, k)).kcal;
+      const pct = Math.min(1, e / t);
+      const near = e > 0 && Math.abs(e - t) <= t * 0.1;
+      return html`<button class=${'ws-day' + (k === dkey ? ' sel' : '') + (k === today ? ' today' : '')} disabled=${future} onClick=${() => onPick(k)} aria-label=${`${d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}${e ? `, ${Math.round(e)} kcal` : ''}`}>
+        <span class="ws-wd">${d.toLocaleDateString(undefined, { weekday: 'narrow' })}</span>
+        <span class="ws-bar"><i class=${near ? 'near' : e > t * 1.1 ? 'over' : ''} style=${`height:${pct * 100}%`}></i></span>
+        <span class="ws-date num">${d.getDate()}</span>
+      </button>`;
+    })}</div>
+    <button class="icon-btn" aria-label="Next week" disabled=${dayKey(addDays(start, 7)) > today} onClick=${() => shift(1)}><${Icon} name="right" size=${18} /></button>
+  </div>`;
+}
+
 function Water({ state, dkey }) {
   const ml = state.water[dkey] || 0, target = state.food.water;
-  const glasses = Math.ceil(target / 250);
   const add = d => store.update(st => { st.water[dkey] = Math.max(0, (st.water[dkey] || 0) + d); });
-  return html`<div class="card water">
-    <span style="color:var(--accent)"><${Icon} name="drop" /></span>
-    <div class="grow" style="min-width:0">
-      <div class="hstack" style="justify-content:space-between"><span class="h-md">Water</span><span class="small num muted">${fmtNum(ml / 1000, 2)} / ${fmtNum(target / 1000, 1)} L</span></div>
-      <div class="glasses" style="margin-top:8px">${Array.from({ length: glasses }, (_, i) => html`<i class=${i < Math.round(ml / 250) ? 'on' : ''}></i>`)}</div>
+  const pct = Math.min(100, ml / Math.max(1, target) * 100);
+  return html`<section class="card water2" aria-label="Water">
+    <div class="w-top">
+      <span class="w-icon"><${Icon} name="drop" size=${20} /></span>
+      <div class="grow"><div class="meal-name">Water</div><div class="meal-sum num">${fmtNum(ml / 1000, 2)} of ${fmtNum(target / 1000, 1)} L${ml >= target ? ' · goal reached' : ''}</div></div>
+      <button class="icon-btn" aria-label="Remove 250 ml" disabled=${!ml} onClick=${() => add(-250)}><${Icon} name="minus" /></button>
     </div>
-    <button class="icon-btn" aria-label="Remove 250 ml" onClick=${() => add(-250)}><${Icon} name="minus" /></button>
-    <button class="btn sm primary" aria-label="Add 250 ml" onClick=${() => add(250)}>+250</button>
-  </div>`;
+    <div class="w-track"><i style=${`width:${pct}%`}></i></div>
+    <div class="grid3">
+      <button class="btn sm" onClick=${() => add(250)}>+ 250 ml</button>
+      <button class="btn sm" onClick=${() => add(500)}>+ 500 ml</button>
+      <button class="btn sm" onClick=${() => add(750)}>+ 750 ml</button>
+    </div>
+  </section>`;
 }
 
 function copyDay(from, to) {
